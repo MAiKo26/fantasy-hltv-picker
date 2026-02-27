@@ -57,3 +57,11 @@ export interface AnalyzerService {
 export interface ExtractorService {
   extract(filePath: string): Promise<ExtractionResult>;
 }
+
+export type Strategy = "2-2-1" | "2-1-1-1" | "1-1-1-1-1";
+export type MinG2Players = "Auto" | 1 | 2;
+
+export interface FantasyConfig {
+  strategy: Strategy;
+  minG2Players: MinG2Players;
+}

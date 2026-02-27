@@ -60,7 +60,7 @@ export async function extractFromHtml(sourceFile: string): Promise<ExtractionRes
     const roster: string[] = [];
 
     $(teamEl).find(".teamPlayer").each((_playerIndex, playerEl) => {
-      const nameEl = $(playerEl).find(".card-player-tag");
+      const nameEl = $(playerEl).find(".card-player-tag").first();
       const playerName = nameEl.text().trim();
       
       if (playerName) {
