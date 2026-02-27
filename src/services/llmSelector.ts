@@ -100,16 +100,19 @@ ${JSON.stringify(promptData, null, 2)}
 
   /**
    * Evaluate all lineups one-by-one (sequential), calling onProgress after each.
-   * Returns the best-scoring lineup's full result.
+   * Returns the top 3 scoring lineups.
    */
   async selectBestLineup(
     lineups: MathLineup[],
     onProgress?: LlmProgressCallback,
   ): Promise<{
-    bestLineupIndex: number;
-    reasoning: string;
-    roles: Record<string, string>;
-    boosters: Record<string, string>;
+    top3: Array<{
+      lineupIndex: number;
+      reasoning: string;
+      roles: Record<string, string>;
+      boosters: Record<string, string>;
+      score: number;
+    }>;
   }> {
     const scores: LineupScore[] = [];
 
@@ -125,14 +128,18 @@ ${JSON.stringify(promptData, null, 2)}
       );
     }
 
-    // Pick the highest scoring lineup
-    const best = scores.reduce((a, b) => (b.score > a.score ? b : a));
+    // Sort by score descending and take top 3
+    const sorted = [...scores].sort((a, b) => b.score - a.score);
+    const top3 = sorted.slice(0, 3);
 
     return {
-      bestLineupIndex: best.index,
-      reasoning: best.reasoning,
-      roles: best.roles,
-      boosters: best.boosters,
+      top3: top3.map((s) => ({
+        lineupIndex: s.index,
+        reasoning: s.reasoning,
+        roles: s.roles,
+        boosters: s.boosters,
+        score: s.score,
+      })),
     };
   }
 }

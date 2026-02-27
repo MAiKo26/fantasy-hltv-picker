@@ -203,28 +203,40 @@ const ROLE_ICONS: Record<string, string> = {
   "Eco Friendly": "♻️",
 };
 
+function formatPlayerLine(p: { id: string; name: string; team: string; role: string; rating: number }, roles: Record<string, string>, boosters: Record<string, string>): string {
+  const name = chalk.white.bold(p.name);
+  const team = chalk.cyan(`(${p.team})`);
+  const roleRaw = roles[p.id] || p.role;
+  const roleIcon = ROLE_ICONS[roleRaw] ?? "🎮";
+  const role = chalk.yellow(`${roleIcon} ${roleRaw}`);
+  const booster = chalk.magenta(`⚡ ${boosters[p.id] || "—"}`);
+  const rating = chalk.green(`★ ${p.rating.toFixed(2)}`);
+  return `${name} ${team}  ${role}  ${booster}  ${rating}`;
+}
+
 export function printFinalTeamBox(result: AnalysisResult): void {
-  const lines = result.players.map((p, i) => {
-    const idx = chalk.gray(`${i + 1}.`);
-    const name = chalk.white.bold(p.name);
-    const team = chalk.cyan(`(${p.team})`);
-    const roleRaw = result.roles[p.id] || p.role;
-    const roleIcon = ROLE_ICONS[roleRaw] ?? "🎮";
-    const role = chalk.yellow(`${roleIcon} ${roleRaw}`);
-    const booster = chalk.magenta(`⚡ ${result.boosters[p.id] || "—"}`);
-    const rating = chalk.green(`★ ${p.rating.toFixed(2)}`);
-    return `  ${idx} ${name} ${team}  ${role}  ${booster}  ${rating}`;
-  });
+  // Print top 3 lineups
+  const top3Box = result.top3.map((lineup, idx) => {
+    const rank = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
+    const rankLabel = idx === 0 ? "RECOMMENDED" : `OPTION ${idx + 1}`;
+    const scoreLabel = chalk.gray(`Score: ${lineup.score}`);
 
-  const header = chalk.bold("🏆 Recommended Fantasy Team\n");
-  const divider = chalk.gray("─".repeat(60));
-  const body = `${header}\n${divider}\n${lines.join("\n")}\n${divider}`;
+    const lines = lineup.players.map((p, i) => {
+      const idxNum = chalk.gray(`${i + 1}.`);
+      return `    ${idxNum} ${formatPlayerLine(p, lineup.roles, lineup.boosters)}`;
+    });
 
-  const box = boxen(body, {
+    const header = chalk.bold(`${rank} ${rankLabel} ${scoreLabel}`);
+    const divider = chalk.gray("─".repeat(58));
+
+    return `${header}\n${divider}\n${lines.join("\n")}\n${divider}\n${chalk.cyan("Reasoning:")} ${chalk.white(lineup.reasoning)}`;
+  }).join("\n\n");
+
+  const box = boxen(top3Box, {
     padding: {top: 1, bottom: 1, left: 2, right: 2},
     borderStyle: "double",
     borderColor: "green",
-    title: "FINAL TEAM",
+    title: "TOP 3 LINEUPS",
     titleAlignment: "center",
   });
 

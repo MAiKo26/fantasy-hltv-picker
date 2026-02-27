@@ -52,13 +52,13 @@ export class FantasyAnalyzerService implements AnalyzerService {
       onLlmProgress,
     );
     llmBar.done(
-      `Best lineup selected (index ${llmResult.bestLineupIndex})`,
+      `Top lineups selected`,
       bestLineups.length,
     );
 
     // ── Assemble result ──────────────────────────────────────────────────────
     const chosenMathLineup =
-      bestLineups[llmResult.bestLineupIndex] || bestLineups[0];
+      bestLineups[llmResult.top3[0]!.lineupIndex] || bestLineups[0];
 
     if (!chosenMathLineup) {
       throw new Error("No math lineup selected");
@@ -68,17 +68,38 @@ export class FantasyAnalyzerService implements AnalyzerService {
       id: fp.id,
       name: fp.name,
       team: fp.team,
-      role: llmResult.roles[fp.id] || "No Role Assigned",
+      role: llmResult.top3[0]!.roles[fp.id] || "No Role Assigned",
       rating: fp.stats.rating,
     }));
+
+    const top3: AnalysisResult["top3"] = llmResult.top3.map((t) => {
+      const mathLineup = bestLineups[t.lineupIndex];
+      if (!mathLineup) {
+        return {
+          ...t,
+          players: [],
+        };
+      }
+      return {
+        ...t,
+        players: mathLineup.players.map((fp) => ({
+          id: fp.id,
+          name: fp.name,
+          team: fp.team,
+          role: t.roles[fp.id] || "No Role Assigned",
+          rating: fp.stats.rating,
+        })),
+      };
+    });
 
     return {
       players: finalPlayers,
       analyzedAt: new Date(),
       sourceUrl,
-      roles: llmResult.roles,
-      boosters: llmResult.boosters,
-      reasoning: llmResult.reasoning,
+      roles: llmResult.top3[0]!.roles,
+      boosters: llmResult.top3[0]!.boosters,
+      reasoning: llmResult.top3[0]!.reasoning,
+      top3,
     };
   }
 }
