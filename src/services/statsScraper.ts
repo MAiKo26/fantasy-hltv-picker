@@ -1,90 +1,156 @@
 import * as cheerio from "cheerio";
-import {env} from "../env.ts";
+import * as fs from "fs";
+import * as path from "path";
 import {cacheService} from "./cacheService.ts";
 import type {FantasyPlayer} from "../types/player.ts";
 
 export interface historicalPlayerStat {
   name: string;
   rating: number;
+  maps?: number;
+  kd?: number;
+}
+
+export interface ParseDebugInfo {
+  filename: string;
+  totalRowsFound: number;
+  validRowsParsed: number;
+  skippedRows: number;
+  sampleRows: Array<{
+    rawName: string;
+    rawRating: string;
+    rawMaps: string;
+    rawKd: string;
+    parsed: historicalPlayerStat | null;
+  }>;
 }
 
 export class StatsScraperService {
+  private parseHtml(
+    html: string,
+    debug = false,
+  ): {stats: historicalPlayerStat[]; debugInfo?: ParseDebugInfo} {
+    const $ = cheerio.load(html);
+    const stats: historicalPlayerStat[] = [];
+
+    // Target only the player-ratings stats table to avoid picking up
+    // other tables on the page (calendar, nav widgets, etc.)
+    const tableSelector =
+      "table.stats-table.player-ratings-table tbody tr, " +
+      "table.stats-table tbody tr";
+
+    const rows = $(tableSelector);
+    let skipped = 0;
+    const sampleRows: ParseDebugInfo["sampleRows"] = [];
+
+    rows.each((_, row) => {
+      const nameNode = $(row).find(".playerCol a");
+      const rawName = nameNode.text().trim();
+
+      // ratingCol may also have class ratingPositive/ratingNegative
+      const ratingNode = $(row).find("td.ratingCol").first();
+      const rawRating = ratingNode.text().trim();
+      const rating = parseFloat(rawRating);
+
+      const mapsNode = $(row).find("td.mapsCol, td.statsDetail").first();
+      const rawMaps = mapsNode.text().trim();
+      const maps = parseInt(rawMaps, 10) || undefined;
+
+      const kdNode = $(row).find("td.kdCol").first();
+      const rawKd = kdNode.text().trim();
+      const kd = parseFloat(rawKd) || undefined;
+
+      const parsed: historicalPlayerStat | null =
+        rawName && !isNaN(rating) ? {name: rawName, rating, maps, kd} : null;
+
+      if (debug && sampleRows.length < 5) {
+        sampleRows.push({rawName, rawRating, rawMaps, rawKd, parsed});
+      }
+
+      if (parsed) {
+        stats.push(parsed);
+      } else {
+        skipped++;
+      }
+    });
+
+    if (!debug) return {stats};
+
+    return {
+      stats,
+      debugInfo: {
+        filename: "",
+        totalRowsFound: rows.length,
+        validRowsParsed: stats.length,
+        skippedRows: skipped,
+        sampleRows,
+      },
+    };
+  }
+
   private async fetchAndParse(
-    url: string,
+    filename: string,
     cacheKey: string,
-  ): Promise<historicalPlayerStat[]> {
-    const cached = cacheService.get<historicalPlayerStat[]>(cacheKey);
-    if (cached) {
-      return cached;
+    debug = false,
+  ): Promise<{stats: historicalPlayerStat[]; debugInfo?: ParseDebugInfo}> {
+    if (!debug) {
+      const cached = cacheService.get<historicalPlayerStat[]>(cacheKey);
+      if (cached) return {stats: cached};
     }
 
     try {
-      const response = await fetch(url, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        },
-      });
+      const filePath = path.join(process.cwd(), "stats", filename);
+      const html = fs.readFileSync(filePath, "utf-8");
+      const result = this.parseHtml(html, debug);
 
-      if (!response.ok) {
-        console.warn(
-          `Failed to fetch stats from ${url}: ${response.statusText}`,
-        );
-        return [];
-      }
+      if (result.debugInfo) result.debugInfo.filename = filename;
 
-      const html = await response.text();
-      const $ = cheerio.load(html);
-      const stats: historicalPlayerStat[] = [];
+      if (!debug) cacheService.set(cacheKey, result.stats);
 
-      $("tbody tr").each((_, row) => {
-        const nameNode = $(row).find(".playerCol a");
-        let name = nameNode.text().trim();
-        const ratingNode = $(row).find(".ratingCol").first();
-        const rating = parseFloat(ratingNode.text().trim());
-
-        if (name && !isNaN(rating)) {
-          stats.push({name, rating});
-        }
-      });
-
-      cacheService.set(cacheKey, stats);
-      return stats;
+      return result;
     } catch (error) {
-      console.warn(`Error scraping stats from ${url}:`, error);
-      return [];
+      console.warn(`Error reading stats from ${filename}:`, error);
+      return {stats: []};
     }
   }
 
   async enrichPlayersWithHistoricalStats(
     players: FantasyPlayer[],
   ): Promise<FantasyPlayer[]> {
-    const [stats3m, stats6m, stats12m] = await Promise.all([
-      this.fetchAndParse(env.HLTV_STATS_3M_LAN_TOP20_URL, "stats_3m_top20"),
-      this.fetchAndParse(env.HLTV_STATS_6M_LAN_TOP20_URL, "stats_6m_top20"),
-      this.fetchAndParse(env.HLTV_STATS_12M_TOP50_URL, "stats_12m_top50"),
+    const [r3m, r6m, r12m] = await Promise.all([
+      this.fetchAndParse("last_3_months_top_20.html", "stats_3m_top20"),
+      this.fetchAndParse("last_6_months_top_30.html", "stats_6m_top30"),
+      this.fetchAndParse("last_12_months_top_50.html", "stats_12m_top50"),
     ]);
 
     const buildDict = (stats: historicalPlayerStat[]) => {
-      const dict: Record<string, number> = {};
-      stats.forEach((s) => (dict[s.name.toLowerCase()] = s.rating));
+      const dict: Record<string, historicalPlayerStat> = {};
+      stats.forEach((s) => (dict[s.name.toLowerCase()] = s));
       return dict;
     };
 
-    const dict3m = buildDict(stats3m);
-    const dict6m = buildDict(stats6m);
-    const dict12m = buildDict(stats12m);
+    const dict3m = buildDict(r3m.stats);
+    const dict6m = buildDict(r6m.stats);
+    const dict12m = buildDict(r12m.stats);
 
     return players.map((player) => {
-      const loweredName = player.name.toLowerCase();
+      const key = player.name.toLowerCase();
       return {
         ...player,
         stats: {
           ...player.stats,
-          rating3mTop20: dict3m[loweredName],
-          rating6mTop20: dict6m[loweredName],
-          rating12mTop50: dict12m[loweredName],
+          rating3mTop20: dict3m[key]?.rating,
+          rating6mTop30: dict6m[key]?.rating,
+          rating12mTop50: dict12m[key]?.rating,
         },
       };
     });
   }
+
+  /** Exposed for the show-stats debug script */
+  async debugParse(filename: string, cacheKey: string) {
+    return this.fetchAndParse(filename, cacheKey, true);
+  }
 }
+
+export const statsScraperService = new StatsScraperService();
