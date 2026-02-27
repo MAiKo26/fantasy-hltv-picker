@@ -121,3 +121,19 @@ export async function promptForMinG2Players(
 
   return g2Map[answers.minG2Players] ?? "Auto";
 }
+
+export interface DisableLLMEvaluationAnswers {
+  disableLLMEvaluation: boolean;
+}
+
+export async function promptForDisableLLMEvaluation(): Promise<boolean> {
+  const question: Question<DisableLLMEvaluationAnswers> = {
+    type: "confirm",
+    name: "disableLLMEvaluation",
+    message: "Disable Stage 3 (LLM Evaluation)?",
+    default: false,
+  };
+
+  const answers = await inquirer.prompt([question]);
+  return answers.disableLLMEvaluation;
+}

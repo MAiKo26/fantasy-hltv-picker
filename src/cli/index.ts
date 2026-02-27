@@ -13,6 +13,7 @@ import {
   promptForSourceFile,
   promptForStrategy,
   promptForMinG2Players,
+  promptForDisableLLMEvaluation,
 } from "./prompts.ts";
 import {HtmlExtractorService} from "../services/extractor.ts";
 import {FantasyAnalyzerService} from "../services/analyzer.ts";
@@ -49,15 +50,18 @@ export async function main(): Promise<void> {
 
   const strategy = await promptForStrategy();
   const minG2Players = await promptForMinG2Players(result.teams);
+  const disableLLMEvaluation = await promptForDisableLLMEvaluation();
 
   const config: FantasyConfig = {
     strategy,
     minG2Players: minG2Players ?? "Auto",
+    disableLLMEvaluation,
   };
 
   console.log("\n📋 Configuration selected:");
   console.log(`   Strategy: ${config.strategy}`);
   console.log(`   Min G2 Players: ${config.minG2Players}`);
+  console.log(`   LLM Evaluation: ${config.disableLLMEvaluation ? "Disabled" : "Enabled"}`);
 
   // ── Analysis: progress bars are rendered inside analyzer/llmSelector ───────
   const analyzer = new FantasyAnalyzerService();

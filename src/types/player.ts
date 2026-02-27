@@ -89,4 +89,5 @@ export type MinG2Players = "Auto" | 1 | 2;
 export interface FantasyConfig {
   strategy: Strategy;
   minG2Players: MinG2Players;
+  disableLLMEvaluation?: boolean;
 }
