@@ -8,7 +8,8 @@ import type {
 import {StatsScraperService} from "./statsScraper.ts";
 import {mathOptimizer} from "./mathOptimizer.ts";
 import {llmSelector} from "./llmSelector.ts";
-import ora from "ora";
+import type {LlmProgressCallback} from "./llmSelector.ts";
+import {createProgressBar} from "../cli/output.ts";
 
 export class FantasyAnalyzerService implements AnalyzerService {
   async analyze(
@@ -17,37 +18,45 @@ export class FantasyAnalyzerService implements AnalyzerService {
     config: FantasyConfig,
     sourceUrl: string,
   ): Promise<AnalysisResult> {
-    // 1. Scrape and Enrich
-    const scraperSpinner = ora(
-      "Fetching historical player stats from HLTV (or cache)...",
-    ).start();
+    // ── Stage 1: Stats Enrichment ────────────────────────────────────────────
+    const statsBar = createProgressBar("Stage 1 · Enriching player stats");
+    statsBar.tick(0, 1, "Fetching historical HLTV stats (cache or disk)...");
     const scraper = new StatsScraperService();
     const enrichedPlayers =
       await scraper.enrichPlayersWithHistoricalStats(players);
-    scraperSpinner.succeed("Player stats enriched.");
+    statsBar.done("Stats enriched", 1);
 
-    // 2. Math Optimizer
-    const mathSpinner = ora(
-      "Generating mathematically optimal lineups...",
-    ).start();
+    // ── Stage 2: Math Optimizer ──────────────────────────────────────────────
+    const mathBar = createProgressBar("Stage 2 · Generating optimal lineups");
+    mathBar.tick(0, 1, "Crunching combinations...");
     const bestLineups = mathOptimizer.optimize(enrichedPlayers, config);
-    mathSpinner.succeed(
-      `Generated ${bestLineups.length} valid top lineups mathematically.`,
-    );
 
     if (bestLineups.length === 0) {
       throw new Error(
         "Could not find any mathematically valid lineups for given budget and constraints.",
       );
     }
+    mathBar.done(`Generated ${bestLineups.length} valid lineups`, 1);
 
-    // 3. LLM Selection
-    const llmSpinner = ora(
-      "Asking LLM to pick the absolute best lineup based on context...",
-    ).start();
-    const llmResult = await llmSelector.selectBestLineup(bestLineups);
-    llmSpinner.succeed("LLM decision received.");
+    // ── Stage 3: LLM Evaluation (one call per lineup) ───────────────────────
+    const llmBar = createProgressBar(
+      `Stage 3 · AI evaluating ${bestLineups.length} lineups`,
+    );
 
+    const onLlmProgress: LlmProgressCallback = (completed, total, label) => {
+      llmBar.tick(completed, total, label);
+    };
+
+    const llmResult = await llmSelector.selectBestLineup(
+      bestLineups,
+      onLlmProgress,
+    );
+    llmBar.done(
+      `Best lineup selected (index ${llmResult.bestLineupIndex})`,
+      bestLineups.length,
+    );
+
+    // ── Assemble result ──────────────────────────────────────────────────────
     const chosenMathLineup =
       bestLineups[llmResult.bestLineupIndex] || bestLineups[0];
 
@@ -55,7 +64,6 @@ export class FantasyAnalyzerService implements AnalyzerService {
       throw new Error("No math lineup selected");
     }
 
-    // Map FantasyPlayer back to Player interface for output
     const finalPlayers = chosenMathLineup.players.map((fp) => ({
       id: fp.id,
       name: fp.name,
@@ -63,10 +71,6 @@ export class FantasyAnalyzerService implements AnalyzerService {
       role: llmResult.roles[fp.id] || "No Role Assigned",
       rating: fp.stats.rating,
     }));
-
-    // Output reasoning to console for transparency
-    console.log("\n🧠 AI Reasoning:");
-    console.log(`\x1b[36m${llmResult.reasoning}\x1b[0m\n`);
 
     return {
       players: finalPlayers,

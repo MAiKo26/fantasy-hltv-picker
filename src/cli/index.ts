@@ -5,6 +5,8 @@ import {
   printError,
   printExtractionSummary,
   printGoodbye,
+  printReasoningBox,
+  printFinalTeamBox,
 } from "./output.ts";
 import {
   promptForSourceFile,
@@ -56,10 +58,7 @@ export async function main(): Promise<void> {
   console.log(`   Strategy: ${config.strategy}`);
   console.log(`   Min G2 Players: ${config.minG2Players}`);
 
-  // Pass config to analyzer
-  const analyzerSpinner = createSpinner(
-    "Analyzing players and composing final team...",
-  );
+  // ── Analysis: progress bars are rendered inside analyzer/llmSelector ───────
   const analyzer = new FantasyAnalyzerService();
 
   let analysisResult: AnalysisResult;
@@ -70,18 +69,10 @@ export async function main(): Promise<void> {
       config,
       sourceFile,
     );
-    analyzerSpinner.succeed();
-    printSuccess("Analysis complete!");
 
-    // Display result simply for now
-    console.log("\n🏆 Final Recommended Team:");
-    analysisResult.players.forEach((p) => {
-      console.log(
-        `- ${p.name} (${p.team}) | Role: ${analysisResult.roles[p.id] || p.role} | Booster: ${analysisResult.boosters[p.id] || "None"}`,
-      );
-    });
+    printReasoningBox(analysisResult.reasoning);
+    printFinalTeamBox(analysisResult);
   } catch (error) {
-    analyzerSpinner.fail();
     printError(
       `Analysis failed: ${error instanceof Error ? error.message : "Unknown error"}`,
     );

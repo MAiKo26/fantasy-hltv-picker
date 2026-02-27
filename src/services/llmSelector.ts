@@ -2,6 +2,20 @@ import {GoogleGenAI} from "@google/genai";
 import {env} from "../env.ts";
 import type {MathLineup} from "./mathOptimizer.ts";
 
+export type LlmProgressCallback = (
+  completed: number,
+  total: number,
+  label: string,
+) => void;
+
+interface LineupScore {
+  index: number;
+  score: number;
+  reasoning: string;
+  roles: Record<string, string>;
+  boosters: Record<string, string>;
+}
+
 export class LlmSelector {
   private ai: GoogleGenAI;
 
@@ -9,52 +23,53 @@ export class LlmSelector {
     this.ai = new GoogleGenAI({apiKey: env.GEMINI_API_KEY});
   }
 
-  async selectBestLineup(lineups: MathLineup[]): Promise<{
-    bestLineupIndex: number;
-    reasoning: string;
-    roles: Record<string, string>; // player ID -> role name
-    boosters: Record<string, string>; // player ID -> booster name
-  }> {
-    // Dump the minimal data to keep prompt small
-    const promptData = lineups.map((l, i) => ({
-      index: i,
-      strategy: l.strategyUsed,
-      totalPrice: l.totalPrice,
-      players: l.players.map((p) => ({
+  /** Score a single lineup and return its evaluation */
+  private async scoreLineup(
+    lineup: MathLineup,
+    index: number,
+  ): Promise<LineupScore> {
+    const promptData = {
+      index,
+      players: lineup.players.map((p) => ({
         id: p.id,
         name: p.name,
         team: p.team,
         stats: p.stats,
       })),
-    }));
+    };
 
     const prompt = `
-      You are an elite optimal Fantasy CS2 builder. Your goal is to reach the top 1% by picking the absolute best roster from these pre-validated options.
-      I am providing you with the top ${lineups.length} mathematically optimal lineups. All lineups strictly obey the budget and team composition rules.
-      
-      Your task:
-      1. Pick the ONE best lineup index. Focus on players with high variance/ceilings, good recent form, and strong team synergies.
-      2. For the 5 players in your chosen lineup, assign exactly 5 ROLES.
-      3. For the 5 players, assign exactly 5 BOOSTERS.
+You are an elite Fantasy CS2 analyst. Evaluate this lineup for HLTV Fantasy scoring potential.
 
-      Role Options: Main AWP, Support, Attacker, Leader, Stathunter, Entry Fragger, Camper, Defender, HS Machine, Noob, Multi Fragger, Eco Friendly.
-      Booster Options: Best pistol round, Bottom of scoreboard, Clutch, Top of scoreboard, Avenger, Bait, Rambo, Flash, Mister consistent, Kobe, Saver, Assist, Aim bot, Quad, Carry, Cannon fodder, Farmer, Hellcase.
+## SCORING SYSTEM (CRITICAL - USE THIS TO EVALUATE)
 
-      Respond ONLY in the following JSON structure exactly, no markdown formatting out of bounds:
-      {
-        "bestLineupIndex": 0,
-        "reasoning": "I chose this because...",
-        "roles": { "player1_id": "Main AWP", "player2_id": "Attacker" },
-        "boosters": { "player1_id": "Carry", "player2_id": "Clutch" }
-      }
+### ROLES (5/2 points - can EARN or LOSE points based on performance)
+Each role has MAX bonus, SMALL bonus, and PENALTY thresholds:
+- Main AWP: AWP kills pr round. Max: >0.35, Small: ≥0.20, Penalty: <0.20
+- Support: Support rounds (assist/survived/traded). Max: >25%, Small: ≥17%, Penalty: <17%
+- Attacker: T side rating. Max: >1.30, Small: ≥0.9, Penalty: <0.9
+- Leader: Team match result. Max: win all maps, Small: win with 1 loss or OT, Penalty: lose
+- Stathunter: Match rating. Max: >1.30, Small: ≥1.00, Penalty: <1.00
+- Entry Fragger: First kills pr round. Max: >0.15, Small: ≥0.08, Penalty: <0.08
+- Camper: Deaths pr round (lower is better). Max: <0.55, Small: ≤0.65, Penalty: >0.65
+- Defender: CT side rating. Max: >1.35, Small: ≥1.00, Penalty: <1.00
+- HS Machine: Headshot %. Max: >60%, Small: ≥50%, Penalty: <50%
+- Noob: Match rating (lower is better). Max: <0.85, Small: ≤1.12, Penalty: >1.12
+- Multi Fragger: Multi kills pr round. Max: >0.20, Small: ≥0.14, Penalty: <0.14
+- Eco Friendly: SMG/shotgun kills pr round. Max: >0.07, Small: ≥0.02, Penalty: <0.02
 
-      Here are the lineups:
-      ${JSON.stringify(promptData, null, 2)}
-    `;
+## YOUR TASK
+1. Score 0-100 based on expected fantasy points (consider role potential)
+2. Assign roles that MATCH player stats (e.g., high entry % → Entry Fragger, high AWP → Main AWP)
+3. Write ONE sentence reasoning focusing on point ceiling and role/booster synergy
+
+Lineup to evaluate:
+${JSON.stringify(promptData, null, 2)}
+`;
 
     try {
       const response = await this.ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3-flash-preview",
         contents: prompt,
       });
 
@@ -66,20 +81,59 @@ export class LlmSelector {
       const parsed = JSON.parse(cleanText);
 
       return {
-        bestLineupIndex: parsed.bestLineupIndex ?? 0,
-        reasoning: parsed.reasoning ?? "Fallback reasoning",
+        index,
+        score: typeof parsed.score === "number" ? parsed.score : 50,
+        reasoning: parsed.reasoning ?? "",
         roles: parsed.roles ?? {},
         boosters: parsed.boosters ?? {},
       };
-    } catch (e) {
-      console.error("LLM Selection failed, falling back to top math lineup", e);
+    } catch {
       return {
-        bestLineupIndex: 0,
-        reasoning: "LLM failed, choosing highest raw math score.",
+        index,
+        score: 0,
+        reasoning: "LLM evaluation failed for this lineup.",
         roles: {},
         boosters: {},
       };
     }
+  }
+
+  /**
+   * Evaluate all lineups one-by-one (sequential), calling onProgress after each.
+   * Returns the best-scoring lineup's full result.
+   */
+  async selectBestLineup(
+    lineups: MathLineup[],
+    onProgress?: LlmProgressCallback,
+  ): Promise<{
+    bestLineupIndex: number;
+    reasoning: string;
+    roles: Record<string, string>;
+    boosters: Record<string, string>;
+  }> {
+    const scores: LineupScore[] = [];
+
+    for (let i = 0; i < lineups.length; i++) {
+      const lineup = lineups[i]!;
+      const result = await this.scoreLineup(lineup, i);
+      scores.push(result);
+
+      onProgress?.(
+        i + 1,
+        lineups.length,
+        `Evaluated lineup ${i + 1}/${lineups.length} — score: ${result.score}`,
+      );
+    }
+
+    // Pick the highest scoring lineup
+    const best = scores.reduce((a, b) => (b.score > a.score ? b : a));
+
+    return {
+      bestLineupIndex: best.index,
+      reasoning: best.reasoning,
+      roles: best.roles,
+      boosters: best.boosters,
+    };
   }
 }
 

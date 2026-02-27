@@ -87,10 +87,9 @@ export class MathOptimizer {
 
     // We can't do combinations of all players, it's C(80, 5) = 24 million
     // So we first sort players by cost-efficiency or raw score and take top N
-    const sortedPlayers = [...validPlayers].sort(
+    const pool = [...validPlayers].sort(
       (a, b) => this.getExpectedBaseScore(b) - this.getExpectedBaseScore(a),
     );
-    const pool = sortedPlayers.slice(0, 35); // top 35 players
 
     const combinations = this.getCombinations(pool, 5);
     const validLineups: MathLineup[] = [];
