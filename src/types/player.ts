@@ -11,6 +11,10 @@ export interface PlayerStats {
   supportRoundsPct: number;
   multiKillRoundsPct: number;
   deathsPerRound: number;
+  // Scraped Historical Stats
+  rating3mTop20?: number;
+  rating6mTop20?: number;
+  rating12mTop50?: number;
 }
 
 export interface FantasyPlayer {
@@ -48,17 +52,25 @@ export interface AnalysisResult {
   players: Player[];
   analyzedAt: Date;
   sourceUrl: string;
+  roles: Record<string, string>;
+  boosters: Record<string, string>;
+  reasoning: string;
 }
 
 export interface AnalyzerService {
-  analyze(url: string): Promise<AnalysisResult>;
+  analyze(
+    players: FantasyPlayer[],
+    teams: FantasyTeam[],
+    config: FantasyConfig,
+    sourceUrl: string,
+  ): Promise<AnalysisResult>;
 }
 
 export interface ExtractorService {
   extract(filePath: string): Promise<ExtractionResult>;
 }
 
-export type Strategy = "2-2-1" | "2-1-1-1" | "1-1-1-1-1";
+export type Strategy = "Auto" | "2-2-1" | "2-1-1-1" | "1-1-1-1-1";
 export type MinG2Players = "Auto" | 1 | 2;
 
 export interface FantasyConfig {

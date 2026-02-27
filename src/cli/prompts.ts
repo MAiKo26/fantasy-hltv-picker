@@ -65,6 +65,7 @@ export async function promptForStrategy(): Promise<Strategy> {
     name: "strategy",
     message: "Select your team strategy:",
     choices: [
+      "Auto (let analyzer decide)",
       "2-2-1 (2 Team X + 2 Team Y + 1 Team Z)",
       "2-1-1-1-1 (2 Team X + 3 Unique Teams)",
       "1-1-1-1-1 (5 Unique Teams)",
@@ -75,12 +76,13 @@ export async function promptForStrategy(): Promise<Strategy> {
   const answers = await inquirer.prompt([question]);
 
   const strategyMap: Record<string, Strategy> = {
+    "Auto (let analyzer decide)": "Auto",
     "2-2-1 (2 Team X + 2 Team Y + 1 Team Z)": "2-2-1",
     "2-1-1-1-1 (2 Team X + 3 Unique Teams)": "2-1-1-1",
     "1-1-1-1-1 (5 Unique Teams)": "1-1-1-1-1",
   };
 
-  return strategyMap[answers.strategy] ?? "2-2-1";
+  return strategyMap[answers.strategy] ?? "Auto";
 }
 
 export interface MinG2PlayersAnswers {

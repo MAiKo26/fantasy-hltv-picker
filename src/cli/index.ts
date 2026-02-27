@@ -1,7 +1,19 @@
-import { printWelcome, createSpinner, printSuccess, printError, printExtractionSummary, printGoodbye } from "./output.ts";
-import { promptForSourceFile, promptForStrategy, promptForMinG2Players } from "./prompts.ts";
-import { HtmlExtractorService } from "../services/extractor.ts";
-import type { FantasyConfig } from "../types/player.ts";
+import {
+  printWelcome,
+  createSpinner,
+  printSuccess,
+  printError,
+  printExtractionSummary,
+  printGoodbye,
+} from "./output.ts";
+import {
+  promptForSourceFile,
+  promptForStrategy,
+  promptForMinG2Players,
+} from "./prompts.ts";
+import {HtmlExtractorService} from "../services/extractor.ts";
+import {FantasyAnalyzerService} from "../services/analyzer.ts";
+import type {FantasyConfig, AnalysisResult} from "../types/player.ts";
 
 export async function main(): Promise<void> {
   printWelcome();
@@ -25,7 +37,9 @@ export async function main(): Promise<void> {
     printExtractionSummary(result);
   } catch (error) {
     spinner.fail();
-    printError(`Extraction failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    printError(
+      `Extraction failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
     printGoodbye();
     return;
   }
@@ -42,7 +56,38 @@ export async function main(): Promise<void> {
   console.log(`   Strategy: ${config.strategy}`);
   console.log(`   Min G2 Players: ${config.minG2Players}`);
 
-  // TODO: Pass config to analyzer
+  // Pass config to analyzer
+  const analyzerSpinner = createSpinner(
+    "Analyzing players and composing final team...",
+  );
+  const analyzer = new FantasyAnalyzerService();
+
+  let analysisResult: AnalysisResult;
+  try {
+    analysisResult = await analyzer.analyze(
+      result.players,
+      result.teams,
+      config,
+      sourceFile,
+    );
+    analyzerSpinner.succeed();
+    printSuccess("Analysis complete!");
+
+    // Display result simply for now
+    console.log("\n🏆 Final Recommended Team:");
+    analysisResult.players.forEach((p) => {
+      console.log(
+        `- ${p.name} (${p.team}) | Role: ${analysisResult.roles[p.id] || p.role} | Booster: ${analysisResult.boosters[p.id] || "None"}`,
+      );
+    });
+  } catch (error) {
+    analyzerSpinner.fail();
+    printError(
+      `Analysis failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+    printGoodbye();
+    return;
+  }
 
   printGoodbye();
 }
