@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import boxen from "boxen";
 import ora, {type Ora} from "ora";
-import type {AnalysisResult, ExtractionResult} from "../types/player.ts";
+import type {AnalysisResult, ExtractionResult, Player} from "../types/player.ts";
 
 export function printWelcome(): void {
   const title = chalk.cyan.bold("⚡ Fantasy HLTV Picker");
@@ -203,34 +203,38 @@ const ROLE_ICONS: Record<string, string> = {
   "Eco Friendly": "♻️",
 };
 
-function formatPlayerLine(p: { id: string; name: string; team: string; role: string; rating: number }, roles: Record<string, string>, boosters: Record<string, string>): string {
+function formatPlayerLine(
+  p: {id: string; name: string; team: string; role: string; rating: number},
+  roles: Record<string, string>,
+): string {
   const name = chalk.white.bold(p.name);
   const team = chalk.cyan(`(${p.team})`);
   const roleRaw = roles[p.id] || p.role;
   const roleIcon = ROLE_ICONS[roleRaw] ?? "🎮";
   const role = chalk.yellow(`${roleIcon} ${roleRaw}`);
-  const booster = chalk.magenta(`⚡ ${boosters[p.id] || "—"}`);
   const rating = chalk.green(`★ ${p.rating.toFixed(2)}`);
-  return `${name} ${team}  ${role}  ${booster}  ${rating}`;
+  return `${name} ${team}  ${role}  ${rating}`;
 }
 
 export function printFinalTeamBox(result: AnalysisResult): void {
   // Print top 3 lineups
-  const top3Box = result.top3.map((lineup, idx) => {
-    const rank = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
-    const rankLabel = idx === 0 ? "RECOMMENDED" : `OPTION ${idx + 1}`;
-    const scoreLabel = chalk.gray(`Score: ${lineup.score}`);
+  const top3Box = result.top3
+    .map((lineup, idx) => {
+      const rank = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
+      const rankLabel = idx === 0 ? "RECOMMENDED" : `OPTION ${idx + 1}`;
+      const scoreLabel = chalk.gray(`Score: ${lineup.score}`);
 
-    const lines = lineup.players.map((p, i) => {
-      const idxNum = chalk.gray(`${i + 1}.`);
-      return `    ${idxNum} ${formatPlayerLine(p, lineup.roles, lineup.boosters)}`;
-    });
+      const lines = lineup.players.map((p, i) => {
+        const idxNum = chalk.gray(`${i + 1}.`);
+        return `    ${idxNum} ${formatPlayerLine(p, lineup.roles)}`;
+      });
 
-    const header = chalk.bold(`${rank} ${rankLabel} ${scoreLabel}`);
-    const divider = chalk.gray("─".repeat(58));
+      const header = chalk.bold(`${rank} ${rankLabel} ${scoreLabel}`);
+      const divider = chalk.gray("─".repeat(58));
 
-    return `${header}\n${divider}\n${lines.join("\n")}\n${divider}\n${chalk.cyan("Reasoning:")} ${chalk.white(lineup.reasoning)}`;
-  }).join("\n\n");
+      return `${header}\n${divider}\n${lines.join("\n")}\n${divider}\n${chalk.cyan("Reasoning:")} ${chalk.white(lineup.reasoning)}`;
+    })
+    .join("\n\n");
 
   const box = boxen(top3Box, {
     padding: {top: 1, bottom: 1, left: 2, right: 2},
@@ -275,4 +279,33 @@ export function printResults(result: AnalysisResult): void {
 
 export function printGoodbye(): void {
   console.log(chalk.cyan("\nThanks for using Fantasy HLTV Picker! 🎮\n"));
+}
+
+// ─── All Lineups Ranking ───────────────────────────────────────────────────────
+
+export function printAllLineupsRanking(
+  allScoredLineups: Array<{
+    players: Player[];
+    lineupIndex: number;
+    score: number;
+  }>,
+): void {
+  const header = chalk.bold.underline("\n📊 ALL LINEUPS RANKING\n");
+
+  const lines = allScoredLineups.map((lineup, idx) => {
+    const rank = chalk.cyan(`${idx + 1}.`);
+    const playerNames = lineup.players.map((p) => p.name).join(" | ");
+    const score = chalk.green(`Score ${lineup.score}`);
+    return `${rank} ${playerNames} | ${score}`;
+  }).join("\n");
+
+  const rankingBox = boxen(`${header}${lines}`, {
+    padding: {top: 1, bottom: 1, left: 2, right: 2},
+    borderStyle: "single",
+    borderColor: "cyan",
+    title: "LINEUP RANKINGS",
+    titleAlignment: "center",
+  });
+
+  console.log("\n" + rankingBox);
 }

@@ -10,6 +10,7 @@ import {mathOptimizer} from "./mathOptimizer.ts";
 import {llmSelector} from "./llmSelector.ts";
 import type {LlmProgressCallback} from "./llmSelector.ts";
 import {createProgressBar} from "../cli/output.ts";
+import chalk from "chalk";
 
 export class FantasyAnalyzerService implements AnalyzerService {
   async analyze(
@@ -38,6 +39,18 @@ export class FantasyAnalyzerService implements AnalyzerService {
     }
     mathBar.done(`Generated ${bestLineups.length} valid lineups`, 1);
 
+    // Print top 20 math-generated lineups before LLM evaluation
+    const lineupPreviewBar = createProgressBar("Previewing top 20 lineups");
+    lineupPreviewBar.tick(0, 1, "Showing math-optimized lineups...");
+    console.log(chalk.bold.white("\n📊 TOP 20 MATH-OPTIMIZED LINEUPS (Pre-LLM):\n"));
+    bestLineups.slice(0, 20).forEach((lineup, idx) => {
+      const playerNames = lineup.players.map(p => p.name).join(" | ");
+      const price = chalk.yellow(`$${(lineup.totalPrice / 1000).toFixed(0)}k`);
+      const expected = chalk.cyan(`Exp: ${lineup.expectedBaseScore.toFixed(2)}`);
+      console.log(`  ${chalk.gray(`${idx + 1}.`)} ${playerNames} | ${price} | ${expected}`);
+    });
+    lineupPreviewBar.done("Lineups previewed", 1);
+
     // ── Stage 3: LLM Evaluation (one call per lineup) ───────────────────────
     const llmBar = createProgressBar(
       `Stage 3 · AI evaluating ${bestLineups.length} lineups`,
@@ -51,10 +64,7 @@ export class FantasyAnalyzerService implements AnalyzerService {
       bestLineups,
       onLlmProgress,
     );
-    llmBar.done(
-      `Top lineups selected`,
-      bestLineups.length,
-    );
+    llmBar.done(`Top lineups selected`, bestLineups.length);
 
     // ── Assemble result ──────────────────────────────────────────────────────
     const chosenMathLineup =
@@ -92,14 +102,34 @@ export class FantasyAnalyzerService implements AnalyzerService {
       };
     });
 
+    const allScoredLineups: AnalysisResult["allScoredLineups"] = llmResult.allScoredLineups.map((t) => {
+      const mathLineup = bestLineups[t.lineupIndex];
+      if (!mathLineup) {
+        return {
+          ...t,
+          players: [],
+        };
+      }
+      return {
+        ...t,
+        players: mathLineup.players.map((fp) => ({
+          id: fp.id,
+          name: fp.name,
+          team: fp.team,
+          role: t.roles[fp.id] || "No Role Assigned",
+          rating: fp.stats.rating,
+        })),
+      };
+    });
+
     return {
       players: finalPlayers,
       analyzedAt: new Date(),
       sourceUrl,
       roles: llmResult.top3[0]!.roles,
-      boosters: llmResult.top3[0]!.boosters,
       reasoning: llmResult.top3[0]!.reasoning,
       top3,
+      allScoredLineups,
     };
   }
 }

@@ -53,14 +53,19 @@ export interface AnalysisResult {
   analyzedAt: Date;
   sourceUrl: string;
   roles: Record<string, string>;
-  boosters: Record<string, string>;
   reasoning: string;
   top3: Array<{
     players: Player[];
     lineupIndex: number;
     reasoning: string;
     roles: Record<string, string>;
-    boosters: Record<string, string>;
+    score: number;
+  }>;
+  allScoredLineups: Array<{
+    players: Player[];
+    lineupIndex: number;
+    reasoning: string;
+    roles: Record<string, string>;
     score: number;
   }>;
 }

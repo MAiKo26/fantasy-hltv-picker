@@ -1,6 +1,27 @@
 import {GoogleGenAI} from "@google/genai";
 import {env} from "../env.ts";
 import type {MathLineup} from "./mathOptimizer.ts";
+import {writeFileSync, appendFileSync, existsSync} from "node:fs";
+import {resolve} from "node:path";
+import {z} from "zod";
+import {zodToJsonSchema} from "zod-to-json-schema";
+
+const LOG_FILE = resolve(process.cwd(), "llm-errors.log");
+
+function log(message: string) {
+  const timestamp = new Date().toISOString();
+  const entry = `[${timestamp}] ${message}\n`;
+  console.error(entry.trim());
+  appendFileSync(LOG_FILE, entry);
+}
+
+function setupLogFile() {
+  if (!existsSync(LOG_FILE)) {
+    writeFileSync(LOG_FILE, "");
+  }
+}
+
+setupLogFile();
 
 export type LlmProgressCallback = (
   completed: number,
@@ -8,12 +29,25 @@ export type LlmProgressCallback = (
   label: string,
 ) => void;
 
+const lineupScoreSchema = z.object({
+  score: z.number().describe("0-100 score based on expected fantasy points"),
+  reasoning: z
+    .string()
+    .describe(
+      "ONE sentence reasoning focusing on point ceiling and role/booster synergy",
+    ),
+  roles: z
+    .record(z.string(), z.string())
+    .describe(
+      "Assigned roles matching player stats. Keys are player names, values are roles.",
+    ),
+});
+
 interface LineupScore {
   index: number;
   score: number;
   reasoning: string;
   roles: Record<string, string>;
-  boosters: Record<string, string>;
 }
 
 export class LlmSelector {
@@ -27,6 +61,7 @@ export class LlmSelector {
   private async scoreLineup(
     lineup: MathLineup,
     index: number,
+    timeoutMs = 30000,
   ): Promise<LineupScore> {
     const promptData = {
       index,
@@ -67,40 +102,51 @@ Lineup to evaluate:
 ${JSON.stringify(promptData, null, 2)}
 `;
 
-    try {
+    const makeRequest = async () => {
       const response = await this.ai.models.generateContent({
-        model: "gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseJsonSchema: zodToJsonSchema(lineupScoreSchema as any),
+        },
       });
 
       const text = response.text || "{}";
-      const cleanText = text
-        .replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
-      const parsed = JSON.parse(cleanText);
+      log(`Lineup ${index} raw response: ${text.substring(0, 500)}`);
+
+      const parsed = lineupScoreSchema.parse(JSON.parse(text));
 
       return {
         index,
-        score: typeof parsed.score === "number" ? parsed.score : 50,
-        reasoning: parsed.reasoning ?? "",
-        roles: parsed.roles ?? {},
-        boosters: parsed.boosters ?? {},
+        score: parsed.score,
+        reasoning: parsed.reasoning,
+        roles: parsed.roles,
       };
-    } catch {
+    };
+
+    try {
+      return await Promise.race([
+        makeRequest(),
+        new Promise<LineupScore>((_, reject) =>
+          setTimeout(() => reject(new Error("Request timeout")), timeoutMs),
+        ),
+      ]);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      log(`Lineup ${index} FAILED: ${errorMsg}`);
       return {
         index,
         score: 0,
         reasoning: "LLM evaluation failed for this lineup.",
         roles: {},
-        boosters: {},
       };
     }
   }
 
   /**
    * Evaluate all lineups one-by-one (sequential), calling onProgress after each.
-   * Returns the top 3 scoring lineups.
+   * Returns the top 3 scoring lineups and all scored lineups.
    */
   async selectBestLineup(
     lineups: MathLineup[],
@@ -110,7 +156,12 @@ ${JSON.stringify(promptData, null, 2)}
       lineupIndex: number;
       reasoning: string;
       roles: Record<string, string>;
-      boosters: Record<string, string>;
+      score: number;
+    }>;
+    allScoredLineups: Array<{
+      lineupIndex: number;
+      reasoning: string;
+      roles: Record<string, string>;
       score: number;
     }>;
   }> {
@@ -137,7 +188,12 @@ ${JSON.stringify(promptData, null, 2)}
         lineupIndex: s.index,
         reasoning: s.reasoning,
         roles: s.roles,
-        boosters: s.boosters,
+        score: s.score,
+      })),
+      allScoredLineups: sorted.map((s) => ({
+        lineupIndex: s.index,
+        reasoning: s.reasoning,
+        roles: s.roles,
         score: s.score,
       })),
     };
