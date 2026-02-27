@@ -30,7 +30,7 @@ export class FantasyAnalyzerService implements AnalyzerService {
     // ── Stage 2: Math Optimizer ──────────────────────────────────────────────
     const mathBar = createProgressBar("Stage 2 · Generating optimal lineups");
     mathBar.tick(0, 1, "Crunching combinations...");
-    const bestLineups = mathOptimizer.optimize(enrichedPlayers, config);
+    const bestLineups = mathOptimizer.optimize(enrichedPlayers, teams, config);
 
     if (bestLineups.length === 0) {
       throw new Error(
@@ -88,6 +88,7 @@ export class FantasyAnalyzerService implements AnalyzerService {
           reasoning: "Math-optimized lineup",
           roles: {},
           score: lineup.expectedBaseScore,
+          totalPrice: lineup.totalPrice,
         })),
       };
     }
@@ -148,6 +149,7 @@ export class FantasyAnalyzerService implements AnalyzerService {
         return {
           ...t,
           players: [],
+          totalPrice: 0,
         };
       }
       return {
@@ -159,6 +161,7 @@ export class FantasyAnalyzerService implements AnalyzerService {
           role: t.roles[fp.id] || "No Role Assigned",
           rating: fp.stats.rating,
         })),
+        totalPrice: mathLineup.totalPrice,
       };
     });
 

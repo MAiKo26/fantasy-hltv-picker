@@ -67,6 +67,7 @@ export interface AnalysisResult {
     reasoning: string;
     roles: Record<string, string>;
     score: number;
+    totalPrice: number;
   }>;
 }
 

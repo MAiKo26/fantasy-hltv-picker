@@ -1,7 +1,11 @@
 import chalk from "chalk";
 import boxen from "boxen";
 import ora, {type Ora} from "ora";
-import type {AnalysisResult, ExtractionResult, Player} from "../types/player.ts";
+import type {
+  AnalysisResult,
+  ExtractionResult,
+  Player,
+} from "../types/player.ts";
 
 export function printWelcome(): void {
   const title = chalk.cyan.bold("⚡ Fantasy HLTV Picker");
@@ -288,16 +292,20 @@ export function printAllLineupsRanking(
     players: Player[];
     lineupIndex: number;
     score: number;
+    totalPrice: number;
   }>,
 ): void {
   const header = chalk.bold.underline("\n📊 ALL LINEUPS RANKING\n");
 
-  const lines = allScoredLineups.map((lineup, idx) => {
-    const rank = chalk.cyan(`${idx + 1}.`);
-    const playerNames = lineup.players.map((p) => p.name).join(" | ");
-    const score = chalk.green(`Score ${lineup.score}`);
-    return `${rank} ${playerNames} | ${score}`;
-  }).join("\n");
+  const lines = allScoredLineups
+    .map((lineup, idx) => {
+      const rank = chalk.cyan(`${idx + 1}.`);
+      const playerNames = lineup.players.map((p) => p.name).join(" | ");
+      const price = chalk.yellow(`$${(lineup.totalPrice / 1000).toFixed(0)}k`);
+      const score = chalk.green(`Score ${lineup.score.toFixed(2)}`);
+      return `${rank} ${playerNames} | ${price} | ${score}`;
+    })
+    .join("\n");
 
   const rankingBox = boxen(`${header}${lines}`, {
     padding: {top: 1, bottom: 1, left: 2, right: 2},

@@ -131,7 +131,7 @@ export async function promptForDisableLLMEvaluation(): Promise<boolean> {
     type: "confirm",
     name: "disableLLMEvaluation",
     message: "Disable Stage 3 (LLM Evaluation)?",
-    default: false,
+    default: true,
   };
 
   const answers = await inquirer.prompt([question]);

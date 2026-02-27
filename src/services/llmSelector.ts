@@ -98,6 +98,33 @@ Each role has MAX bonus, SMALL bonus, and PENALTY thresholds:
 2. Assign roles that MATCH player stats (e.g., high entry % → Entry Fragger, high AWP → Main AWP)
 3. Write ONE sentence reasoning focusing on point ceiling and role/booster synergy
 
+## OUTPUT FORMAT (CRITICAL - MUST MATCH EXACTLY)
+Return a JSON object with these exact fields:
+{
+  "score": <number 0-100>,
+  "reasoning": "<one sentence about point ceiling>",
+  "roles": {
+    "<player_name>": "<role_name>",
+    "<player_name>": "<role_name>",
+    "<player_name>": "<role_name>",
+    "<player_name>": "<role_name>",
+    "<player_name>": "<role_name>"
+  }
+}
+
+Example:
+{
+  "score": 85,
+  "reasoning": "Strong lineup with 3 potential MAX bonus players",
+  "roles": {
+    "zweih": "Support",
+    "xfl0ud": "Entry Fragger",
+    "slaxz-": "Main AWP",
+    "Swisher": "Multi Fragger",
+    "JT": "Leader"
+  }
+}
+
 Lineup to evaluate:
 ${JSON.stringify(promptData, null, 2)}
 `;
