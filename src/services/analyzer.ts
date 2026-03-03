@@ -42,18 +42,45 @@ export class FantasyAnalyzerService implements AnalyzerService {
     // Print top 20 math-generated lineups before LLM evaluation
     const lineupPreviewBar = createProgressBar("Previewing top 20 lineups");
     lineupPreviewBar.tick(0, 1, "Showing math-optimized lineups...");
-    console.log(chalk.bold.white("\n📊 TOP 20 MATH-OPTIMIZED LINEUPS (Pre-LLM):\n"));
+    console.log(
+      chalk.bold.white("\n📊 TOP 20 MATH-OPTIMIZED LINEUPS (Pre-LLM):\n"),
+    );
     bestLineups.slice(0, 20).forEach((lineup, idx) => {
-      const playerNames = lineup.players.map(p => p.name).join(" | ");
+      const playerNames = lineup.players.map((p) => p.name).join(" | ");
       const price = chalk.yellow(`$${(lineup.totalPrice / 1000).toFixed(0)}k`);
-      const expected = chalk.cyan(`Exp: ${lineup.expectedBaseScore.toFixed(2)}`);
-      console.log(`  ${chalk.gray(`${idx + 1}.`)} ${playerNames} | ${price} | ${expected}`);
+      const expected = chalk.cyan(
+        `Exp: ${lineup.expectedBaseScore.toFixed(2)}`,
+      );
+      console.log(
+        `  ${chalk.gray(`${idx + 1}.`)} ${playerNames} | ${price} | ${expected}`,
+      );
     });
     lineupPreviewBar.done("Lineups previewed", 1);
 
+    // Calculate top 20 players by expected base score
+    const playerScores = new Map<
+      string,
+      {id: string; name: string; team: string; rating: number}
+    >();
+    for (const p of enrichedPlayers) {
+      playerScores.set(p.id, {
+        id: p.id,
+        name: p.name,
+        team: p.team,
+        rating: mathOptimizer.getExpectedBaseScore(p),
+      });
+    }
+    const top20ByRating = Array.from(playerScores.values())
+      .sort((a, b) => b.rating - a.rating)
+      .slice(0, 20);
+
     // ── Stage 3: LLM Evaluation (one call per lineup) ───────────────────────
     if (config.disableLLMEvaluation) {
-      console.log(chalk.yellow("\n⚠️  Stage 3 (LLM Evaluation) disabled - returning best math lineup\n"));
+      console.log(
+        chalk.yellow(
+          "\n⚠️  Stage 3 (LLM Evaluation) disabled - returning best math lineup\n",
+        ),
+      );
       const bestMathLineup = bestLineups[0]!;
       const finalPlayers = bestMathLineup.players.map((fp) => ({
         id: fp.id,
@@ -68,14 +95,17 @@ export class FantasyAnalyzerService implements AnalyzerService {
         analyzedAt: new Date(),
         sourceUrl,
         roles: {},
-        reasoning: "No LLM evaluation performed - using highest expected score lineup",
-        top3: [{
-          players: finalPlayers,
-          lineupIndex: 0,
-          reasoning: "Highest expected base score from math optimizer",
-          roles: {},
-          score: bestMathLineup.expectedBaseScore,
-        }],
+        reasoning:
+          "No LLM evaluation performed - using highest expected score lineup",
+        top3: [
+          {
+            players: finalPlayers,
+            lineupIndex: 0,
+            reasoning: "Highest expected base score from math optimizer",
+            roles: {},
+            score: bestMathLineup.expectedBaseScore,
+          },
+        ],
         allScoredLineups: bestLineups.map((lineup, idx) => ({
           players: lineup.players.map((fp) => ({
             id: fp.id,
@@ -90,6 +120,7 @@ export class FantasyAnalyzerService implements AnalyzerService {
           score: lineup.expectedBaseScore,
           totalPrice: lineup.totalPrice,
         })),
+        top20ByRating,
       };
     }
 
@@ -143,27 +174,28 @@ export class FantasyAnalyzerService implements AnalyzerService {
       };
     });
 
-    const allScoredLineups: AnalysisResult["allScoredLineups"] = llmResult.allScoredLineups.map((t) => {
-      const mathLineup = bestLineups[t.lineupIndex];
-      if (!mathLineup) {
+    const allScoredLineups: AnalysisResult["allScoredLineups"] =
+      llmResult.allScoredLineups.map((t) => {
+        const mathLineup = bestLineups[t.lineupIndex];
+        if (!mathLineup) {
+          return {
+            ...t,
+            players: [],
+            totalPrice: 0,
+          };
+        }
         return {
           ...t,
-          players: [],
-          totalPrice: 0,
+          players: mathLineup.players.map((fp) => ({
+            id: fp.id,
+            name: fp.name,
+            team: fp.team,
+            role: t.roles[fp.id] || "No Role Assigned",
+            rating: fp.stats.rating,
+          })),
+          totalPrice: mathLineup.totalPrice,
         };
-      }
-      return {
-        ...t,
-        players: mathLineup.players.map((fp) => ({
-          id: fp.id,
-          name: fp.name,
-          team: fp.team,
-          role: t.roles[fp.id] || "No Role Assigned",
-          rating: fp.stats.rating,
-        })),
-        totalPrice: mathLineup.totalPrice,
-      };
-    });
+      });
 
     return {
       players: finalPlayers,
@@ -173,6 +205,7 @@ export class FantasyAnalyzerService implements AnalyzerService {
       reasoning: llmResult.top3[0]!.reasoning,
       top3,
       allScoredLineups,
+      top20ByRating,
     };
   }
 }

@@ -69,6 +69,12 @@ export interface AnalysisResult {
     score: number;
     totalPrice: number;
   }>;
+  top20ByRating: Array<{
+    id: string;
+    name: string;
+    team: string;
+    rating: number;
+  }>;
 }
 
 export interface AnalyzerService {

@@ -27,20 +27,33 @@ export class MathOptimizer {
 
   getExpectedBaseScore(player: FantasyPlayer): number {
     const teamRank = this.teamRankings.get(player.team);
+
+    // Base: current rating is the anchor
     let score = player.stats.rating;
 
-    if (player.stats.rating3mTop20) score += player.stats.rating3mTop20 * 0.5;
-    if (player.stats.rating6mTop20) score += player.stats.rating6mTop20 * 0.3;
-    if (player.stats.rating12mTop50)
-      score += player.stats.rating12mTop50 * 0.15;
+    // Historical form: weighted toward recency, capped to avoid drowning out current rating
+    const historicalBonus =
+      (player.stats.rating3mTop20 ?? 0) * 0.25 +
+      (player.stats.rating6mTop20 ?? 0) * 0.12 +
+      (player.stats.rating12mTop50 ?? 0) * 0.05;
+    score += historicalBonus;
 
-    if (teamRank) score += (1 / teamRank) * 2.0;
+    // Team rank: top teams play more meaningful matches, scale gently
+    if (teamRank) {
+      score += Math.log(1 + 1 / teamRank) * 0.5;
+    }
 
-    if (player.stats.awpPerRound >= 0.15) score += 0.01;
+    // AWP bonus: meaningful AWPers are impactful, but threshold should reward elite usage
+    if (player.stats.awpPerRound >= 0.15) score += 0.05;
+    if (player.stats.awpPerRound >= 0.25) score += 0.05; // extra for dedicated AWPers
 
-    const ctToTRatingDiff = player.stats.ctRating - player.stats.tRating;
-    if (ctToTRatingDiff > 0) score += ctToTRatingDiff * 0.1;
-    else if (ctToTRatingDiff < 0) score += ctToTRatingDiff * 0.2;
+    // Survival bonus: dying less is genuinely impactful
+    if (player.stats.deathsPerRound <= 0.7) score += 0.05;
+    if (player.stats.deathsPerRound <= 0.6) score += 0.05; // extra for elite survivability
+
+    // Side consistency: penalize large CT/T gaps proportionally, don't reward balance with +1
+    const sideVariance = Math.abs(player.stats.ctRating - player.stats.tRating);
+    score -= sideVariance * 0.1;
 
     return score;
   }
@@ -114,7 +127,7 @@ export class MathOptimizer {
       env.BLACKLISTED_PLAYERS.map((name) => name.toLowerCase()),
     );
     const validPlayers = players.filter(
-      (p) => p.price <= 230000 && !blacklist.has(p.name.toLowerCase()),
+      (p) => p.price <= 245000 && !blacklist.has(p.name.toLowerCase()),
     );
 
     // We can't do combinations of all players, it's C(80, 5) = 24 million

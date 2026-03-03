@@ -317,3 +317,31 @@ export function printAllLineupsRanking(
 
   console.log("\n" + rankingBox);
 }
+
+// ─── Top 20 Best Rated Players ───────────────────────────────────────────────
+
+export function printTopRatedPlayers(
+  players: Array<{id: string; name: string; team: string; rating: number}>,
+): void {
+  const header = chalk.bold.underline("\n📊 TOP 20 BEST RATED PLAYERS\n");
+
+  const lines = players
+    .map((p, idx) => {
+      const rank = chalk.cyan(`${idx + 1}.`);
+      const name = chalk.white.bold(p.name);
+      const team = chalk.gray(`[${p.team}]`);
+      const rating = chalk.green(`★ ${p.rating.toFixed(2)}`);
+      return `${rank} ${name} ${team} ${rating}`;
+    })
+    .join("\n");
+
+  const box = boxen(`${header}${lines}`, {
+    padding: {top: 1, bottom: 1, left: 2, right: 2},
+    borderStyle: "single",
+    borderColor: "yellow",
+    title: "TOP 20 PLAYERS",
+    titleAlignment: "center",
+  });
+
+  console.log("\n" + box);
+}

@@ -8,6 +8,7 @@ import {
   printReasoningBox,
   printFinalTeamBox,
   printAllLineupsRanking,
+  printTopRatedPlayers,
 } from "./output.ts";
 import {
   promptForSourceFile,
@@ -78,6 +79,7 @@ export async function main(): Promise<void> {
     printReasoningBox(analysisResult.reasoning);
     printFinalTeamBox(analysisResult);
     printAllLineupsRanking(analysisResult.allScoredLineups);
+    printTopRatedPlayers(analysisResult.top20ByRating);
   } catch (error) {
     printError(
       `Analysis failed: ${error instanceof Error ? error.message : "Unknown error"}`,
