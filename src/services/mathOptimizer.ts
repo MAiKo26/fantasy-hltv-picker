@@ -40,7 +40,7 @@ export class MathOptimizer {
 
     // Team rank: top teams play more meaningful matches, scale gently
     if (teamRank) {
-      score += Math.log(1 + 1 / teamRank) * 0.5;
+      score += Math.log(1 + 1 / teamRank) * 0.2;
     }
 
     // AWP bonus: meaningful AWPers are impactful, but threshold should reward elite usage
