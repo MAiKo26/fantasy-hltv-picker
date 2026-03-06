@@ -1,0 +1,215 @@
+{
+  "eventSlug": "epl-stage-2-2026",
+  "generatedAt": "2026-03-06T11:13:01.872Z",
+  "inputCounts": {
+    "players": 80,
+    "teams": 16,
+    "overviewMostPicked": 8,
+    "roleAssignments": 12,
+    "boosterAssignments": 18,
+    "parsedMatches": 33,
+    "knownPairings": 8
+  },
+  "topLineups": [
+    {
+      "rank": 1,
+      "strategy": "2-2-1",
+      "totalPrice": 1000000,
+      "expectedScore": 11.217724,
+      "players": [
+        "molodoy",
+        "woxic",
+        "tN1R",
+        "FalleN",
+        "MAJ3R"
+      ],
+      "teams": [
+        "FURIA",
+        "Aurora",
+        "Spirit",
+        "FURIA",
+        "Aurora"
+      ]
+    },
+    {
+      "rank": 2,
+      "strategy": "2-2-1",
+      "totalPrice": 998000,
+      "expectedScore": 11.197806,
+      "players": [
+        "molodoy",
+        "woxic",
+        "Brollan",
+        "FalleN",
+        "MAJ3R"
+      ],
+      "teams": [
+        "FURIA",
+        "Aurora",
+        "MOUZ",
+        "FURIA",
+        "Aurora"
+      ]
+    },
+    {
+      "rank": 3,
+      "strategy": "2-2-1",
+      "totalPrice": 1000000,
+      "expectedScore": 11.191131,
+      "players": [
+        "molodoy",
+        "soulfly",
+        "Brollan",
+        "FalleN",
+        "MAJ3R"
+      ],
+      "teams": [
+        "FURIA",
+        "Aurora",
+        "MOUZ",
+        "FURIA",
+        "Aurora"
+      ]
+    },
+    {
+      "rank": 4,
+      "strategy": "2-2-1",
+      "totalPrice": 1000000,
+      "expectedScore": 11.156109,
+      "players": [
+        "YEKINDAR",
+        "woxic",
+        "yuurih",
+        "Brollan",
+        "MAJ3R"
+      ],
+      "teams": [
+        "FURIA",
+        "Aurora",
+        "FURIA",
+        "MOUZ",
+        "Aurora"
+      ]
+    },
+    {
+      "rank": 5,
+      "strategy": "2-2-1",
+      "totalPrice": 1000000,
+      "expectedScore": 11.142494,
+      "players": [
+        "910",
+        "woxic",
+        "Jimpphat",
+        "Brollan",
+        "MAJ3R"
+      ],
+      "teams": [
+        "The MongolZ",
+        "Aurora",
+        "MOUZ",
+        "MOUZ",
+        "Aurora"
+      ]
+    },
+    {
+      "rank": 6,
+      "strategy": "2-2-1",
+      "totalPrice": 1000000,
+      "expectedScore": 11.128316,
+      "players": [
+        "YEKINDAR",
+        "Wicadia",
+        "tN1R",
+        "FalleN",
+        "MAJ3R"
+      ],
+      "teams": [
+        "FURIA",
+        "Aurora",
+        "Spirit",
+        "FURIA",
+        "Aurora"
+      ]
+    },
+    {
+      "rank": 7,
+      "strategy": "2-2-1",
+      "totalPrice": 1000000,
+      "expectedScore": 11.127055,
+      "players": [
+        "YEKINDAR",
+        "woxic",
+        "cobrazera",
+        "FalleN",
+        "MAJ3R"
+      ],
+      "teams": [
+        "FURIA",
+        "Aurora",
+        "The MongolZ",
+        "FURIA",
+        "Aurora"
+      ]
+    },
+    {
+      "rank": 8,
+      "strategy": "2-2-1",
+      "totalPrice": 999000,
+      "expectedScore": 11.121382,
+      "players": [
+        "torzsi",
+        "woxic",
+        "yuurih",
+        "Brollan",
+        "MAJ3R"
+      ],
+      "teams": [
+        "MOUZ",
+        "Aurora",
+        "FURIA",
+        "MOUZ",
+        "Aurora"
+      ]
+    },
+    {
+      "rank": 9,
+      "strategy": "2-2-1",
+      "totalPrice": 998000,
+      "expectedScore": 11.116711,
+      "players": [
+        "sh1ro",
+        "woxic",
+        "tN1R",
+        "Brollan",
+        "MAJ3R"
+      ],
+      "teams": [
+        "Spirit",
+        "Aurora",
+        "Spirit",
+        "MOUZ",
+        "Aurora"
+      ]
+    },
+    {
+      "rank": 10,
+      "strategy": "2-2-1",
+      "totalPrice": 1000000,
+      "expectedScore": 11.113731,
+      "players": [
+        "sh1ro",
+        "woxic",
+        "yuurih",
+        "FalleN",
+        "MAJ3R"
+      ],
+      "teams": [
+        "Spirit",
+        "Aurora",
+        "FURIA",
+        "FURIA",
+        "Aurora"
+      ]
+    }
+  ]
+}

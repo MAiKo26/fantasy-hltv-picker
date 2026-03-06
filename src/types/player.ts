@@ -13,7 +13,7 @@ export interface PlayerStats {
   deathsPerRound: number;
   // Scraped Historical Stats
   rating3mTop20?: number;
-  rating6mTop20?: number;
+  rating6mTop30?: number;
   rating12mTop50?: number;
 }
 
@@ -31,6 +31,61 @@ export interface FantasyTeam {
   name: string;
   worldRank: number;
   players: string[];
+}
+
+export interface TeamMatchInfo {
+  matchId: string;
+  matchUrl: string | null;
+  startUnixMs: number | null;
+  bestOf: string | null;
+  eventId: string | null;
+  eventName: string | null;
+  dayLabel: string | null;
+  team1Id: string | null;
+  team2Id: string | null;
+  team1Name: string | null;
+  team2Name: string | null;
+  pairingKnown: boolean;
+  isLive: boolean;
+}
+
+export interface MatchesExtractionResult {
+  eventSlug: string;
+  sourceFile: string;
+  matches: TeamMatchInfo[];
+  teamIdToName: Record<string, string>;
+  parseWarnings: string[];
+  extractedAt: Date;
+}
+
+export interface MostPickedPlayer {
+  rank: number;
+  playerName: string;
+  pickCount: number;
+  pickCountRaw: string;
+  statsUrl: string | null;
+}
+
+export interface AssignmentCount {
+  name: string;
+  assignedCount: number;
+  assignedCountRaw: string;
+}
+
+export interface EventOverviewExtractionResult {
+  eventSlug: string;
+  sourceFile: string;
+  mostPickedPlayers: MostPickedPlayer[];
+  roleAssignments: AssignmentCount[];
+  boosterAssignments: AssignmentCount[];
+  parseWarnings: string[];
+  extractedAt: Date;
+}
+
+export interface EventBundleContext {
+  eventSlug: string;
+  overview?: EventOverviewExtractionResult;
+  matches?: MatchesExtractionResult;
 }
 
 export interface ExtractionResult {
@@ -83,6 +138,7 @@ export interface AnalyzerService {
     teams: FantasyTeam[],
     config: FantasyConfig,
     sourceUrl: string,
+    bundle?: EventBundleContext,
   ): Promise<AnalysisResult>;
 }
 

@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import {cacheService} from "./cacheService.ts";
 import type {FantasyPlayer} from "../types/player.ts";
+import {normalizePlayerName} from "../utils/normalize.ts";
 
 export interface historicalPlayerStat {
   name: string;
@@ -125,7 +126,7 @@ export class StatsScraperService {
 
     const buildDict = (stats: historicalPlayerStat[]) => {
       const dict: Record<string, historicalPlayerStat> = {};
-      stats.forEach((s) => (dict[s.name.toLowerCase()] = s));
+      stats.forEach((s) => (dict[normalizePlayerName(s.name)] = s));
       return dict;
     };
 
@@ -134,7 +135,7 @@ export class StatsScraperService {
     const dict12m = buildDict(r12m.stats);
 
     return players.map((player) => {
-      const key = player.name.toLowerCase();
+      const key = normalizePlayerName(player.name);
       return {
         ...player,
         stats: {

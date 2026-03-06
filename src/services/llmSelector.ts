@@ -39,7 +39,7 @@ const lineupScoreSchema = z.object({
   roles: z
     .record(z.string(), z.string())
     .describe(
-      "Assigned roles matching player stats. Keys are player names, values are roles.",
+      "Assigned roles matching player stats. Keys are player IDs, values are roles.",
     ),
 });
 
@@ -96,6 +96,7 @@ Each role has MAX bonus, SMALL bonus, and PENALTY thresholds:
 ## YOUR TASK
 1. Score 0-100 based on expected fantasy points (consider role potential)
 2. Assign roles that MATCH player stats (e.g., high entry % → Entry Fragger, high AWP → Main AWP)
+   - IMPORTANT: Use player IDs as role keys, not player names
 3. Write ONE sentence reasoning focusing on point ceiling and role/booster synergy
 
 ## OUTPUT FORMAT (CRITICAL - MUST MATCH EXACTLY)
@@ -104,11 +105,11 @@ Return a JSON object with these exact fields:
   "score": <number 0-100>,
   "reasoning": "<one sentence about point ceiling>",
   "roles": {
-    "<player_name>": "<role_name>",
-    "<player_name>": "<role_name>",
-    "<player_name>": "<role_name>",
-    "<player_name>": "<role_name>",
-    "<player_name>": "<role_name>"
+    "<player_id>": "<role_name>",
+    "<player_id>": "<role_name>",
+    "<player_id>": "<role_name>",
+    "<player_id>": "<role_name>",
+    "<player_id>": "<role_name>"
   }
 }
 
@@ -117,11 +118,11 @@ Example:
   "score": 85,
   "reasoning": "Strong lineup with 3 potential MAX bonus players",
   "roles": {
-    "zweih": "Support",
-    "xfl0ud": "Entry Fragger",
-    "slaxz-": "Main AWP",
-    "Swisher": "Multi Fragger",
-    "JT": "Leader"
+    "myteam-zweih": "Support",
+    "myteam-xfl0ud": "Entry Fragger",
+    "myteam-slaxz": "Main AWP",
+    "myteam-swisher": "Multi Fragger",
+    "myteam-jt": "Leader"
   }
 }
 

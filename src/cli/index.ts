@@ -14,11 +14,12 @@ import {
   promptForSourceFile,
   promptForStrategy,
   promptForMinG2Players,
-  promptForDisableLLMEvaluation,
 } from "./prompts.ts";
 import {HtmlExtractorService} from "../services/extractor.ts";
 import {FantasyAnalyzerService} from "../services/analyzer.ts";
 import type {FantasyConfig, AnalysisResult} from "../types/player.ts";
+import {loadEventBundleForSource} from "../services/eventBundleLoader.ts";
+import chalk from "chalk";
 
 export async function main(): Promise<void> {
   printWelcome();
@@ -51,7 +52,7 @@ export async function main(): Promise<void> {
 
   const strategy = await promptForStrategy();
   const minG2Players = await promptForMinG2Players(result.teams);
-  const disableLLMEvaluation = await promptForDisableLLMEvaluation();
+  const disableLLMEvaluation = true;
 
   const config: FantasyConfig = {
     strategy,
@@ -62,7 +63,29 @@ export async function main(): Promise<void> {
   console.log("\n📋 Configuration selected:");
   console.log(`   Strategy: ${config.strategy}`);
   console.log(`   Min G2 Players: ${config.minG2Players}`);
-  console.log(`   LLM Evaluation: ${config.disableLLMEvaluation ? "Disabled" : "Enabled"}`);
+  console.log("   LLM Evaluation: Disabled (deterministic math mode)");
+
+  const bundleSpinner = createSpinner(
+    "Loading optional event overview + matches bundle...",
+  );
+  const {bundle, warnings: bundleWarnings} = await loadEventBundleForSource(sourceFile);
+  bundleSpinner.succeed();
+  if (bundle) {
+    printSuccess(
+      `Loaded event bundle for ${bundle.eventSlug} (overview: ${bundle.overview ? "yes" : "no"}, matches: ${bundle.matches ? "yes" : "no"})`,
+    );
+  } else {
+    printSuccess("No additional event bundle found. Running with draft-only data.");
+  }
+  const actionableWarnings = bundleWarnings.filter(
+    (warning) => !warning.startsWith("Missing optional"),
+  );
+  if (actionableWarnings.length > 0) {
+    console.log(chalk.yellow("\n⚠️  Bundle parser warnings:"));
+    for (const warning of actionableWarnings) {
+      console.log(chalk.yellow(`   - ${warning}`));
+    }
+  }
 
   // ── Analysis: progress bars are rendered inside analyzer/llmSelector ───────
   const analyzer = new FantasyAnalyzerService();
@@ -74,6 +97,7 @@ export async function main(): Promise<void> {
       result.teams,
       config,
       sourceFile,
+      bundle,
     );
 
     printReasoningBox(analysisResult.reasoning);

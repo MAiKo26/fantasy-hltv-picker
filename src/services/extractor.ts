@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as cheerio from "cheerio";
 import type { ExtractionResult, FantasyPlayer, FantasyTeam, CardLevel } from "../types/player.ts";
+import {normalizePlayerName, normalizeTeamName} from "../utils/normalize.ts";
 
 const SOURCE_DIR = path.join(process.cwd(), "source");
 
@@ -100,7 +101,7 @@ export async function extractFromHtml(sourceFile: string): Promise<ExtractionRes
         });
 
         players.push({
-          id: `${teamName.toLowerCase()}-${playerName.toLowerCase()}`,
+          id: `${normalizeTeamName(teamName).replace(/\s+/g, "_")}-${normalizePlayerName(playerName).replace(/\s+/g, "_")}`,
           name: playerName,
           team: teamName,
           cardLevel,

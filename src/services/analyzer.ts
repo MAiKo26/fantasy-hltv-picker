@@ -4,6 +4,7 @@ import type {
   FantasyPlayer,
   FantasyTeam,
   FantasyConfig,
+  EventBundleContext,
 } from "../types/player.ts";
 import {StatsScraperService} from "./statsScraper.ts";
 import {mathOptimizer} from "./mathOptimizer.ts";
@@ -18,6 +19,7 @@ export class FantasyAnalyzerService implements AnalyzerService {
     teams: FantasyTeam[],
     config: FantasyConfig,
     sourceUrl: string,
+    bundle?: EventBundleContext,
   ): Promise<AnalysisResult> {
     // ── Stage 1: Stats Enrichment ────────────────────────────────────────────
     const statsBar = createProgressBar("Stage 1 · Enriching player stats");
@@ -30,7 +32,7 @@ export class FantasyAnalyzerService implements AnalyzerService {
     // ── Stage 2: Math Optimizer ──────────────────────────────────────────────
     const mathBar = createProgressBar("Stage 2 · Generating optimal lineups");
     mathBar.tick(0, 1, "Crunching combinations...");
-    const bestLineups = mathOptimizer.optimize(enrichedPlayers, teams, config);
+    const bestLineups = mathOptimizer.optimize(enrichedPlayers, teams, config, bundle);
 
     if (bestLineups.length === 0) {
       throw new Error(
