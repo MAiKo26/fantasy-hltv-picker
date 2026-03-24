@@ -10,8 +10,9 @@ import {StatsScraperService} from "./statsScraper.ts";
 import {mathOptimizer} from "./mathOptimizer.ts";
 import {llmSelector} from "./llmSelector.ts";
 import type {LlmProgressCallback} from "./llmSelector.ts";
-import {createProgressBar} from "../cli/output.ts";
+import {createProgressBar, printScoringDiagnostics} from "../cli/output.ts";
 import chalk from "chalk";
+import {env} from "../env.ts";
 
 export class FantasyAnalyzerService implements AnalyzerService {
   async analyze(
@@ -58,6 +59,10 @@ export class FantasyAnalyzerService implements AnalyzerService {
       );
     });
     lineupPreviewBar.done("Lineups previewed", 1);
+
+    if (env.SCORING_DIAGNOSTICS) {
+      printScoringDiagnostics(mathOptimizer.getLatestDiagnostics());
+    }
 
     // Calculate top 20 players by expected base score
     const playerScores = new Map<

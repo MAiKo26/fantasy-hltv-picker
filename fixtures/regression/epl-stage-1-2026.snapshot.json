@@ -1,0 +1,215 @@
+{
+  "eventSlug": "epl-stage-1-2026",
+  "generatedAt": "2026-03-06T15:28:08.363Z",
+  "inputCounts": {
+    "players": 80,
+    "teams": 16,
+    "overviewMostPicked": 0,
+    "roleAssignments": 0,
+    "boosterAssignments": 0,
+    "parsedMatches": 0,
+    "knownPairings": 0
+  },
+  "topLineups": [
+    {
+      "rank": 1,
+      "strategy": "2-1-1-1",
+      "totalPrice": 998000,
+      "expectedScore": 9.439949,
+      "players": [
+        "xfl0ud",
+        "oSee",
+        "nilo",
+        "afro",
+        "nicx"
+      ],
+      "teams": [
+        "HEROIC",
+        "NRG",
+        "HEROIC",
+        "Monte",
+        "Passion UA"
+      ]
+    },
+    {
+      "rank": 2,
+      "strategy": "2-2-1",
+      "totalPrice": 998000,
+      "expectedScore": 9.40852,
+      "players": [
+        "xfl0ud",
+        "oSee",
+        "br0",
+        "afro",
+        "susp"
+      ],
+      "teams": [
+        "HEROIC",
+        "NRG",
+        "NRG",
+        "Monte",
+        "HEROIC"
+      ]
+    },
+    {
+      "rank": 3,
+      "strategy": "2-1-1-1",
+      "totalPrice": 995000,
+      "expectedScore": 9.398996,
+      "players": [
+        "xfl0ud",
+        "oSee",
+        "Kvem",
+        "afro",
+        "susp"
+      ],
+      "teams": [
+        "HEROIC",
+        "NRG",
+        "Passion UA",
+        "Monte",
+        "HEROIC"
+      ]
+    },
+    {
+      "rank": 4,
+      "strategy": "2-1-1-1",
+      "totalPrice": 998000,
+      "expectedScore": 9.397221,
+      "players": [
+        "xfl0ud",
+        "oSee",
+        "Kvem",
+        "afro",
+        "Bymas"
+      ],
+      "teams": [
+        "HEROIC",
+        "NRG",
+        "Passion UA",
+        "Monte",
+        "Monte"
+      ]
+    },
+    {
+      "rank": 5,
+      "strategy": "2-1-1-1",
+      "totalPrice": 995000,
+      "expectedScore": 9.393801,
+      "players": [
+        "xfl0ud",
+        "oSee",
+        "Krabeni",
+        "afro",
+        "susp"
+      ],
+      "teams": [
+        "HEROIC",
+        "NRG",
+        "FUT",
+        "Monte",
+        "HEROIC"
+      ]
+    },
+    {
+      "rank": 6,
+      "strategy": "2-1-1-1",
+      "totalPrice": 998000,
+      "expectedScore": 9.393089,
+      "players": [
+        "xfl0ud",
+        "oSee",
+        "afro",
+        "Sonic",
+        "JT"
+      ],
+      "teams": [
+        "HEROIC",
+        "NRG",
+        "Monte",
+        "NRG",
+        "Passion UA"
+      ]
+    },
+    {
+      "rank": 7,
+      "strategy": "2-1-1-1",
+      "totalPrice": 998000,
+      "expectedScore": 9.392026,
+      "players": [
+        "xfl0ud",
+        "oSee",
+        "Krabeni",
+        "afro",
+        "Bymas"
+      ],
+      "teams": [
+        "HEROIC",
+        "NRG",
+        "FUT",
+        "Monte",
+        "Monte"
+      ]
+    },
+    {
+      "rank": 8,
+      "strategy": "1-1-1-1-1",
+      "totalPrice": 999000,
+      "expectedScore": 9.386404,
+      "players": [
+        "xfl0ud",
+        "oSee",
+        "Kvem",
+        "afro",
+        "s1n"
+      ],
+      "teams": [
+        "HEROIC",
+        "NRG",
+        "Passion UA",
+        "Monte",
+        "M80"
+      ]
+    },
+    {
+      "rank": 9,
+      "strategy": "1-1-1-1-1",
+      "totalPrice": 999000,
+      "expectedScore": 9.381209,
+      "players": [
+        "xfl0ud",
+        "oSee",
+        "Krabeni",
+        "afro",
+        "s1n"
+      ],
+      "teams": [
+        "HEROIC",
+        "NRG",
+        "FUT",
+        "Monte",
+        "M80"
+      ]
+    },
+    {
+      "rank": 10,
+      "strategy": "2-1-1-1",
+      "totalPrice": 1000000,
+      "expectedScore": 9.378561,
+      "players": [
+        "xfl0ud",
+        "oSee",
+        "Kvem",
+        "JT",
+        "slaxz-"
+      ],
+      "teams": [
+        "HEROIC",
+        "NRG",
+        "Passion UA",
+        "Passion UA",
+        "M80"
+      ]
+    }
+  ]
+}

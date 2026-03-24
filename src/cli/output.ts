@@ -6,6 +6,7 @@ import type {
   ExtractionResult,
   Player,
 } from "../types/player.ts";
+import type {OptimizationDiagnostics} from "../services/mathOptimizer.ts";
 
 export function printWelcome(): void {
   const title = chalk.cyan.bold("⚡ Fantasy HLTV Picker");
@@ -342,6 +343,51 @@ export function printTopRatedPlayers(
     title: "TOP 20 PLAYERS",
     titleAlignment: "center",
   });
+
+  console.log("\n" + box);
+}
+
+export function printScoringDiagnostics(
+  diagnostics: OptimizationDiagnostics,
+): void {
+  if (diagnostics.topLineups.length === 0) return;
+
+  const lineupSection = diagnostics.topLineups
+    .map((lineup) => {
+      const shares = Object.entries(lineup.sharesPct)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([name, pct]) => `${name}:${pct.toFixed(1)}%`)
+        .join(" | ");
+      return `${lineup.rank}. ${lineup.playerNames.join(" | ")}\n   score=${lineup.totalScore.toFixed(2)}  shares -> ${shares}`;
+    })
+    .join("\n");
+
+  const topPlayers = diagnostics.topPlayers
+    .slice(0, 10)
+    .map((player, idx) => {
+      const parts = [
+        `base:${player.baseSkillEV.toFixed(2)}`,
+        `role:${player.roleEV.toFixed(2)}`,
+        `team:${player.teamOutcomeEV.toFixed(2)}`,
+        `lev:${player.fieldLeverageEV.toFixed(2)}`,
+      ].join(" ");
+      return `${idx + 1}. ${player.name} [${player.team}] own:${(
+        player.ownership * 100
+      ).toFixed(1)}% total:${player.total.toFixed(2)} ${parts}`;
+    })
+    .join("\n");
+
+  const box = boxen(
+    `${chalk.bold.underline("\nSCORING DIAGNOSTICS\n")}${chalk.cyan("Top lineup contribution shares")}\n${lineupSection}\n\n${chalk.cyan("Top projected players (component breakdown)")}\n${topPlayers}`,
+    {
+      padding: {top: 1, bottom: 1, left: 2, right: 2},
+      borderStyle: "single",
+      borderColor: "magenta",
+      title: "MODEL DEBUG",
+      titleAlignment: "center",
+    },
+  );
 
   console.log("\n" + box);
 }

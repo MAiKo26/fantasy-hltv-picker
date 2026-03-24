@@ -4,6 +4,7 @@ import {normalizeTeamName} from "../utils/normalize.ts";
 export class MatchupPredictor {
   private teamRankings: Map<string, number> = new Map();
   private teamExpectedOutcome: Map<string, number> = new Map();
+  private teamOutcomeMatchCount: Map<string, number> = new Map();
   private pairRisk: Map<string, number> = new Map();
 
   private getPairKey(teamA: string, teamB: string): string {
@@ -22,6 +23,7 @@ export class MatchupPredictor {
   configure(teams: FantasyTeam[], matches?: MatchesExtractionResult): void {
     this.teamRankings.clear();
     this.teamExpectedOutcome.clear();
+    this.teamOutcomeMatchCount.clear();
     this.pairRisk.clear();
 
     for (const team of teams) {
@@ -42,28 +44,42 @@ export class MatchupPredictor {
       const winProbA = this.estimateWinProbability(rankA, rankB);
       const winProbB = 1 - winProbA;
 
-      // Team points expectation from HLTV scoring: +6 win / -3 loss.
+      // Keep matchups as risk-control input; team outcome is bounded and averaged.
       const expectedTeamPointsA = 9 * winProbA - 3;
       const expectedTeamPointsB = 9 * winProbB - 3;
+      const boundedA = Math.tanh(expectedTeamPointsA / 6);
+      const boundedB = Math.tanh(expectedTeamPointsB / 6);
       this.teamExpectedOutcome.set(
         keyA,
-        (this.teamExpectedOutcome.get(keyA) ?? 0) + expectedTeamPointsA,
+        (this.teamExpectedOutcome.get(keyA) ?? 0) + boundedA,
       );
       this.teamExpectedOutcome.set(
         keyB,
-        (this.teamExpectedOutcome.get(keyB) ?? 0) + expectedTeamPointsB,
+        (this.teamExpectedOutcome.get(keyB) ?? 0) + boundedB,
+      );
+      this.teamOutcomeMatchCount.set(
+        keyA,
+        (this.teamOutcomeMatchCount.get(keyA) ?? 0) + 1,
+      );
+      this.teamOutcomeMatchCount.set(
+        keyB,
+        (this.teamOutcomeMatchCount.get(keyB) ?? 0) + 1,
       );
 
-      // Cannibalization risk: stacking opponents in one lineup hurts tournament ceiling.
-      const formatBoost = match.bestOf?.toLowerCase() === "bo1" ? 0.2 : 0;
-      const risk = 0.8 + formatBoost;
+      // Direct opponents in same opening round should be penalized in stacks.
+      const formatBoost = match.bestOf?.toLowerCase() === "bo1" ? 0.25 : 0.1;
+      const risk = 1 + formatBoost;
       const pairKey = this.getPairKey(teamA, teamB);
       this.pairRisk.set(pairKey, (this.pairRisk.get(pairKey) ?? 0) + risk);
     }
   }
 
   getTeamExpectedOutcomeScore(team: string): number {
-    return this.teamExpectedOutcome.get(normalizeTeamName(team)) ?? 0;
+    const key = normalizeTeamName(team);
+    const total = this.teamExpectedOutcome.get(key) ?? 0;
+    const count = this.teamOutcomeMatchCount.get(key) ?? 0;
+    if (count === 0) return 0;
+    return total / count;
   }
 
   getMatchupRiskScore(teamA: string, teamB: string): number {

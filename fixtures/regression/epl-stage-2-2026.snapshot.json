@@ -1,6 +1,6 @@
 {
   "eventSlug": "epl-stage-2-2026",
-  "generatedAt": "2026-03-06T11:13:01.872Z",
+  "generatedAt": "2026-03-06T15:24:51.225Z",
   "inputCounts": {
     "players": 80,
     "teams": 16,
@@ -13,202 +13,202 @@
   "topLineups": [
     {
       "rank": 1,
-      "strategy": "2-2-1",
+      "strategy": "1-1-1-1-1",
       "totalPrice": 1000000,
-      "expectedScore": 11.217724,
+      "expectedScore": 9.647592,
       "players": [
-        "molodoy",
-        "woxic",
-        "tN1R",
-        "FalleN",
-        "MAJ3R"
+        "sh1ro",
+        "xfl0ud",
+        "dem0n",
+        "jabbi",
+        "vsm"
       ],
       "teams": [
-        "FURIA",
-        "Aurora",
         "Spirit",
-        "FURIA",
-        "Aurora"
+        "HEROIC",
+        "FUT",
+        "Astralis",
+        "paiN"
       ]
     },
     {
       "rank": 2,
-      "strategy": "2-2-1",
-      "totalPrice": 998000,
-      "expectedScore": 11.197806,
+      "strategy": "2-1-1-1",
+      "totalPrice": 1000000,
+      "expectedScore": 9.599167,
       "players": [
-        "molodoy",
-        "woxic",
-        "Brollan",
-        "FalleN",
-        "MAJ3R"
+        "sh1ro",
+        "Staehr",
+        "jabbi",
+        "vsm",
+        "nilo"
       ],
       "teams": [
-        "FURIA",
-        "Aurora",
-        "MOUZ",
-        "FURIA",
-        "Aurora"
+        "Spirit",
+        "Astralis",
+        "Astralis",
+        "paiN",
+        "HEROIC"
       ]
     },
     {
       "rank": 3,
-      "strategy": "2-2-1",
+      "strategy": "2-1-1-1",
       "totalPrice": 1000000,
-      "expectedScore": 11.191131,
+      "expectedScore": 9.599011,
       "players": [
-        "molodoy",
-        "soulfly",
-        "Brollan",
-        "FalleN",
-        "MAJ3R"
+        "sh1ro",
+        "xfl0ud",
+        "Staehr",
+        "jabbi",
+        "Krabeni"
       ],
       "teams": [
-        "FURIA",
-        "Aurora",
-        "MOUZ",
-        "FURIA",
-        "Aurora"
+        "Spirit",
+        "HEROIC",
+        "Astralis",
+        "Astralis",
+        "FUT"
       ]
     },
     {
       "rank": 4,
-      "strategy": "2-2-1",
-      "totalPrice": 1000000,
-      "expectedScore": 11.156109,
+      "strategy": "2-1-1-1",
+      "totalPrice": 999000,
+      "expectedScore": 9.598931,
       "players": [
-        "YEKINDAR",
-        "woxic",
-        "yuurih",
-        "Brollan",
-        "MAJ3R"
+        "dziugss",
+        "xfl0ud",
+        "makazze",
+        "ryu",
+        "jabbi"
       ],
       "teams": [
-        "FURIA",
-        "Aurora",
-        "FURIA",
-        "MOUZ",
-        "Aurora"
+        "FUT",
+        "HEROIC",
+        "Natus Vincere",
+        "Astralis",
+        "Astralis"
       ]
     },
     {
       "rank": 5,
-      "strategy": "2-2-1",
-      "totalPrice": 1000000,
-      "expectedScore": 11.142494,
+      "strategy": "2-1-1-1",
+      "totalPrice": 997000,
+      "expectedScore": 9.596614,
       "players": [
-        "910",
-        "woxic",
-        "Jimpphat",
-        "Brollan",
-        "MAJ3R"
+        "dziugss",
+        "xfl0ud",
+        "makazze",
+        "Staehr",
+        "jabbi"
       ],
       "teams": [
-        "The MongolZ",
-        "Aurora",
-        "MOUZ",
-        "MOUZ",
-        "Aurora"
+        "FUT",
+        "HEROIC",
+        "Natus Vincere",
+        "Astralis",
+        "Astralis"
       ]
     },
     {
       "rank": 6,
-      "strategy": "2-2-1",
+      "strategy": "1-1-1-1-1",
       "totalPrice": 1000000,
-      "expectedScore": 11.128316,
+      "expectedScore": 9.594175,
       "players": [
-        "YEKINDAR",
-        "Wicadia",
+        "dziugss",
+        "xfl0ud",
+        "Staehr",
         "tN1R",
-        "FalleN",
-        "MAJ3R"
+        "woxic"
       ],
       "teams": [
-        "FURIA",
-        "Aurora",
+        "FUT",
+        "HEROIC",
+        "Astralis",
         "Spirit",
-        "FURIA",
         "Aurora"
       ]
     },
     {
       "rank": 7,
-      "strategy": "2-2-1",
-      "totalPrice": 1000000,
-      "expectedScore": 11.127055,
+      "strategy": "1-1-1-1-1",
+      "totalPrice": 998000,
+      "expectedScore": 9.593085,
       "players": [
-        "YEKINDAR",
-        "woxic",
-        "cobrazera",
-        "FalleN",
-        "MAJ3R"
+        "sh1ro",
+        "dziugss",
+        "jabbi",
+        "vsm",
+        "jcobbb"
       ],
       "teams": [
-        "FURIA",
-        "Aurora",
-        "The MongolZ",
-        "FURIA",
-        "Aurora"
+        "Spirit",
+        "FUT",
+        "Astralis",
+        "paiN",
+        "FaZe"
       ]
     },
     {
       "rank": 8,
-      "strategy": "2-2-1",
+      "strategy": "2-1-1-1",
       "totalPrice": 999000,
-      "expectedScore": 11.121382,
+      "expectedScore": 9.588619,
       "players": [
-        "torzsi",
-        "woxic",
-        "yuurih",
-        "Brollan",
-        "MAJ3R"
+        "dziugss",
+        "xfl0ud",
+        "Staehr",
+        "tN1R",
+        "dem0n"
       ],
       "teams": [
-        "MOUZ",
-        "Aurora",
-        "FURIA",
-        "MOUZ",
-        "Aurora"
+        "FUT",
+        "HEROIC",
+        "Astralis",
+        "Spirit",
+        "FUT"
       ]
     },
     {
       "rank": 9,
-      "strategy": "2-2-1",
-      "totalPrice": 998000,
-      "expectedScore": 11.116711,
+      "strategy": "1-1-1-1-1",
+      "totalPrice": 1000000,
+      "expectedScore": 9.588027,
       "players": [
-        "sh1ro",
-        "woxic",
-        "tN1R",
-        "Brollan",
-        "MAJ3R"
+        "dziugss",
+        "xfl0ud",
+        "makazze",
+        "ryu",
+        "vsm"
       ],
       "teams": [
-        "Spirit",
-        "Aurora",
-        "Spirit",
-        "MOUZ",
-        "Aurora"
+        "FUT",
+        "HEROIC",
+        "Natus Vincere",
+        "Astralis",
+        "paiN"
       ]
     },
     {
       "rank": 10,
-      "strategy": "2-2-1",
+      "strategy": "2-1-1-1",
       "totalPrice": 1000000,
-      "expectedScore": 11.113731,
+      "expectedScore": 9.587208,
       "players": [
-        "sh1ro",
-        "woxic",
-        "yuurih",
-        "FalleN",
-        "MAJ3R"
+        "XANTARES",
+        "xfl0ud",
+        "Staehr",
+        "jabbi",
+        "vsm"
       ],
       "teams": [
-        "Spirit",
         "Aurora",
-        "FURIA",
-        "FURIA",
-        "Aurora"
+        "HEROIC",
+        "Astralis",
+        "Astralis",
+        "paiN"
       ]
     }
   ]

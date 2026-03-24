@@ -11,9 +11,14 @@ const envSchema = z.object({
         .map((s) => s.trim())
         .filter((s) => s.length > 0),
     ),
+  SCORING_DIAGNOSTICS: z
+    .string()
+    .optional()
+    .transform((val) => val === "true"),
 });
 
 export const env = envSchema.parse({
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   BLACKLISTED_PLAYERS: process.env.BLACKLISTED_PLAYERS,
+  SCORING_DIAGNOSTICS: process.env.SCORING_DIAGNOSTICS,
 });
