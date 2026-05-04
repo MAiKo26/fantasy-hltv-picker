@@ -97,7 +97,7 @@ export interface OptimizationDiagnostics {
 export class MathOptimizer {
   private readonly MAX_BUDGET = 1000000;
   private readonly MAX_PLAYER_PRICE = 245000;
-  private readonly TARGET_RESULTS = 20;
+  private readonly TARGET_RESULTS = 30;
   private readonly CANDIDATE_POOL_LIMIT = 65;
   private readonly TEAM_CANDIDATES_LIMIT = 4;
   private readonly MAX_TRACKED_LINEUPS = 250;

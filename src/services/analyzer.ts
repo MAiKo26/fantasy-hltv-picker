@@ -33,7 +33,12 @@ export class FantasyAnalyzerService implements AnalyzerService {
     // ── Stage 2: Math Optimizer ──────────────────────────────────────────────
     const mathBar = createProgressBar("Stage 2 · Generating optimal lineups");
     mathBar.tick(0, 1, "Crunching combinations...");
-    const bestLineups = mathOptimizer.optimize(enrichedPlayers, teams, config, bundle);
+    const bestLineups = mathOptimizer.optimize(
+      enrichedPlayers,
+      teams,
+      config,
+      bundle,
+    );
 
     if (bestLineups.length === 0) {
       throw new Error(
@@ -43,12 +48,12 @@ export class FantasyAnalyzerService implements AnalyzerService {
     mathBar.done(`Generated ${bestLineups.length} valid lineups`, 1);
 
     // Print top 20 math-generated lineups before LLM evaluation
-    const lineupPreviewBar = createProgressBar("Previewing top 20 lineups");
+    const lineupPreviewBar = createProgressBar("Previewing top 30 lineups");
     lineupPreviewBar.tick(0, 1, "Showing math-optimized lineups...");
     console.log(
-      chalk.bold.white("\n📊 TOP 20 MATH-OPTIMIZED LINEUPS (Pre-LLM):\n"),
+      chalk.bold.white("\n📊 TOP 30 MATH-OPTIMIZED LINEUPS (Pre-LLM):\n"),
     );
-    bestLineups.slice(0, 20).forEach((lineup, idx) => {
+    bestLineups.slice(0, 30).forEach((lineup, idx) => {
       const playerNames = lineup.players.map((p) => p.name).join(" | ");
       const price = chalk.yellow(`$${(lineup.totalPrice / 1000).toFixed(0)}k`);
       const expected = chalk.cyan(
@@ -64,7 +69,7 @@ export class FantasyAnalyzerService implements AnalyzerService {
       printScoringDiagnostics(mathOptimizer.getLatestDiagnostics());
     }
 
-    // Calculate top 20 players by expected base score
+    // Calculate top 30 players by expected base score
     const playerScores = new Map<
       string,
       {id: string; name: string; team: string; rating: number}
@@ -79,7 +84,7 @@ export class FantasyAnalyzerService implements AnalyzerService {
     }
     const top20ByRating = Array.from(playerScores.values())
       .sort((a, b) => b.rating - a.rating)
-      .slice(0, 20);
+      .slice(0, 30);
 
     // ── Stage 3: LLM Evaluation (one call per lineup) ───────────────────────
     if (config.disableLLMEvaluation) {
