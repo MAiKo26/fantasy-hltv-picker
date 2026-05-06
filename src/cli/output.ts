@@ -301,9 +301,12 @@ export function printAllLineupsRanking(
   const lines = allScoredLineups
     .map((lineup, idx) => {
       const rank = chalk.cyan(`${idx + 1}.`);
-      const playerNames = lineup.players.map((p) => p.name).join(" | ");
+      const playerNames = lineup.players
+        .map((p) => `${p.name} (${p.team})`)
+        .join(" | ");
       const price = chalk.yellow(`$${(lineup.totalPrice / 1000).toFixed(0)}k`);
       const score = chalk.green(`Score ${lineup.score.toFixed(2)}`);
+
       return `${rank} ${playerNames} | ${price} | ${score}`;
     })
     .join("\n");
