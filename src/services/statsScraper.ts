@@ -118,11 +118,10 @@ export class StatsScraperService {
   async enrichPlayersWithHistoricalStats(
     players: FantasyPlayer[],
   ): Promise<FantasyPlayer[]> {
-    const [r3m, r6m, r12m] = await Promise.all([
-      this.fetchAndParse("last_3_months_top_20.html", "stats_3m_top20"),
-      this.fetchAndParse("last_6_months_top_30.html", "stats_6m_top30"),
-      this.fetchAndParse("last_12_months_top_50.html", "stats_12m_top50"),
-    ]);
+    const r12m = await this.fetchAndParse(
+      "last_12_months_top_50.html",
+      "stats_12m_top50",
+    );
 
     const buildDict = (stats: historicalPlayerStat[]) => {
       const dict: Record<string, historicalPlayerStat> = {};
@@ -130,8 +129,6 @@ export class StatsScraperService {
       return dict;
     };
 
-    const dict3m = buildDict(r3m.stats);
-    const dict6m = buildDict(r6m.stats);
     const dict12m = buildDict(r12m.stats);
 
     return players.map((player) => {
@@ -140,8 +137,6 @@ export class StatsScraperService {
         ...player,
         stats: {
           ...player.stats,
-          rating3mTop20: dict3m[key]?.rating,
-          rating6mTop30: dict6m[key]?.rating,
           rating12mTop50: dict12m[key]?.rating,
         },
       };

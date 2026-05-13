@@ -12,8 +12,6 @@ export interface PlayerStats {
   multiKillRoundsPct: number;
   deathsPerRound: number;
   // Scraped Historical Stats
-  rating3mTop20?: number;
-  rating6mTop30?: number;
   rating12mTop50?: number;
 }
 

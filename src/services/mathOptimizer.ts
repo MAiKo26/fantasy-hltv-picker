@@ -10,8 +10,6 @@ import {env} from "../env.ts";
 import {normalizePlayerName, normalizeTeamName} from "../utils/normalize.ts";
 
 interface ScoreWeights {
-  historical3m: number;
-  historical6m: number;
   historical12m: number;
   teamRankBonus: number;
   awpBonus: number;
@@ -105,10 +103,8 @@ export class MathOptimizer {
   private readonly TARGET_MAX_AVG_OWNERSHIP = 0.4;
 
   private readonly DEFAULT_WEIGHTS: ScoreWeights = {
-    historical3m: 0.25,
-    historical6m: 0.12,
     historical12m: 0.05,
-    teamRankBonus: 0.2,
+    teamRankBonus: 0.4,
     awpBonus: 0.01,
     survivalBonus: 0.02,
     sideVariancePenalty: 0.1,
@@ -154,8 +150,6 @@ export class MathOptimizer {
     let score = player.stats.rating;
 
     const historicalBonus =
-      (player.stats.rating3mTop20 ?? 0) * this.runtimeWeights.historical3m +
-      (player.stats.rating6mTop30 ?? 0) * this.runtimeWeights.historical6m +
       (player.stats.rating12mTop50 ?? 0) * this.runtimeWeights.historical12m;
     score += historicalBonus;
 
@@ -165,7 +159,8 @@ export class MathOptimizer {
 
     if (player.stats.awpPerRound >= 0.25) score += this.runtimeWeights.awpBonus;
 
-    if (player.stats.deathsPerRound <= 0.6) score += this.runtimeWeights.survivalBonus;
+    if (player.stats.deathsPerRound <= 0.6)
+      score += this.runtimeWeights.survivalBonus;
 
     const sideVariance = Math.abs(player.stats.ctRating - player.stats.tRating);
     score -= sideVariance * this.runtimeWeights.sideVariancePenalty;
@@ -215,7 +210,10 @@ export class MathOptimizer {
       const relative = pick.pickCount / maxPickCount;
       // Compress tail so top-pick penalties are meaningful without overwhelming EV.
       const normalized = Math.min(0.92, 0.08 + Math.sqrt(relative) * 0.72);
-      this.ownershipByPlayerKey.set(normalizePlayerName(pick.playerName), normalized);
+      this.ownershipByPlayerKey.set(
+        normalizePlayerName(pick.playerName),
+        normalized,
+      );
       ownershipSum += normalized;
     }
 
@@ -246,7 +244,10 @@ export class MathOptimizer {
     inverse = false,
   ): number {
     const normalizedValue = this.normalizeRate(value, maxThreshold);
-    const denominator = Math.max(Math.abs(maxThreshold - smallThreshold), 0.0001);
+    const denominator = Math.max(
+      Math.abs(maxThreshold - smallThreshold),
+      0.0001,
+    );
     const quality = inverse
       ? (smallThreshold - normalizedValue) / denominator
       : (normalizedValue - smallThreshold) / denominator;
@@ -258,7 +259,9 @@ export class MathOptimizer {
   }
 
   private getLeaderExpectedPoints(player: FantasyPlayer): number {
-    const teamOutcome = matchupPredictor.getTeamExpectedOutcomeScore(player.team);
+    const teamOutcome = matchupPredictor.getTeamExpectedOutcomeScore(
+      player.team,
+    );
     const bounded = Math.tanh(teamOutcome);
     return bounded * 2.6 + 1.2;
   }
@@ -272,10 +275,18 @@ export class MathOptimizer {
     expectedPoints: number;
     downsideRisk: number;
   } {
-    const roleCandidates: Array<{role: string; expected: number; risk: number}> = [];
+    const roleCandidates: Array<{
+      role: string;
+      expected: number;
+      risk: number;
+    }> = [];
 
     if (player.stats.awpPerRound >= 0.12) {
-      const expected = this.thresholdToExpectedPoints(player.stats.awpPerRound, 0.35, 0.2);
+      const expected = this.thresholdToExpectedPoints(
+        player.stats.awpPerRound,
+        0.35,
+        0.2,
+      );
       roleCandidates.push({
         role: "Main AWP",
         expected,
@@ -283,7 +294,11 @@ export class MathOptimizer {
       });
     }
     if (player.stats.supportRoundsPct >= 14) {
-      const expected = this.thresholdToExpectedPoints(player.stats.supportRoundsPct, 25, 17);
+      const expected = this.thresholdToExpectedPoints(
+        player.stats.supportRoundsPct,
+        25,
+        17,
+      );
       roleCandidates.push({
         role: "Support",
         expected,
@@ -291,7 +306,11 @@ export class MathOptimizer {
       });
     }
     if (player.stats.tRating >= 0.9) {
-      const expected = this.thresholdToExpectedPoints(player.stats.tRating, 1.3, 0.9);
+      const expected = this.thresholdToExpectedPoints(
+        player.stats.tRating,
+        1.3,
+        0.9,
+      );
       roleCandidates.push({
         role: "Attacker",
         expected,
@@ -299,7 +318,11 @@ export class MathOptimizer {
       });
     }
     if (player.stats.rating >= 0.95) {
-      const expected = this.thresholdToExpectedPoints(player.stats.rating, 1.3, 1.0);
+      const expected = this.thresholdToExpectedPoints(
+        player.stats.rating,
+        1.3,
+        1.0,
+      );
       roleCandidates.push({
         role: "Stathunter",
         expected,
@@ -307,7 +330,11 @@ export class MathOptimizer {
       });
     }
     if (this.normalizeRate(player.stats.entryRoundsPct, 0.15) >= 0.06) {
-      const expected = this.thresholdToExpectedPoints(player.stats.entryRoundsPct, 0.15, 0.08);
+      const expected = this.thresholdToExpectedPoints(
+        player.stats.entryRoundsPct,
+        0.15,
+        0.08,
+      );
       roleCandidates.push({
         role: "Entry Fragger",
         expected,
@@ -328,7 +355,11 @@ export class MathOptimizer {
       });
     }
     if (player.stats.ctRating >= 0.95) {
-      const expected = this.thresholdToExpectedPoints(player.stats.ctRating, 1.35, 1.0);
+      const expected = this.thresholdToExpectedPoints(
+        player.stats.ctRating,
+        1.35,
+        1.0,
+      );
       roleCandidates.push({
         role: "Defender",
         expected,
@@ -336,7 +367,11 @@ export class MathOptimizer {
       });
     }
     if (player.stats.headshotPct >= 45) {
-      const expected = this.thresholdToExpectedPoints(player.stats.headshotPct, 60, 50);
+      const expected = this.thresholdToExpectedPoints(
+        player.stats.headshotPct,
+        60,
+        50,
+      );
       roleCandidates.push({
         role: "HS Machine",
         expected,
@@ -356,7 +391,12 @@ export class MathOptimizer {
       });
     }
     if (player.stats.rating <= 1.08) {
-      const expected = this.thresholdToExpectedPoints(player.stats.rating, 0.85, 1.12, true);
+      const expected = this.thresholdToExpectedPoints(
+        player.stats.rating,
+        0.85,
+        1.12,
+        true,
+      );
       roleCandidates.push({
         role: "Noob",
         expected,
@@ -395,7 +435,11 @@ export class MathOptimizer {
       0,
       1,
     );
-    const supportSignal = this.clamp((player.stats.supportRoundsPct - 14) / 16, 0, 1);
+    const supportSignal = this.clamp(
+      (player.stats.supportRoundsPct - 14) / 16,
+      0,
+      1,
+    );
     const hsSignal = this.clamp((player.stats.headshotPct - 45) / 20, 0, 1);
 
     const fragBoosterPopularity =
@@ -410,8 +454,14 @@ export class MathOptimizer {
       (this.boosterPopularityByName.get("Bait") ?? 0) * 0.2;
 
     const styleScore =
-      fragSignal * 0.5 + entrySignal * 0.25 + hsSignal * 0.15 + supportSignal * 0.1;
-    const prior = fragSignal >= supportSignal ? fragBoosterPopularity : supportBoosterPopularity;
+      fragSignal * 0.5 +
+      entrySignal * 0.25 +
+      hsSignal * 0.15 +
+      supportSignal * 0.1;
+    const prior =
+      fragSignal >= supportSignal
+        ? fragBoosterPopularity
+        : supportBoosterPopularity;
     return styleScore * 2.5 + (prior - 0.5) * 0.35;
   }
 
@@ -430,7 +480,9 @@ export class MathOptimizer {
       this.getBoosterExpectedPoints(player) *
       this.runtimeWeights.boosterExpected *
       (0.65 + 0.35 * skillGate);
-    const teamOutcomeRaw = matchupPredictor.getTeamExpectedOutcomeScore(player.team);
+    const teamOutcomeRaw = matchupPredictor.getTeamExpectedOutcomeScore(
+      player.team,
+    );
     const boundedTeamOutcome = this.clamp(Math.tanh(teamOutcomeRaw), -0.8, 0.8);
     const teamOutcomeEV =
       boundedTeamOutcome * this.runtimeWeights.teamOutcome * skillGate;
@@ -524,7 +576,11 @@ export class MathOptimizer {
   ): number {
     let sum = 0;
     let taken = 0;
-    for (let i = startIndex; i < sortedScores.length && taken < remainingSlots; i++) {
+    for (
+      let i = startIndex;
+      i < sortedScores.length && taken < remainingSlots;
+      i++
+    ) {
       const score = sortedScores[i];
       if (score === undefined) continue;
       sum += score;
@@ -581,8 +637,12 @@ export class MathOptimizer {
     };
 
     const getCutoffScore = () => {
-      if (validLineups.length < this.MAX_TRACKED_LINEUPS) return Number.NEGATIVE_INFINITY;
-      return validLineups[validLineups.length - 1]?.expectedBaseScore ?? Number.NEGATIVE_INFINITY;
+      if (validLineups.length < this.MAX_TRACKED_LINEUPS)
+        return Number.NEGATIVE_INFINITY;
+      return (
+        validLineups[validLineups.length - 1]?.expectedBaseScore ??
+        Number.NEGATIVE_INFINITY
+      );
     };
 
     const search = (
@@ -600,7 +660,8 @@ export class MathOptimizer {
       const remainingSlots = 5 - selectedPlayers.length;
       if (remainingSlots === 0) {
         if (totalPrice > this.MAX_BUDGET) return;
-        if (config.minG2Players !== "Auto" && g2Count < config.minG2Players) return;
+        if (config.minG2Players !== "Auto" && g2Count < config.minG2Players)
+          return;
 
         let strategyUsed: Strategy | null = null;
         for (const strategy of targetStrategies) {
@@ -628,16 +689,12 @@ export class MathOptimizer {
         let ownershipBandEV = 0;
         if (avgOwnership < this.TARGET_MIN_AVG_OWNERSHIP) {
           ownershipBandEV =
-            -(
-              this.TARGET_MIN_AVG_OWNERSHIP - avgOwnership
-            ) *
+            -(this.TARGET_MIN_AVG_OWNERSHIP - avgOwnership) *
             this.runtimeWeights.ownershipBand *
             3.5;
         } else if (avgOwnership > this.TARGET_MAX_AVG_OWNERSHIP) {
           ownershipBandEV =
-            -(
-              avgOwnership - this.TARGET_MAX_AVG_OWNERSHIP
-            ) *
+            -(avgOwnership - this.TARGET_MAX_AVG_OWNERSHIP) *
             this.runtimeWeights.ownershipBand *
             3.5;
         } else {
@@ -649,7 +706,10 @@ export class MathOptimizer {
           if (count <= 1) continue;
           const stackSkill = selectedPlayers
             .filter((p) => p.team === team)
-            .reduce((sum, p) => sum + (projectionById.get(p.id)?.baseSkillEV ?? 0), 0);
+            .reduce(
+              (sum, p) => sum + (projectionById.get(p.id)?.baseSkillEV ?? 0),
+              0,
+            );
           const avgStackSkill = stackSkill / count;
           const stackGate = this.getSkillGate(avgStackSkill);
           stackCorrelationEV +=
@@ -742,7 +802,8 @@ export class MathOptimizer {
           roleEV: componentSums.roleEV + projection.roleEV,
           boosterEV: componentSums.boosterEV + projection.boosterEV,
           teamOutcomeEV: componentSums.teamOutcomeEV + projection.teamOutcomeEV,
-          fieldLeverageEV: componentSums.fieldLeverageEV + projection.fieldLeverageEV,
+          fieldLeverageEV:
+            componentSums.fieldLeverageEV + projection.fieldLeverageEV,
         });
 
         selectedPlayers.pop();
@@ -763,8 +824,14 @@ export class MathOptimizer {
     });
 
     const diversified = this.selectDiverseLineups(validLineups);
-    const playerById = new Map(validPlayers.map((player) => [player.id, player]));
-    this.lastDiagnostics = this.buildDiagnostics(diversified, projectionById, playerById);
+    const playerById = new Map(
+      validPlayers.map((player) => [player.id, player]),
+    );
+    this.lastDiagnostics = this.buildDiagnostics(
+      diversified,
+      projectionById,
+      playerById,
+    );
     return diversified;
   }
 
@@ -778,12 +845,18 @@ export class MathOptimizer {
 
   private selectDiverseLineups(lineups: MathLineup[]): MathLineup[] {
     if (lineups.length <= 1) return lineups.slice(0, this.TARGET_RESULTS);
-    const sorted = [...lineups].sort((a, b) => b.expectedBaseScore - a.expectedBaseScore);
+    const sorted = [...lineups].sort(
+      (a, b) => b.expectedBaseScore - a.expectedBaseScore,
+    );
     const anchor = sorted[0]!;
     const selected: MathLineup[] = [anchor];
     const used = new Set<number>([0]);
 
-    for (let i = 1; i < sorted.length && selected.length < this.TARGET_RESULTS; i++) {
+    for (
+      let i = 1;
+      i < sorted.length && selected.length < this.TARGET_RESULTS;
+      i++
+    ) {
       const candidate = sorted[i];
       if (!candidate) continue;
       const overlapWithAnchor = this.getOverlapCount(anchor, candidate);
@@ -793,7 +866,11 @@ export class MathOptimizer {
       used.add(i);
     }
 
-    for (let i = 1; i < sorted.length && selected.length < this.TARGET_RESULTS; i++) {
+    for (
+      let i = 1;
+      i < sorted.length && selected.length < this.TARGET_RESULTS;
+      i++
+    ) {
       if (used.has(i)) continue;
       const candidate = sorted[i];
       if (!candidate) continue;
@@ -812,74 +889,82 @@ export class MathOptimizer {
       .map(([playerId, projection]) => {
         const player = playerById.get(playerId);
         return {
-        playerId,
-        name: player?.name ?? playerId,
-        team: player?.team ?? "",
-        price: player?.price ?? 0,
-        ownership: projection.ownership,
-        total: projection.total,
-        baseSkillEV: projection.baseSkillEV,
-        roleEV: projection.roleEV,
-        boosterEV: projection.boosterEV,
-        teamOutcomeEV: projection.teamOutcomeEV,
-        fieldLeverageEV: projection.fieldLeverageEV,
-        roleName: projection.roleName,
-        roleExpectedPoints: projection.roleExpectedPoints,
-        roleDownsideRisk: projection.roleDownsideRisk,
-      };
+          playerId,
+          name: player?.name ?? playerId,
+          team: player?.team ?? "",
+          price: player?.price ?? 0,
+          ownership: projection.ownership,
+          total: projection.total,
+          baseSkillEV: projection.baseSkillEV,
+          roleEV: projection.roleEV,
+          boosterEV: projection.boosterEV,
+          teamOutcomeEV: projection.teamOutcomeEV,
+          fieldLeverageEV: projection.fieldLeverageEV,
+          roleName: projection.roleName,
+          roleExpectedPoints: projection.roleExpectedPoints,
+          roleDownsideRisk: projection.roleDownsideRisk,
+        };
       })
       .sort((a, b) => b.total - a.total)
       .slice(0, 15);
 
-    const topLineups: LineupScoreDiagnostics[] = lineups.slice(0, 5).map((lineup, idx) => {
-      const b = lineup.scoringBreakdown ?? {
-        baseSkillEV: 0,
-        roleEV: 0,
-        boosterEV: 0,
-        teamOutcomeEV: 0,
-        fieldLeverageEV: 0,
-        lineupLeverageEV: 0,
-        ownershipBandEV: 0,
-        stackCorrelationEV: 0,
-        chalkWeakPenalty: 0,
-        diversityPenalty: 0,
-        matchupRiskPenalty: 0,
-      };
+    const topLineups: LineupScoreDiagnostics[] = lineups
+      .slice(0, 5)
+      .map((lineup, idx) => {
+        const b = lineup.scoringBreakdown ?? {
+          baseSkillEV: 0,
+          roleEV: 0,
+          boosterEV: 0,
+          teamOutcomeEV: 0,
+          fieldLeverageEV: 0,
+          lineupLeverageEV: 0,
+          ownershipBandEV: 0,
+          stackCorrelationEV: 0,
+          chalkWeakPenalty: 0,
+          diversityPenalty: 0,
+          matchupRiskPenalty: 0,
+        };
 
-      const componentMagnitude =
-        Math.abs(b.baseSkillEV) +
-        Math.abs(b.roleEV) +
-        Math.abs(b.boosterEV) +
-        Math.abs(b.teamOutcomeEV) +
-        Math.abs(b.fieldLeverageEV) +
-        Math.abs(b.lineupLeverageEV) +
-        Math.abs(b.ownershipBandEV) +
-        Math.abs(b.stackCorrelationEV) +
-        Math.abs(b.chalkWeakPenalty) +
-        Math.abs(b.matchupRiskPenalty) +
-        0.0001;
+        const componentMagnitude =
+          Math.abs(b.baseSkillEV) +
+          Math.abs(b.roleEV) +
+          Math.abs(b.boosterEV) +
+          Math.abs(b.teamOutcomeEV) +
+          Math.abs(b.fieldLeverageEV) +
+          Math.abs(b.lineupLeverageEV) +
+          Math.abs(b.ownershipBandEV) +
+          Math.abs(b.stackCorrelationEV) +
+          Math.abs(b.chalkWeakPenalty) +
+          Math.abs(b.matchupRiskPenalty) +
+          0.0001;
 
-      const sharesPct: Record<string, number> = {
-        baseSkill: (Math.abs(b.baseSkillEV) / componentMagnitude) * 100,
-        role: (Math.abs(b.roleEV) / componentMagnitude) * 100,
-        booster: (Math.abs(b.boosterEV) / componentMagnitude) * 100,
-        teamOutcome: (Math.abs(b.teamOutcomeEV) / componentMagnitude) * 100,
-        playerLeverage: (Math.abs(b.fieldLeverageEV) / componentMagnitude) * 100,
-        lineupLeverage: (Math.abs(b.lineupLeverageEV) / componentMagnitude) * 100,
-        ownershipBand: (Math.abs(b.ownershipBandEV) / componentMagnitude) * 100,
-        stackCorrelation: (Math.abs(b.stackCorrelationEV) / componentMagnitude) * 100,
-        chalkWeakPenalty: (Math.abs(b.chalkWeakPenalty) / componentMagnitude) * 100,
-        matchupRisk: (Math.abs(b.matchupRiskPenalty) / componentMagnitude) * 100,
-      };
+        const sharesPct: Record<string, number> = {
+          baseSkill: (Math.abs(b.baseSkillEV) / componentMagnitude) * 100,
+          role: (Math.abs(b.roleEV) / componentMagnitude) * 100,
+          booster: (Math.abs(b.boosterEV) / componentMagnitude) * 100,
+          teamOutcome: (Math.abs(b.teamOutcomeEV) / componentMagnitude) * 100,
+          playerLeverage:
+            (Math.abs(b.fieldLeverageEV) / componentMagnitude) * 100,
+          lineupLeverage:
+            (Math.abs(b.lineupLeverageEV) / componentMagnitude) * 100,
+          ownershipBand:
+            (Math.abs(b.ownershipBandEV) / componentMagnitude) * 100,
+          stackCorrelation:
+            (Math.abs(b.stackCorrelationEV) / componentMagnitude) * 100,
+          chalkWeakPenalty:
+            (Math.abs(b.chalkWeakPenalty) / componentMagnitude) * 100,
+          matchupRisk:
+            (Math.abs(b.matchupRiskPenalty) / componentMagnitude) * 100,
+        };
 
-      return {
-        rank: idx + 1,
-        playerNames: lineup.players.map((player) => player.name),
-        totalScore: lineup.expectedBaseScore,
-        breakdown: b,
-        sharesPct,
-      };
-    });
+        return {
+          rank: idx + 1,
+          playerNames: lineup.players.map((player) => player.name),
+          totalScore: lineup.expectedBaseScore,
+          breakdown: b,
+          sharesPct,
+        };
+      });
 
     return {
       topPlayers,
