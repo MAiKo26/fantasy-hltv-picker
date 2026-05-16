@@ -67,28 +67,36 @@ export interface OptimizationDiagnostics {
 }
 
 const DEFAULT_WEIGHTS: ScoreWeights = {
-  historical12m: 0.05,
-  teamRankBonus: 0.4,
+  historical12m: 0.15,
+  teamRankBonus: 0.5,
   awpBonus: 0.01,
   survivalBonus: 0.02,
   sideVariancePenalty: 0.1,
   teamOutcome: 0.04,
   stackCorrelation: 0.015,
-  matchupRiskPenalty: 0.55,
+  matchupRiskPenalty: 0.2,
   stackRankBonus: 0.12,
 };
 
 function resolveWeights(overrides?: OptimizerWeightOverrides): ScoreWeights {
   const envWeights: Partial<ScoreWeights> = {};
-  if (env.WEIGHT_HISTORICAL_12M != null) envWeights.historical12m = env.WEIGHT_HISTORICAL_12M;
-  if (env.WEIGHT_TEAM_RANK_BONUS != null) envWeights.teamRankBonus = env.WEIGHT_TEAM_RANK_BONUS;
+  if (env.WEIGHT_HISTORICAL_12M != null)
+    envWeights.historical12m = env.WEIGHT_HISTORICAL_12M;
+  if (env.WEIGHT_TEAM_RANK_BONUS != null)
+    envWeights.teamRankBonus = env.WEIGHT_TEAM_RANK_BONUS;
   if (env.WEIGHT_AWP_BONUS != null) envWeights.awpBonus = env.WEIGHT_AWP_BONUS;
-  if (env.WEIGHT_SURVIVAL_BONUS != null) envWeights.survivalBonus = env.WEIGHT_SURVIVAL_BONUS;
-  if (env.WEIGHT_SIDE_VARIANCE_PENALTY != null) envWeights.sideVariancePenalty = env.WEIGHT_SIDE_VARIANCE_PENALTY;
-  if (env.WEIGHT_TEAM_OUTCOME != null) envWeights.teamOutcome = env.WEIGHT_TEAM_OUTCOME;
-  if (env.WEIGHT_STACK_CORRELATION != null) envWeights.stackCorrelation = env.WEIGHT_STACK_CORRELATION;
-  if (env.WEIGHT_MATCHUP_RISK_PENALTY != null) envWeights.matchupRiskPenalty = env.WEIGHT_MATCHUP_RISK_PENALTY;
-  if (env.WEIGHT_STACK_RANK_BONUS != null) envWeights.stackRankBonus = env.WEIGHT_STACK_RANK_BONUS;
+  if (env.WEIGHT_SURVIVAL_BONUS != null)
+    envWeights.survivalBonus = env.WEIGHT_SURVIVAL_BONUS;
+  if (env.WEIGHT_SIDE_VARIANCE_PENALTY != null)
+    envWeights.sideVariancePenalty = env.WEIGHT_SIDE_VARIANCE_PENALTY;
+  if (env.WEIGHT_TEAM_OUTCOME != null)
+    envWeights.teamOutcome = env.WEIGHT_TEAM_OUTCOME;
+  if (env.WEIGHT_STACK_CORRELATION != null)
+    envWeights.stackCorrelation = env.WEIGHT_STACK_CORRELATION;
+  if (env.WEIGHT_MATCHUP_RISK_PENALTY != null)
+    envWeights.matchupRiskPenalty = env.WEIGHT_MATCHUP_RISK_PENALTY;
+  if (env.WEIGHT_STACK_RANK_BONUS != null)
+    envWeights.stackRankBonus = env.WEIGHT_STACK_RANK_BONUS;
 
   return {
     ...DEFAULT_WEIGHTS,
@@ -324,7 +332,11 @@ export class MathOptimizer {
       const remainingSlots = 5 - selectedPlayers.length;
       if (remainingSlots === 0) {
         if (totalPrice > this.MAX_BUDGET) return;
-        if (config.forcedTeam && config.forcedTeam.minPlayers !== "Auto" && forcedTeamCount < config.forcedTeam.minPlayers)
+        if (
+          config.forcedTeam &&
+          config.forcedTeam.minPlayers !== "Auto" &&
+          forcedTeamCount < config.forcedTeam.minPlayers
+        )
           return;
 
         let strategyUsed: Strategy | null = null;
@@ -375,8 +387,7 @@ export class MathOptimizer {
           }
           if (rankCount > 0) {
             stackRankBonus =
-              (totalRankBonus / rankCount) *
-              this.runtimeWeights.stackRankBonus;
+              (totalRankBonus / rankCount) * this.runtimeWeights.stackRankBonus;
           }
         }
 
@@ -422,11 +433,16 @@ export class MathOptimizer {
         const teamCount = teamCounts[player.team] ?? 0;
         if (teamCount >= 2) continue;
 
-        const isForcedTeamPlayer = forcedTeamNormalized != null && normalizeTeamName(player.team) === forcedTeamNormalized;
-        const nextForcedTeamCount = forcedTeamCount + (isForcedTeamPlayer ? 1 : 0);
+        const isForcedTeamPlayer =
+          forcedTeamNormalized != null &&
+          normalizeTeamName(player.team) === forcedTeamNormalized;
+        const nextForcedTeamCount =
+          forcedTeamCount + (isForcedTeamPlayer ? 1 : 0);
         if (
-          config.forcedTeam && config.forcedTeam.minPlayers !== "Auto" &&
-          nextForcedTeamCount + (remainingSlots - 1) < config.forcedTeam.minPlayers
+          config.forcedTeam &&
+          config.forcedTeam.minPlayers !== "Auto" &&
+          nextForcedTeamCount + (remainingSlots - 1) <
+            config.forcedTeam.minPlayers
         ) {
           continue;
         }
