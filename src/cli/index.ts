@@ -5,7 +5,6 @@ import {
   printError,
   printExtractionSummary,
   printGoodbye,
-  printReasoningBox,
   printFinalTeamBox,
   printAllLineupsRanking,
   printTopRatedPlayers,
@@ -13,7 +12,7 @@ import {
 import {
   promptForSourceFile,
   promptForStrategy,
-  promptForMinG2Players,
+  promptForForcedTeam,
 } from "./prompts.ts";
 import {HtmlExtractorService} from "../services/extractor.ts";
 import {FantasyAnalyzerService} from "../services/analyzer.ts";
@@ -51,19 +50,18 @@ export async function main(): Promise<void> {
   }
 
   const strategy = await promptForStrategy();
-  const minG2Players = await promptForMinG2Players(result.teams);
-  const disableLLMEvaluation = true;
+  const forcedTeam = await promptForForcedTeam(result.teams);
 
   const config: FantasyConfig = {
     strategy,
-    minG2Players: minG2Players ?? "Auto",
-    disableLLMEvaluation,
+    forcedTeam: forcedTeam ?? null,
   };
 
   console.log("\n📋 Configuration selected:");
   console.log(`   Strategy: ${config.strategy}`);
-  console.log(`   Min G2 Players: ${config.minG2Players}`);
-  console.log("   LLM Evaluation: Disabled (deterministic math mode)");
+  if (config.forcedTeam) {
+    console.log(`   Forced team: ${config.forcedTeam.name} (min ${config.forcedTeam.minPlayers === "Auto" ? "auto" : config.forcedTeam.minPlayers})`);
+  }
 
   const bundleSpinner = createSpinner(
     "Loading optional event overview + matches bundle...",
@@ -87,7 +85,6 @@ export async function main(): Promise<void> {
     }
   }
 
-  // ── Analysis: progress bars are rendered inside analyzer/llmSelector ───────
   const analyzer = new FantasyAnalyzerService();
 
   let analysisResult: AnalysisResult;
@@ -100,7 +97,6 @@ export async function main(): Promise<void> {
       bundle,
     );
 
-    printReasoningBox(analysisResult.reasoning);
     printFinalTeamBox(analysisResult);
     printAllLineupsRanking(analysisResult.allScoredLineups);
     printTopRatedPlayers(analysisResult.top20ByRating);

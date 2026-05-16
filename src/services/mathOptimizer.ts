@@ -24,6 +24,7 @@ interface ScoreWeights {
   stackCorrelation: number;
   matchupRiskPenalty: number;
   chalkWeakPenalty: number;
+  stackRankBonus: number;
 }
 
 export type OptimizerWeightOverrides = Partial<ScoreWeights>;
@@ -45,6 +46,7 @@ export interface MathLineup {
     chalkWeakPenalty: number;
     diversityPenalty: number;
     matchupRiskPenalty: number;
+    stackRankBonus: number;
   };
 }
 
@@ -92,50 +94,69 @@ export interface OptimizationDiagnostics {
   topLineups: LineupScoreDiagnostics[];
 }
 
+const DEFAULT_WEIGHTS: ScoreWeights = {
+  historical12m: 0.05,
+  teamRankBonus: 0.4,
+  awpBonus: 0.01,
+  survivalBonus: 0.02,
+  sideVariancePenalty: 0.1,
+  roleExpected: 0.075,
+  boosterExpected: 0.03,
+  teamOutcome: 0.04,
+  playerLeverage: 0.2,
+  lineupLeverage: 0.24,
+  ownershipBand: 0.14,
+  stackCorrelation: 0.015,
+  matchupRiskPenalty: 0.55,
+  chalkWeakPenalty: 0.16,
+  stackRankBonus: 0.12,
+};
+
+function resolveWeights(overrides?: OptimizerWeightOverrides): ScoreWeights {
+  const envWeights: Partial<ScoreWeights> = {};
+  if (env.WEIGHT_HISTORICAL_12M != null) envWeights.historical12m = env.WEIGHT_HISTORICAL_12M;
+  if (env.WEIGHT_TEAM_RANK_BONUS != null) envWeights.teamRankBonus = env.WEIGHT_TEAM_RANK_BONUS;
+  if (env.WEIGHT_AWP_BONUS != null) envWeights.awpBonus = env.WEIGHT_AWP_BONUS;
+  if (env.WEIGHT_SURVIVAL_BONUS != null) envWeights.survivalBonus = env.WEIGHT_SURVIVAL_BONUS;
+  if (env.WEIGHT_SIDE_VARIANCE_PENALTY != null) envWeights.sideVariancePenalty = env.WEIGHT_SIDE_VARIANCE_PENALTY;
+  if (env.WEIGHT_ROLE_EXPECTED != null) envWeights.roleExpected = env.WEIGHT_ROLE_EXPECTED;
+  if (env.WEIGHT_BOOSTER_EXPECTED != null) envWeights.boosterExpected = env.WEIGHT_BOOSTER_EXPECTED;
+  if (env.WEIGHT_TEAM_OUTCOME != null) envWeights.teamOutcome = env.WEIGHT_TEAM_OUTCOME;
+  if (env.WEIGHT_PLAYER_LEVERAGE != null) envWeights.playerLeverage = env.WEIGHT_PLAYER_LEVERAGE;
+  if (env.WEIGHT_LINEUP_LEVERAGE != null) envWeights.lineupLeverage = env.WEIGHT_LINEUP_LEVERAGE;
+  if (env.WEIGHT_OWNERSHIP_BAND != null) envWeights.ownershipBand = env.WEIGHT_OWNERSHIP_BAND;
+  if (env.WEIGHT_STACK_CORRELATION != null) envWeights.stackCorrelation = env.WEIGHT_STACK_CORRELATION;
+  if (env.WEIGHT_MATCHUP_RISK_PENALTY != null) envWeights.matchupRiskPenalty = env.WEIGHT_MATCHUP_RISK_PENALTY;
+  if (env.WEIGHT_CHALK_WEAK_PENALTY != null) envWeights.chalkWeakPenalty = env.WEIGHT_CHALK_WEAK_PENALTY;
+  if (env.WEIGHT_STACK_RANK_BONUS != null) envWeights.stackRankBonus = env.WEIGHT_STACK_RANK_BONUS;
+
+  return {
+    ...DEFAULT_WEIGHTS,
+    ...envWeights,
+    ...(overrides ?? {}),
+  };
+}
+
 export class MathOptimizer {
   private readonly MAX_BUDGET = 1000000;
   private readonly MAX_PLAYER_PRICE = 245000;
   private readonly TARGET_RESULTS = 30;
   private readonly CANDIDATE_POOL_LIMIT = 65;
   private readonly TEAM_CANDIDATES_LIMIT = 4;
-  private readonly MAX_TRACKED_LINEUPS = 250;
+  private readonly MAX_TRACKED_LINEUPS = 50;
   private readonly TARGET_MIN_AVG_OWNERSHIP = 0.23;
   private readonly TARGET_MAX_AVG_OWNERSHIP = 0.4;
-
-  private readonly DEFAULT_WEIGHTS: ScoreWeights = {
-    historical12m: 0.05,
-    teamRankBonus: 0.4,
-    awpBonus: 0.01,
-    survivalBonus: 0.02,
-    sideVariancePenalty: 0.1,
-    roleExpected: 0.075,
-    boosterExpected: 0.03,
-    teamOutcome: 0.04,
-    playerLeverage: 0.2,
-    lineupLeverage: 0.24,
-    ownershipBand: 0.14,
-    stackCorrelation: 0.015,
-    matchupRiskPenalty: 0.55,
-    chalkWeakPenalty: 0.16,
-  };
 
   private teamRankings: Map<string, number> = new Map();
   private ownershipByPlayerKey: Map<string, number> = new Map();
   private rolePopularityByName: Map<string, number> = new Map();
   private boosterPopularityByName: Map<string, number> = new Map();
-  private runtimeWeights: ScoreWeights = this.DEFAULT_WEIGHTS;
+  private runtimeWeights: ScoreWeights = DEFAULT_WEIGHTS;
   private fallbackOwnership = 0.2;
   private lastDiagnostics: OptimizationDiagnostics = {
     topPlayers: [],
     topLineups: [],
   };
-
-  private resolveWeights(overrides?: OptimizerWeightOverrides): ScoreWeights {
-    return {
-      ...this.DEFAULT_WEIGHTS,
-      ...(overrides ?? {}),
-    };
-  }
 
   setTeams(teams: FantasyTeam[]): void {
     this.teamRankings.clear();
@@ -208,7 +229,6 @@ export class MathOptimizer {
 
     for (const pick of picks) {
       const relative = pick.pickCount / maxPickCount;
-      // Compress tail so top-pick penalties are meaningful without overwhelming EV.
       const normalized = Math.min(0.92, 0.08 + Math.sqrt(relative) * 0.72);
       this.ownershipByPlayerKey.set(
         normalizePlayerName(pick.playerName),
@@ -449,7 +469,7 @@ export class MathOptimizer {
       (this.boosterPopularityByName.get("Quad") ?? 0) * 0.2;
     const supportBoosterPopularity =
       (this.boosterPopularityByName.get("Assist") ?? 0) * 0.35 +
-      (this.boosterPopularityByName.get("Flash") ?? 0) * 0.25 +
+      (this.boosterPopularityByName.get("Flash") ?? 0) * 25 +
       (this.boosterPopularityByName.get("Avenger") ?? 0) * 0.2 +
       (this.boosterPopularityByName.get("Bait") ?? 0) * 0.2;
 
@@ -596,7 +616,7 @@ export class MathOptimizer {
     bundle?: EventBundleContext,
     weightOverrides?: OptimizerWeightOverrides,
   ): MathLineup[] {
-    this.runtimeWeights = this.resolveWeights(weightOverrides);
+    this.runtimeWeights = resolveWeights(weightOverrides);
     this.setTeams(teams);
     this.setFieldOwnership(bundle);
     matchupPredictor.configure(teams, bundle?.matches);
@@ -645,10 +665,14 @@ export class MathOptimizer {
       );
     };
 
+    const forcedTeamNormalized = config.forcedTeam
+      ? normalizeTeamName(config.forcedTeam.name)
+      : null;
+
     const search = (
       startIndex: number,
       totalPrice: number,
-      g2Count: number,
+      forcedTeamCount: number,
       componentSums: {
         baseSkillEV: number;
         roleEV: number;
@@ -660,7 +684,7 @@ export class MathOptimizer {
       const remainingSlots = 5 - selectedPlayers.length;
       if (remainingSlots === 0) {
         if (totalPrice > this.MAX_BUDGET) return;
-        if (config.minG2Players !== "Auto" && g2Count < config.minG2Players)
+        if (config.forcedTeam && config.forcedTeam.minPlayers !== "Auto" && forcedTeamCount < config.forcedTeam.minPlayers)
           return;
 
         let strategyUsed: Strategy | null = null;
@@ -726,6 +750,27 @@ export class MathOptimizer {
         const chalkWeakPenalty =
           weakChalkCount * this.runtimeWeights.chalkWeakPenalty;
 
+        let stackRankBonus = 0;
+        if (strategyUsed === "2-2-1") {
+          const stackTeams = Object.entries(teamCounts)
+            .filter(([, count]) => count === 2)
+            .map(([team]) => team);
+          let totalRankBonus = 0;
+          let rankCount = 0;
+          for (const team of stackTeams) {
+            const rank = this.teamRankings.get(normalizeTeamName(team));
+            if (rank) {
+              totalRankBonus += Math.log(1 + 1 / rank);
+              rankCount++;
+            }
+          }
+          if (rankCount > 0) {
+            stackRankBonus =
+              (totalRankBonus / rankCount) *
+              this.runtimeWeights.stackRankBonus;
+          }
+        }
+
         const expectedBaseScore =
           componentSums.baseSkillEV +
           componentSums.roleEV +
@@ -734,7 +779,8 @@ export class MathOptimizer {
           componentSums.fieldLeverageEV +
           lineupLeverageEV +
           ownershipBandEV +
-          stackCorrelationEV -
+          stackCorrelationEV +
+          stackRankBonus -
           chalkWeakPenalty -
           matchupRiskPenalty;
 
@@ -755,6 +801,7 @@ export class MathOptimizer {
             chalkWeakPenalty,
             diversityPenalty: 0,
             matchupRiskPenalty,
+            stackRankBonus,
           },
         });
         return;
@@ -782,11 +829,11 @@ export class MathOptimizer {
         const teamCount = teamCounts[player.team] ?? 0;
         if (teamCount >= 2) continue;
 
-        const nextG2Count =
-          g2Count + (normalizeTeamName(player.team) === "g2" ? 1 : 0);
+        const isForcedTeamPlayer = forcedTeamNormalized != null && normalizeTeamName(player.team) === forcedTeamNormalized;
+        const nextForcedTeamCount = forcedTeamCount + (isForcedTeamPlayer ? 1 : 0);
         if (
-          config.minG2Players !== "Auto" &&
-          nextG2Count + (remainingSlots - 1) < config.minG2Players
+          config.forcedTeam && config.forcedTeam.minPlayers !== "Auto" &&
+          nextForcedTeamCount + (remainingSlots - 1) < config.forcedTeam.minPlayers
         ) {
           continue;
         }
@@ -797,7 +844,7 @@ export class MathOptimizer {
         selectedPlayers.push(player);
         teamCounts[player.team] = teamCount + 1;
 
-        search(i + 1, totalPrice + player.price, nextG2Count, {
+        search(i + 1, totalPrice + player.price, nextForcedTeamCount, {
           baseSkillEV: componentSums.baseSkillEV + projection.baseSkillEV,
           roleEV: componentSums.roleEV + projection.roleEV,
           boosterEV: componentSums.boosterEV + projection.boosterEV,
@@ -923,6 +970,7 @@ export class MathOptimizer {
           chalkWeakPenalty: 0,
           diversityPenalty: 0,
           matchupRiskPenalty: 0,
+          stackRankBonus: 0,
         };
 
         const componentMagnitude =
@@ -936,6 +984,7 @@ export class MathOptimizer {
           Math.abs(b.stackCorrelationEV) +
           Math.abs(b.chalkWeakPenalty) +
           Math.abs(b.matchupRiskPenalty) +
+          Math.abs(b.stackRankBonus) +
           0.0001;
 
         const sharesPct: Record<string, number> = {
@@ -955,6 +1004,8 @@ export class MathOptimizer {
             (Math.abs(b.chalkWeakPenalty) / componentMagnitude) * 100,
           matchupRisk:
             (Math.abs(b.matchupRiskPenalty) / componentMagnitude) * 100,
+          stackRankBonus:
+            (Math.abs(b.stackRankBonus) / componentMagnitude) * 100,
         };
 
         return {

@@ -114,17 +114,9 @@ export function printExtractionSummary(result: ExtractionResult): void {
   console.log("\n" + summaryBox);
 }
 
-// ─── Progress Bar Factory ─────────────────────────────────────────────────────
-
 const BAR_WIDTH = 26;
 
-/**
- * Creates an independent progress bar for a named pipeline stage.
- * The title is printed once; subsequent `tick()` calls overwrite only the bar line.
- * Call `done(label?)` to finalize with a green checkmark.
- */
 export function createProgressBar(title: string) {
-  // Print the stage header once
   console.log(chalk.bold.white(`\n  ${title}`));
 
   let barLineWritten = false;
@@ -155,43 +147,15 @@ export function createProgressBar(title: string) {
   }
 
   return {
-    /**
-     * Advance the bar to `step` out of `total`.
-     * Call this after each unit of work completes.
-     */
     tick(step: number, total: number, label: string) {
       renderBar(step, total, label);
     },
 
-    /**
-     * Finalize the bar at 100% with a green checkmark.
-     */
     done(label = "Done", total = 1) {
       renderBar(total, total, `✓ ${label}`, true);
     },
   };
 }
-
-// ─── AI Reasoning Box ─────────────────────────────────────────────────────────
-
-export function printReasoningBox(reasoning: string): void {
-  const title = chalk.cyan.bold("🧠 AI Reasoning");
-  const body = chalk.white(reasoning);
-
-  const box = boxen(`${title}\n\n${body}`, {
-    padding: {top: 1, bottom: 1, left: 2, right: 2},
-    borderStyle: "round",
-    borderColor: "cyan",
-    title: "AI Analysis",
-    titleAlignment: "center",
-    width: 72,
-    textAlignment: "left",
-  });
-
-  console.log("\n" + box);
-}
-
-// ─── Final Team Box ───────────────────────────────────────────────────────────
 
 const ROLE_ICONS: Record<string, string> = {
   "Main AWP": "🎯",
@@ -222,7 +186,6 @@ function formatPlayerLine(
 }
 
 export function printFinalTeamBox(result: AnalysisResult): void {
-  // Print top 3 lineups
   const top3Box = result.top3
     .map((lineup, idx) => {
       const rank = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
@@ -252,41 +215,9 @@ export function printFinalTeamBox(result: AnalysisResult): void {
   console.log("\n" + box);
 }
 
-export function printResults(result: AnalysisResult): void {
-  const header = chalk.bold.underline("\n📊 Top 5 Player Picks\n");
-
-  const playerLines = result.players
-    .map((player, index) => {
-      const position = chalk.cyan(`${index + 1}.`);
-      const name = chalk.white.bold(player.name);
-      const team = chalk.gray(`[${player.team}]`);
-      const role = chalk.yellow(player.role);
-      const rating = chalk.green(`★ ${player.rating.toFixed(2)}`);
-      return `${position} ${name} ${team} • ${role} ${rating}`;
-    })
-    .join("\n");
-
-  const footer =
-    chalk.gray(`\nAnalyzed at: ${result.analyzedAt.toLocaleString()}`) +
-    "\n" +
-    chalk.gray(`Source: ${result.sourceUrl}`);
-
-  const resultsBox = boxen(`${header}${playerLines}${footer}`, {
-    padding: {top: 1, bottom: 1, left: 2, right: 2},
-    borderStyle: "single",
-    borderColor: "green",
-    title: "Results",
-    titleAlignment: "center",
-  });
-
-  console.log("\n" + resultsBox);
-}
-
 export function printGoodbye(): void {
   console.log(chalk.cyan("\nThanks for using Fantasy HLTV Picker! 🎮\n"));
 }
-
-// ─── All Lineups Ranking ───────────────────────────────────────────────────────
 
 export function printAllLineupsRanking(
   allScoredLineups: Array<{
@@ -321,8 +252,6 @@ export function printAllLineupsRanking(
 
   console.log("\n" + rankingBox);
 }
-
-// ─── Top 20 Best Rated Players ───────────────────────────────────────────────
 
 export function printTopRatedPlayers(
   players: Array<{id: string; name: string; team: string; rating: number}>,

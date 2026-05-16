@@ -11,7 +11,6 @@ export interface PlayerStats {
   supportRoundsPct: number;
   multiKillRoundsPct: number;
   deathsPerRound: number;
-  // Scraped Historical Stats
   rating12mTop50?: number;
 }
 
@@ -145,10 +144,14 @@ export interface ExtractorService {
 }
 
 export type Strategy = "Auto" | "2-2-1" | "2-1-1-1" | "1-1-1-1-1";
-export type MinG2Players = "Auto" | 1 | 2;
+export type MinTeamPlayers = "Auto" | 1 | 2;
+
+export interface ForcedTeam {
+  name: string;
+  minPlayers: MinTeamPlayers;
+}
 
 export interface FantasyConfig {
   strategy: Strategy;
-  minG2Players: MinG2Players;
-  disableLLMEvaluation?: boolean;
+  forcedTeam?: ForcedTeam | null;
 }

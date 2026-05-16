@@ -1,7 +1,7 @@
 import inquirer from "inquirer";
 import type {Question} from "inquirer";
 import {listSourceFiles} from "../services/extractor.ts";
-import type {FantasyTeam, Strategy, MinG2Players} from "../types/player.ts";
+import type {FantasyTeam, Strategy, ForcedTeam, MinTeamPlayers} from "../types/player.ts";
 
 export interface SourceFileAnswers {
   sourceFile: string;
@@ -25,34 +25,6 @@ export async function promptForSourceFile(): Promise<string> {
 
   const answers = await inquirer.prompt([question]);
   return answers.sourceFile;
-}
-
-export interface FantasyUrlAnswers {
-  fantasyUrl: string;
-}
-
-export async function promptForFantasyUrl(): Promise<string> {
-  const answers = await inquirer.prompt([
-    {
-      type: "input",
-      name: "fantasyUrl",
-      message: "Enter Fantasy HLTV link to analyze:",
-      default: "https://www.hltv.org/fantasy",
-      validate: (input: string): true | string => {
-        const url = input.trim();
-        if (!url) {
-          return "Please enter a valid URL";
-        }
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-          return "Please enter a valid URL starting with http:// or https://";
-        }
-        return true;
-      },
-      filter: (input: string): string => input.trim(),
-    },
-  ]);
-
-  return answers.fantasyUrl;
 }
 
 export interface StrategyAnswers {
@@ -85,55 +57,57 @@ export async function promptForStrategy(): Promise<Strategy> {
   return strategyMap[answers.strategy] ?? "Auto";
 }
 
-export interface MinG2PlayersAnswers {
-  minG2Players: MinG2Players;
+export interface ForcedTeamAnswers {
+  forcedTeam: string;
 }
 
-export async function promptForMinG2Players(
-  teams: FantasyTeam[],
-): Promise<MinG2Players | null> {
-  const teamNames = teams.map((t) => t.name);
-  const hasG2 = teamNames.includes("G2");
+export interface MinTeamPlayersAnswers {
+  minTeamPlayers: MinTeamPlayers;
+}
 
-  if (!hasG2) {
+export async function promptForForcedTeam(
+  teams: FantasyTeam[],
+): Promise<ForcedTeam | null> {
+  const teamNames = teams.map((t) => t.name);
+
+  const choices = ["None (let analyzer decide)", ...teamNames];
+
+  const teamQuestion: Question<ForcedTeamAnswers> = {
+    type: "rawlist",
+    name: "forcedTeam",
+    message: "Force a specific team into your lineup:",
+    choices,
+    default: 0,
+  };
+
+  const teamAnswers = await inquirer.prompt([teamQuestion]);
+
+  if (teamAnswers.forcedTeam === "None (let analyzer decide)") {
     return null;
   }
 
-  const question: Question<MinG2PlayersAnswers> = {
+  const countQuestion: Question<MinTeamPlayersAnswers> = {
     type: "rawlist",
-    name: "minG2Players",
-    message: "Minimum number of G2 players in your team:",
+    name: "minTeamPlayers",
+    message: `Minimum number of ${teamAnswers.forcedTeam} players:`,
     choices: [
       "Auto (let analyzer decide)",
-      "1 (at least 1 G2 player)",
-      "2 (at least 2 G2 players)",
+      "1 (at least 1 player)",
+      "2 (at least 2 players)",
     ],
     default: 0,
   };
 
-  const answers = await inquirer.prompt([question]);
+  const countAnswers = await inquirer.prompt([countQuestion]);
 
-  const g2Map: Record<string, MinG2Players> = {
+  const countMap: Record<string, MinTeamPlayers> = {
     "Auto (let analyzer decide)": "Auto",
-    "1 (at least 1 G2 player)": 1,
-    "2 (at least 2 G2 players)": 2,
+    "1 (at least 1 player)": 1,
+    "2 (at least 2 players)": 2,
   };
 
-  return g2Map[answers.minG2Players] ?? "Auto";
-}
-
-export interface DisableLLMEvaluationAnswers {
-  disableLLMEvaluation: boolean;
-}
-
-export async function promptForDisableLLMEvaluation(): Promise<boolean> {
-  const question: Question<DisableLLMEvaluationAnswers> = {
-    type: "confirm",
-    name: "disableLLMEvaluation",
-    message: "Disable Stage 3 (LLM Evaluation)?",
-    default: true,
+  return {
+    name: teamAnswers.forcedTeam,
+    minPlayers: countMap[countAnswers.minTeamPlayers] ?? "Auto",
   };
-
-  const answers = await inquirer.prompt([question]);
-  return answers.disableLLMEvaluation;
 }
