@@ -100,7 +100,7 @@ export class StatsScraperService {
     }
 
     try {
-      const filePath = path.join(process.cwd(), "stats", filename);
+      const filePath = path.join(process.cwd(), "source", "stats", filename);
       const html = fs.readFileSync(filePath, "utf-8");
       const result = this.parseHtml(html, debug);
 

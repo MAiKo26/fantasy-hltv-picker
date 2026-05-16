@@ -4,7 +4,7 @@ import * as cheerio from "cheerio";
 import type { ExtractionResult, FantasyPlayer, FantasyTeam, CardLevel } from "../types/player.ts";
 import {normalizePlayerName, normalizeTeamName} from "../utils/normalize.ts";
 
-const SOURCE_DIR = path.join(process.cwd(), "source");
+const SOURCE_DIR = path.join(process.cwd(), "source", "draft");
 
 function getCardLevel(element: cheerio.Cheerio<any>): CardLevel {
   const classList = element.attr("class") || "";

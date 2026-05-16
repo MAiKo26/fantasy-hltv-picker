@@ -1,196 +1,147 @@
 # Fantasy HLTV Picker
 
-Deterministic HLTV Fantasy lineup optimizer focused on "win vs field" decisions.
+You save the HLTV fantasy draft page as HTML. This tool extracts player cards, enriches them with historical stats, evaluates role/booster/ownership potential, and brute-forces the optimal $1M lineup.
 
-It combines:
-- player card stats from your fantasy draft HTML,
-- historical player ratings from local `stats/*.html`,
-- optional event overview ownership data (`Most picked`, role/booster assignment counts),
-- optional opening matchups for cannibalization/risk handling.
+---
 
-LLM scoring is disabled in normal workflow. This is a math-first pipeline.
+## Quick Start
 
-## 1) Prerequisites
+### Prerequisites
 
-- [Bun](https://bun.sh/) installed.
-- Dependencies installed:
+You need either [**Bun**](https://bun.sh/) or [**Node.js 22+**](https://nodejs.org/) with [**pnpm**](https://pnpm.io/) / npm.
+
+### Install & Run
 
 ```bash
-bun install
-```
+# Clone the repo
+git clone Github.com/maiko26/fantasy-hltv-picker
+cd fantasy-hltv-picker
 
-## 2) Environment Variables
+# Install dependencies
+bun install       # if using Bun
+# or: pnpm install
 
-Create a `.env` file from `.env.example`:
-
-```bash
+# Copy env file (edit if needed)
 cp .env.example .env
+
+# Run
+bun index.ts      # if using Bun
+# or: node index.ts
 ```
 
-Current variables:
-- `GEMINI_API_KEY` (required by env validation in current codebase, even if LLM is not used)
-- `BLACKLISTED_PLAYERS` (optional comma-separated list, e.g. `player1,player2`)
-- `SCORING_DIAGNOSTICS` (`true` or `false`; enables scoring share debug output)
+That's it. The CLI will tell you what to do next.
 
-## 3) Required and Optional Input Files
+---
 
-You manually fetch HTML snapshots per event. The app does the rest.
+## Step-by-Step: Your First Event
 
-### Required (minimum)
+### 1. Save the Fantasy Draft Page
 
-1. Save fantasy draft/team selection page HTML to:
-   - `source/<event-slug>.html`
+Go to any HLTV fantasy event page (e.g. `https://www.hltv.org/fantasy/<id>/league/<leagueId>`).
 
-This file contains:
-- player names,
-- prices,
-- card-level stats,
-- team names/ranks.
+**Right-click → Save As →** save the whole page as HTML into:
 
-### Optional but recommended (for field-aware play)
+```
+source/draft/<event-slug>.html
+```
 
-2. Save event overview page HTML to:
-   - `source-event-overview/<event-slug>.html`
+> **What is a slug?** A short, unique name for the event, like `epl-stage-2-2026` or `blast-rotterdam-playoffs`. Use the same slug across all files.
 
-Used for:
-- most-picked player counts (ownership proxy),
-- role assignment popularity,
-- booster assignment popularity.
+### 2. (Optional) Save More Context for Better Results
 
-3. Save event/opening matches page HTML to:
-   - `source-matches/<event-slug>.html`
+These files make the optimizer "field-aware" — it'll know which players are popular and which teams face each other:
 
-Used for:
-- direct matchup/cannibalization risk,
-- bounded team outcome context.
+| File                          | What it adds                                                    |
+| ----------------------------- | --------------------------------------------------------------- |
+| `source/overview/<slug>.html` | Most-picked player counts, role & booster assignment popularity |
+| `source/matches/<slug>.html`  | Opening matchups → cannibalization penalties                    |
 
-### Very important naming rule
+Same slug in all folders. If a file is missing, the app still runs — it just has less information.
 
-Use the same file name (same event slug) in all folders:
-- `source/epl-stage-2-2026.html`
-- `source-event-overview/epl-stage-2-2026.html`
-- `source-matches/epl-stage-2-2026.html`
+**Where to get them:**
 
-If optional files are missing, app still runs with graceful fallback.
+- **Overview:** On the fantasy event page, click the "Event overview" tab → Save As
+- **Matches:** Go to the event's match listing page → Save As
 
-## 4) Historical Stats Files
+### 3. (Optional) Add Historical Stats
 
-The optimizer enriches players from local files in `stats/`:
-- `last_3_months_top_20.html`
-- `last_6_months_top_30.html`
-- `last_12_months_top_50.html`
+The optimizer enriches every player with their 12-month HLTV rating. Download these from HLTV stats and save as:
 
-If these are missing, enrichment degrades but execution continues.
+```
+source/stats/last_12_months_top_50.html
+source/stats/last_6_months_top_30.html
+source/stats/last_3_months_top_20.html
+```
 
-## 5) Run the App
+If these are missing, the optimizer still runs — it just uses card stats only.
 
-Run the interactive CLI:
+### 4. Run the App
 
 ```bash
-bun run src/cli/index.ts
+bun index.ts
 ```
 
 The CLI will:
-1. ask you to choose a file from `source/`,
-2. ask strategy constraints,
-3. auto-load matching optional bundle files from:
-   - `source-event-overview/`
-   - `source-matches/`
-4. produce ranked lineups.
 
-## 6) What the Optimizer Does
+1. Show a list of files from `source/draft/` → pick one
+2. Ask your team strategy (Auto / 2-2-1 / 2-1-1-1 / 1-1-1-1-1)
+3. Ask if you want to force a specific team into your lineup
+4. Auto-load matching files from `source/overview/` and `source/matches/`
+5. Output the top ranked lineups
 
-Current optimizer flow:
+---
 
-1. **Base skill EV**
-   - player rating + historical rating blend + small stat modifiers.
+## File Structure
 
-2. **Role EV**
-   - expected role points with downside risk,
-   - skill-gated so weak individual players cannot over-benefit from team context.
-
-3. **Booster EV**
-   - expected booster value from player profile,
-   - lightly nudged by overview booster popularity priors.
-
-4. **Team/matchup context**
-   - opening-match opponent pairs add cannibalization penalty,
-   - team outcome is bounded and used as contextual signal, not dominant driver.
-
-5. **Field leverage**
-   - most-picked counts transformed into ownership proxy,
-   - player and lineup ownership leverage terms,
-   - ownership target band control to avoid extreme over-fading.
-
-6. **Diversity controls**
-   - rank #1 remains top EV,
-   - rank #2..#20 constrained for lower overlap with anchor lineup.
-
-## 7) Output You Will See
-
-- **Top 20 lineup rankings** with price and score.
-- **Top 20 players by base rating score**.
-- If `SCORING_DIAGNOSTICS=true`:
-  - component-share diagnostics (base/role/team/leverage/risk contributions).
-
-## 8) Regression and Backtest Utilities
-
-### Regression snapshot check
-
-Validate deterministic output for saved events:
-
-```bash
-bun run scripts/regression-check.ts
+```
+source/
+  draft/              ← Your fantasy draft HTML files (required)
+  overview/           ← Event overview HTML (optional, ownership data)
+  matches/            ← Match listing HTML (optional, matchup risk)
+  stats/              ← Historical stats HTML (optional, enrichment)
 ```
 
-Update snapshots:
+All files use the same slug name so related files are matched automatically.
 
-```bash
-bun run scripts/regression-check.ts --update
-```
+---
 
-Single event:
+## Environment Variables (`.env`)
 
-```bash
-bun run scripts/regression-check.ts --update --event=epl-stage-2-2026.html
-```
+| Variable              | Required | Description                                            |
+| --------------------- | -------- | ------------------------------------------------------ |
+| `BLACKLISTED_PLAYERS` | No       | Comma-separated player names to exclude                |
+| `SCORING_DIAGNOSTICS` | No       | Set to `true` for component-share debug output         |
+| `WEIGHT_*`            | No       | 15 optimizer coefficients (see `.env.example` for all) |
 
-### Walk-forward backtest scaffold
+---
 
-Backtest/tune weight profiles against your historical labels:
+## What the Optimizer Does
 
-```bash
-bun run scripts/backtest-walk-forward.ts
-```
+The pipeline evaluates every valid 5-player combination under budget ($1M) and team constraints (max 2 per team):
 
-Quick mode:
+| Component          | What it models                                                     |
+| ------------------ | ------------------------------------------------------------------ |
+| **Base Skill**     | Player rating + historical 12m rating + team rank + stat modifiers |
+| **Role EV**        | Expected role points from 12 fantasy roles, skill-gated            |
+| **Booster EV**     | Expected booster value from player profile + event popularity      |
+| **Field Leverage** | Ownership proxy from most-picked → fade popular chalk              |
+| **Matchup Risk**   | Cannibalization penalty when players face each other               |
 
-```bash
-bun run scripts/backtest-walk-forward.ts --quick
-```
+---
 
-Data files:
-- template: `fixtures/backtest/events.sample.json`
-- active dataset: `fixtures/backtest/events.json`
-- output report: `fixtures/backtest/walk-forward-report.json`
+## Output
 
-## 9) Practical Workflow Per Event
+- **Top 3 lineups** with player names, prices, and scores
+- **All lineups ranking** (top 20)
+- **Top players by base rating**
+- With `SCORING_DIAGNOSTICS=true`: component breakdown of each score
 
-1. Save draft HTML to `source/<slug>.html`.
-2. Save overview HTML to `source-event-overview/<slug>.html`.
-3. Save matches HTML to `source-matches/<slug>.html`.
-4. (Optional) refresh `stats/*.html`.
-5. Run `bun run src/cli/index.ts`.
-6. Review top lineup and alternatives.
-7. If model behavior drifts, enable diagnostics and run regression/backtest scripts.
+---
 
-## 10) Troubleshooting
+## Troubleshooting
 
-- **No source files shown in prompt**
-  - ensure `source/*.html` exists.
-- **Bundle not loaded**
-  - check same exact `<slug>.html` exists in optional folders.
-- **Unexpected rankings**
-  - set `SCORING_DIAGNOSTICS=true` and inspect component shares.
-- **Determinism check fails**
-  - inspect changed source/stats HTML or update snapshot intentionally.
+| Problem             | Fix                                                             |
+| ------------------- | --------------------------------------------------------------- |
+| No files in prompt  | Put `.html` files in `source/draft/`                            |
+| Bundle not loaded   | Same slug must exist in `source/overview/` or `source/matches/` |
+| Unexpected rankings | Set `SCORING_DIAGNOSTICS=true` to see score breakdown           |

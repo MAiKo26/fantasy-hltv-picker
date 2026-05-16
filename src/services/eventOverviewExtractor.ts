@@ -8,7 +8,7 @@ import type {
 } from "../types/player.ts";
 import {parseEventSlugFromFileName, parseTimesCount} from "../utils/normalize.ts";
 
-const SOURCE_DIR = path.join(process.cwd(), "source-event-overview");
+const SOURCE_DIR = path.join(process.cwd(), "source", "overview");
 
 function parseMostPicked($: cheerio.CheerioAPI): MostPickedPlayer[] {
   const items: MostPickedPlayer[] = [];

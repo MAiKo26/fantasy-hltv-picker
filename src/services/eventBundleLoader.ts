@@ -25,8 +25,8 @@ export async function loadEventBundleForSource(
   let overview = undefined;
   let matches = undefined;
 
-  const overviewPath = getExistingFilePath("source-event-overview", targetFile);
-  const matchesPath = getExistingFilePath("source-matches", targetFile);
+  const overviewPath = getExistingFilePath(path.join("source", "overview"), targetFile);
+  const matchesPath = getExistingFilePath(path.join("source", "matches"), targetFile);
 
   if (overviewPath) {
     try {
@@ -37,7 +37,7 @@ export async function loadEventBundleForSource(
       warnings.push(`[overview] Failed to parse file: ${message}`);
     }
   } else {
-    warnings.push(`Missing optional overview file: source-event-overview/${targetFile}`);
+    warnings.push(`Missing optional overview file: source/overview/${targetFile}`);
   }
 
   if (matchesPath) {
@@ -49,7 +49,7 @@ export async function loadEventBundleForSource(
       warnings.push(`[matches] Failed to parse file: ${message}`);
     }
   } else {
-    warnings.push(`Missing optional matches file: source-matches/${targetFile}`);
+    warnings.push(`Missing optional matches file: source/matches/${targetFile}`);
   }
 
   if (!overview && !matches) {

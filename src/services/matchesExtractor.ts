@@ -4,7 +4,7 @@ import * as cheerio from "cheerio";
 import type {MatchesExtractionResult, TeamMatchInfo} from "../types/player.ts";
 import {parseEventSlugFromFileName} from "../utils/normalize.ts";
 
-const SOURCE_DIR = path.join(process.cwd(), "source-matches");
+const SOURCE_DIR = path.join(process.cwd(), "source", "matches");
 
 function parseMatchId(rawMatchId: string | undefined, matchUrl: string | null): string {
   if (rawMatchId && rawMatchId.trim().length > 0) return rawMatchId.trim();
