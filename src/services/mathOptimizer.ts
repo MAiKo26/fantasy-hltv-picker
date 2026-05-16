@@ -68,12 +68,12 @@ export interface OptimizationDiagnostics {
 
 const DEFAULT_WEIGHTS: ScoreWeights = {
   historical12m: 0.15,
-  teamRankBonus: 0.5,
+  teamRankBonus: 0.35,
   awpBonus: 0.01,
   survivalBonus: 0.02,
   sideVariancePenalty: 0.1,
-  teamOutcome: 0.04,
-  stackCorrelation: 0.015,
+  teamOutcome: 0.15,
+  stackCorrelation: 0.05,
   matchupRiskPenalty: 0.2,
   stackRankBonus: 0.12,
 };

@@ -118,11 +118,13 @@ The optimizer computes a score for every possible 5-player lineup, then ranks th
 
 ---
 
-### 2. `WEIGHT_TEAM_RANK_BONUS` (default `0.5`)
+---
+
+### 2. `WEIGHT_TEAM_RANK_BONUS` (default `0.35`)
 
 **What it does:** Gives a bonus to players on high-ranked teams (e.g. #1 Vitality > #30 Grayhound). Better teams win more rounds → more fantasy points.
 
-**Why 0.5?** Team quality is one of the strongest predictors of individual player output. A large weight here reflects that top teams consistently produce top fantasy scores.
+**Why 0.35?** Team quality is a strong predictor of individual output, but a slightly reduced weight prevents top-team bias from crowding out value picks from mid-tier teams with similarly skilled players at lower prices.
 
 ---
 
@@ -150,19 +152,19 @@ The optimizer computes a score for every possible 5-player lineup, then ranks th
 
 ---
 
-### 6. `WEIGHT_TEAM_OUTCOME` (default `0.04`)
+### 6. `WEIGHT_TEAM_OUTCOME` (default `0.15`)
 
 **What it does:** Rewards players whose team is favored to win their opening match. Winning teams generate more fantasy points across the board.
 
-**Why 0.04?** Match outcomes are unpredictable. A small weight acknowledges the edge without over-relying on projections that can flip.
+**Why 0.15?** Match outcomes are a real signal, but the raw score passes through a compression function (tanh + skill gate). A higher raw weight compensates for that compression so the component actually influences lineup selection, not just the final decimals.
 
 ---
 
-### 7. `WEIGHT_STACK_CORRELATION` (default `0.015`)
+### 7. `WEIGHT_STACK_CORRELATION` (default `0.05`)
 
 **What it does:** When you pick 2 players from the same team ("stacking"), this rewards you if that team is expected to perform well. Both players benefit from the same team outcome.
 
-**Why 0.015?** Stacking is already a known DFS strategy, but the benefit is small on average. A tiny weight prevents overconfidence in any single team.
+**Why 0.05?** Stacking is a proven DFS strategy with a measurable correlation benefit. This weight makes stacking a genuine factor in lineup decisions without over-weighting any single team.
 
 ---
 
