@@ -70,7 +70,7 @@ export async function main(): Promise<void> {
   bundleSpinner.succeed();
   if (bundle) {
     printSuccess(
-      `Loaded event bundle for ${bundle.eventSlug} (overview: ${bundle.overview ? "yes" : "no"}, matches: ${bundle.matches ? "yes" : "no"})`,
+      `Loaded event bundle for ${bundle.eventSlug} (matches: ${bundle.matches ? "yes" : "no"})`,
     );
   } else {
     printSuccess("No additional event bundle found. Running with draft-only data.");

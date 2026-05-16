@@ -55,33 +55,8 @@ export interface MatchesExtractionResult {
   extractedAt: Date;
 }
 
-export interface MostPickedPlayer {
-  rank: number;
-  playerName: string;
-  pickCount: number;
-  pickCountRaw: string;
-  statsUrl: string | null;
-}
-
-export interface AssignmentCount {
-  name: string;
-  assignedCount: number;
-  assignedCountRaw: string;
-}
-
-export interface EventOverviewExtractionResult {
-  eventSlug: string;
-  sourceFile: string;
-  mostPickedPlayers: MostPickedPlayer[];
-  roleAssignments: AssignmentCount[];
-  boosterAssignments: AssignmentCount[];
-  parseWarnings: string[];
-  extractedAt: Date;
-}
-
 export interface EventBundleContext {
   eventSlug: string;
-  overview?: EventOverviewExtractionResult;
   matches?: MatchesExtractionResult;
 }
 
@@ -96,7 +71,6 @@ export interface Player {
   id: string;
   name: string;
   team: string;
-  role: string;
   rating: number;
 }
 
@@ -104,20 +78,17 @@ export interface AnalysisResult {
   players: Player[];
   analyzedAt: Date;
   sourceUrl: string;
-  roles: Record<string, string>;
   reasoning: string;
   top3: Array<{
     players: Player[];
     lineupIndex: number;
     reasoning: string;
-    roles: Record<string, string>;
     score: number;
   }>;
   allScoredLineups: Array<{
     players: Player[];
     lineupIndex: number;
     reasoning: string;
-    roles: Record<string, string>;
     score: number;
     totalPrice: number;
   }>;

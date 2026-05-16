@@ -85,7 +85,6 @@ export class FantasyAnalyzerService implements AnalyzerService {
       id: fp.id,
       name: fp.name,
       team: fp.team,
-      role: "N/A",
       rating: fp.stats.rating,
     }));
 
@@ -93,14 +92,12 @@ export class FantasyAnalyzerService implements AnalyzerService {
       players: finalPlayers,
       analyzedAt: new Date(),
       sourceUrl,
-      roles: {},
       reasoning: "Highest expected base score from math optimizer",
       top3: [
         {
           players: finalPlayers,
           lineupIndex: 0,
           reasoning: "Highest expected base score from math optimizer",
-          roles: {},
           score: bestMathLineup.expectedBaseScore,
         },
       ],
@@ -109,12 +106,10 @@ export class FantasyAnalyzerService implements AnalyzerService {
           id: fp.id,
           name: fp.name,
           team: fp.team,
-          role: "N/A",
           rating: fp.stats.rating,
         })),
         lineupIndex: idx,
         reasoning: "Math-optimized lineup",
-        roles: {},
         score: lineup.expectedBaseScore,
         totalPrice: lineup.totalPrice,
       })),

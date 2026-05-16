@@ -1,151 +1,61 @@
 import * as cheerio from "cheerio";
 import * as fs from "fs";
 import * as path from "path";
-import {cacheService} from "./cacheService.ts";
 import type {FantasyPlayer} from "../types/player.ts";
 import {normalizePlayerName} from "../utils/normalize.ts";
 
 export interface historicalPlayerStat {
   name: string;
   rating: number;
-  maps?: number;
-  kd?: number;
-}
-
-export interface ParseDebugInfo {
-  filename: string;
-  totalRowsFound: number;
-  validRowsParsed: number;
-  skippedRows: number;
-  sampleRows: Array<{
-    rawName: string;
-    rawRating: string;
-    rawMaps: string;
-    rawKd: string;
-    parsed: historicalPlayerStat | null;
-  }>;
 }
 
 export class StatsScraperService {
-  private parseHtml(
-    html: string,
-    debug = false,
-  ): {stats: historicalPlayerStat[]; debugInfo?: ParseDebugInfo} {
+  private parseHtml(html: string): historicalPlayerStat[] {
     const $ = cheerio.load(html);
     const stats: historicalPlayerStat[] = [];
 
-    // Target only the player-ratings stats table to avoid picking up
-    // other tables on the page (calendar, nav widgets, etc.)
     const tableSelector =
       "table.stats-table.player-ratings-table tbody tr, " +
       "table.stats-table tbody tr";
 
-    const rows = $(tableSelector);
-    let skipped = 0;
-    const sampleRows: ParseDebugInfo["sampleRows"] = [];
-
-    rows.each((_, row) => {
+    $(tableSelector).each((_, row) => {
       const nameNode = $(row).find(".playerCol a");
       const rawName = nameNode.text().trim();
-
-      // ratingCol may also have class ratingPositive/ratingNegative
       const ratingNode = $(row).find("td.ratingCol").first();
-      const rawRating = ratingNode.text().trim();
-      const rating = parseFloat(rawRating);
+      const rating = parseFloat(ratingNode.text().trim());
 
-      const mapsNode = $(row).find("td.mapsCol, td.statsDetail").first();
-      const rawMaps = mapsNode.text().trim();
-      const maps = parseInt(rawMaps, 10) || undefined;
-
-      const kdNode = $(row).find("td.kdCol").first();
-      const rawKd = kdNode.text().trim();
-      const kd = parseFloat(rawKd) || undefined;
-
-      const parsed: historicalPlayerStat | null =
-        rawName && !isNaN(rating) ? {name: rawName, rating, maps, kd} : null;
-
-      if (debug && sampleRows.length < 5) {
-        sampleRows.push({rawName, rawRating, rawMaps, rawKd, parsed});
-      }
-
-      if (parsed) {
-        stats.push(parsed);
-      } else {
-        skipped++;
+      if (rawName && !isNaN(rating)) {
+        stats.push({name: rawName, rating});
       }
     });
 
-    if (!debug) return {stats};
-
-    return {
-      stats,
-      debugInfo: {
-        filename: "",
-        totalRowsFound: rows.length,
-        validRowsParsed: stats.length,
-        skippedRows: skipped,
-        sampleRows,
-      },
-    };
-  }
-
-  private async fetchAndParse(
-    filename: string,
-    cacheKey: string,
-    debug = false,
-  ): Promise<{stats: historicalPlayerStat[]; debugInfo?: ParseDebugInfo}> {
-    if (!debug) {
-      const cached = cacheService.get<historicalPlayerStat[]>(cacheKey);
-      if (cached) return {stats: cached};
-    }
-
-    try {
-      const filePath = path.join(process.cwd(), "source", "stats", filename);
-      const html = fs.readFileSync(filePath, "utf-8");
-      const result = this.parseHtml(html, debug);
-
-      if (result.debugInfo) result.debugInfo.filename = filename;
-
-      if (!debug) cacheService.set(cacheKey, result.stats);
-
-      return result;
-    } catch (error) {
-      console.warn(`Error reading stats from ${filename}:`, error);
-      return {stats: []};
-    }
+    return stats;
   }
 
   async enrichPlayersWithHistoricalStats(
     players: FantasyPlayer[],
   ): Promise<FantasyPlayer[]> {
-    const r12m = await this.fetchAndParse(
-      "last_12_months_top_50.html",
-      "stats_12m_top50",
-    );
+    try {
+      const filePath = path.join(process.cwd(), "source", "last_12_months_top_50.html");
+      const html = fs.readFileSync(filePath, "utf-8");
+      const stats = this.parseHtml(html);
 
-    const buildDict = (stats: historicalPlayerStat[]) => {
-      const dict: Record<string, historicalPlayerStat> = {};
-      stats.forEach((s) => (dict[normalizePlayerName(s.name)] = s));
-      return dict;
-    };
+      const dict: Record<string, number> = {};
+      for (const s of stats) {
+        dict[normalizePlayerName(s.name)] = s.rating;
+      }
 
-    const dict12m = buildDict(r12m.stats);
-
-    return players.map((player) => {
-      const key = normalizePlayerName(player.name);
-      return {
+      return players.map((player) => ({
         ...player,
         stats: {
           ...player.stats,
-          rating12mTop50: dict12m[key]?.rating,
+          rating12mTop50: dict[normalizePlayerName(player.name)],
         },
-      };
-    });
-  }
-
-  /** Exposed for the show-stats debug script */
-  async debugParse(filename: string, cacheKey: string) {
-    return this.fetchAndParse(filename, cacheKey, true);
+      }));
+    } catch (error) {
+      console.warn("Error reading stats from source/last_12_months_top_50.html:", error);
+      return players;
+    }
   }
 }
 

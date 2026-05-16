@@ -2,7 +2,6 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import type {EventBundleContext} from "../types/player.ts";
 import {parseEventSlugFromFileName} from "../utils/normalize.ts";
-import {eventOverviewExtractor} from "./eventOverviewExtractor.ts";
 import {matchesExtractor} from "./matchesExtractor.ts";
 
 interface BundleLoadResult {
@@ -22,23 +21,9 @@ export async function loadEventBundleForSource(
   const targetFile = `${eventSlug}.html`;
   const warnings: string[] = [];
 
-  let overview = undefined;
   let matches = undefined;
 
-  const overviewPath = getExistingFilePath(path.join("source", "overview"), targetFile);
   const matchesPath = getExistingFilePath(path.join("source", "matches"), targetFile);
-
-  if (overviewPath) {
-    try {
-      overview = await eventOverviewExtractor.extract(targetFile);
-      warnings.push(...overview.parseWarnings.map((w) => `[overview] ${w}`));
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      warnings.push(`[overview] Failed to parse file: ${message}`);
-    }
-  } else {
-    warnings.push(`Missing optional overview file: source/overview/${targetFile}`);
-  }
 
   if (matchesPath) {
     try {
@@ -52,14 +37,13 @@ export async function loadEventBundleForSource(
     warnings.push(`Missing optional matches file: source/matches/${targetFile}`);
   }
 
-  if (!overview && !matches) {
+  if (!matches) {
     return {warnings};
   }
 
   return {
     bundle: {
       eventSlug,
-      overview,
       matches,
     },
     warnings,

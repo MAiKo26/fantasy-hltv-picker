@@ -157,32 +157,13 @@ export function createProgressBar(title: string) {
   };
 }
 
-const ROLE_ICONS: Record<string, string> = {
-  "Main AWP": "🎯",
-  "Entry Fragger": "💥",
-  Support: "🛡️",
-  Leader: "👑",
-  Stathunter: "📈",
-  Attacker: "⚔️",
-  Camper: "🏕️",
-  Defender: "🧱",
-  "HS Machine": "🎯",
-  Noob: "🐣",
-  "Multi Fragger": "🔥",
-  "Eco Friendly": "♻️",
-};
-
 function formatPlayerLine(
-  p: {id: string; name: string; team: string; role: string; rating: number},
-  roles: Record<string, string>,
+  p: {name: string; team: string; rating: number},
 ): string {
   const name = chalk.white.bold(p.name);
   const team = chalk.cyan(`(${p.team})`);
-  const roleRaw = roles[p.id] || p.role;
-  const roleIcon = ROLE_ICONS[roleRaw] ?? "🎮";
-  const role = chalk.yellow(`${roleIcon} ${roleRaw}`);
   const rating = chalk.green(`★ ${p.rating.toFixed(2)}`);
-  return `${name} ${team}  ${role}  ${rating}`;
+  return `${name} ${team}  ${rating}`;
 }
 
 export function printFinalTeamBox(result: AnalysisResult): void {
@@ -194,7 +175,7 @@ export function printFinalTeamBox(result: AnalysisResult): void {
 
       const lines = lineup.players.map((p, i) => {
         const idxNum = chalk.gray(`${i + 1}.`);
-        return `    ${idxNum} ${formatPlayerLine(p, lineup.roles)}`;
+        return `    ${idxNum} ${formatPlayerLine(p)}`;
       });
 
       const header = chalk.bold(`${rank} ${rankLabel} ${scoreLabel}`);
@@ -300,13 +281,10 @@ export function printScoringDiagnostics(
     .map((player, idx) => {
       const parts = [
         `base:${player.baseSkillEV.toFixed(2)}`,
-        `role:${player.roleEV.toFixed(2)}`,
         `team:${player.teamOutcomeEV.toFixed(2)}`,
-        `lev:${player.fieldLeverageEV.toFixed(2)}`,
+        `price:$${(player.price / 1000).toFixed(0)}k`,
       ].join(" ");
-      return `${idx + 1}. ${player.name} [${player.team}] own:${(
-        player.ownership * 100
-      ).toFixed(1)}% total:${player.total.toFixed(2)} ${parts}`;
+      return `${idx + 1}. ${player.name} [${player.team}] total:${player.total.toFixed(2)} ${parts}`;
     })
     .join("\n");
 
