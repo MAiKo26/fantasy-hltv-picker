@@ -1,0 +1,670 @@
+{
+  "generatedAt": "2026-06-05T15:15:17.774Z",
+  "eventCount": 13,
+  "trainCount": 9,
+  "testCount": 4,
+  "baselineWeights": {
+    "cardRatingBenefit": 0.25,
+    "historicalTop20RatingBenefit": 3,
+    "topTeamRankBenefit": 1.5,
+    "awperRoleBenefit": 0,
+    "lowDeathRateBenefit": 0,
+    "ctVsTRatingImbalancePenalty": 0.5,
+    "stackCorrelationBenefit": 0.5,
+    "topRankedTeamStackBenefit": 0.25,
+    "awpPerRoundWeight": 0,
+    "deathPenaltyWeight": 0,
+    "priceEfficiencyBenefit": 0
+  },
+  "bestWeights": {
+    "cardRatingBenefit": 0.25,
+    "historicalTop20RatingBenefit": 3,
+    "topTeamRankBenefit": 1.45,
+    "awperRoleBenefit": 0.05,
+    "lowDeathRateBenefit": 0,
+    "ctVsTRatingImbalancePenalty": 0.55,
+    "stackCorrelationBenefit": 0.5,
+    "topRankedTeamStackBenefit": 0.25,
+    "awpPerRoundWeight": 0.05,
+    "deathPenaltyWeight": 0,
+    "priceEfficiencyBenefit": 0
+  },
+  "bestWeightsLooMean": {
+    "cardRatingBenefit": 0.2778070369230769,
+    "historicalTop20RatingBenefit": 3,
+    "topTeamRankBenefit": 1.1252767907692307,
+    "awperRoleBenefit": 0.045480769230769234,
+    "lowDeathRateBenefit": 0,
+    "ctVsTRatingImbalancePenalty": 0.4790428846153846,
+    "stackCorrelationBenefit": 0.5,
+    "topRankedTeamStackBenefit": 0.25,
+    "awpPerRoundWeight": 0.03846153846153846,
+    "deathPenaltyWeight": 0.003673076923076923,
+    "priceEfficiencyBenefit": 0.020211538461538465
+  },
+  "bestWeightsLooStd": {
+    "cardRatingBenefit": 0.04367962274848771,
+    "historicalTop20RatingBenefit": 0,
+    "topTeamRankBenefit": 0.4559152051080657,
+    "awperRoleBenefit": 0.006660345869441895,
+    "lowDeathRateBenefit": 0,
+    "ctVsTRatingImbalancePenalty": 0.09178961467067248,
+    "stackCorrelationBenefit": 0,
+    "topRankedTeamStackBenefit": 0,
+    "awpPerRoundWeight": 0.021066252211737156,
+    "deathPenaltyWeight": 0.008942865987534751,
+    "priceEfficiencyBenefit": 0.02143546803643038
+  },
+  "baselineTrainLoss": {
+    "total": 0.11191738146503705,
+    "spearman": -0.49865911765312876,
+    "topRatedCoverage": 0.883236331569665,
+    "bestValueCoverage": 0.8447916666666666,
+    "regularization": 0,
+    "perEvent": [
+      {
+        "eventSlug": "CS Asia Championships 2026",
+        "loss": -0.08819090008633412,
+        "spearman": -0.527079788975223,
+        "topRated": 0.8777777777777778,
+        "bestValue": 0
+      },
+      {
+        "eventSlug": "IEM Atlanta 2026",
+        "loss": 0.20514166194211073,
+        "spearman": -0.4823583380578893,
+        "topRated": 0.9866666666666667,
+        "bestValue": 0.9708333333333333
+      },
+      {
+        "eventSlug": "IEM Rio 2026 - Group Stage",
+        "loss": 0.14966642596040386,
+        "spearman": -0.5403335740395961,
+        "topRated": 0.9866666666666667,
+        "bestValue": 0.9833333333333333
+      },
+      {
+        "eventSlug": "IEM Rio 2026 - Playoffs",
+        "loss": -0.25631313131313127,
+        "spearman": -0.5757575757575757,
+        "topRated": 0.3555555555555555,
+        "bestValue": 0.7083333333333333
+      },
+      {
+        "eventSlug": "PGL Bucharest 2026",
+        "loss": 0.08532153196459621,
+        "spearman": -0.5613451347020705,
+        "topRated": 0.9583333333333334,
+        "bestValue": 0.8375
+      },
+      {
+        "eventSlug": "Playoffs - BLAST Open Rotterdam 2026",
+        "loss": -0.18583333333333324,
+        "spearman": -0.7999999999999999,
+        "topRated": 0.9333333333333333,
+        "bestValue": 0.7375
+      },
+      {
+        "eventSlug": "blast-rivals-2026-season-1",
+        "loss": 0.6516666666666666,
+        "spearman": 0,
+        "topRated": 1,
+        "bestValue": 0.7583333333333333
+      },
+      {
+        "eventSlug": "epl-stage-1-2026",
+        "loss": 0.16327981851725715,
+        "spearman": -0.49699795926052065,
+        "topRated": 0.9555555555555556,
+        "bestValue": 0.9125
+      },
+      {
+        "eventSlug": "epl-stage-2-2026",
+        "loss": 0.11355935953376409,
+        "spearman": -0.5040596880852836,
+        "topRated": 0.8952380952380953,
+        "bestValue": 0.85
+      }
+    ]
+  },
+  "baselineTestLoss": {
+    "total": -0.0648551407846707,
+    "spearman": -0.6654338444883744,
+    "topRatedCoverage": 0.8574074074074074,
+    "bestValueCoverage": 0.859375,
+    "regularization": 0,
+    "perEvent": [
+      {
+        "eventSlug": "epl-stage-3-2026",
+        "loss": -0.07224888822557105,
+        "spearman": -0.6822488882255711,
+        "topRated": 0.86,
+        "bestValue": 0.9
+      },
+      {
+        "eventSlug": "group-stage-BLAST-Open-Rotterdam-2026",
+        "loss": 0.05513071189805907,
+        "spearman": -0.563480399213052,
+        "topRated": 0.8888888888888888,
+        "bestValue": 0.8708333333333333
+      },
+      {
+        "eventSlug": "group-stage-pgl-astana-2026",
+        "loss": -0.05573556975137345,
+        "spearman": -0.7086059401217438,
+        "topRated": 0.9407407407407408,
+        "bestValue": 0.9125
+      },
+      {
+        "eventSlug": "playoffs-pgl-astana-2026",
+        "loss": -0.1865668170597973,
+        "spearman": -0.7074001503931306,
+        "topRated": 0.74,
+        "bestValue": 0.7541666666666667
+      }
+    ]
+  },
+  "optimizedTrainLoss": {
+    "total": 0.1016382663647529,
+    "spearman": -0.5053529667334247,
+    "topRatedCoverage": 0.8756407995296884,
+    "bestValueCoverage": 0.8447916666666667,
+    "regularization": 0.01062500000000001,
+    "perEvent": [
+      {
+        "eventSlug": "CS Asia Championships 2026",
+        "loss": -0.0911066330350978,
+        "spearman": -0.5299955219239867,
+        "topRated": 0.8777777777777778,
+        "bestValue": 0
+      },
+      {
+        "eventSlug": "IEM Atlanta 2026",
+        "loss": 0.16541966023902588,
+        "spearman": -0.5137470064276408,
+        "topRated": 0.9733333333333334,
+        "bestValue": 0.9625
+      },
+      {
+        "eventSlug": "IEM Rio 2026 - Group Stage",
+        "loss": 0.15659582504896835,
+        "spearman": -0.534237508284365,
+        "topRated": 0.9866666666666667,
+        "bestValue": 0.9875
+      },
+      {
+        "eventSlug": "IEM Rio 2026 - Playoffs",
+        "loss": -0.25631313131313127,
+        "spearman": -0.5757575757575757,
+        "topRated": 0.3555555555555555,
+        "bestValue": 0.7083333333333333
+      },
+      {
+        "eventSlug": "PGL Bucharest 2026",
+        "loss": 0.05549743014956965,
+        "spearman": -0.5845025698504304,
+        "topRated": 0.9416666666666667,
+        "bestValue": 0.8458333333333333
+      },
+      {
+        "eventSlug": "Playoffs - BLAST Open Rotterdam 2026",
+        "loss": -0.20333333333333323,
+        "spearman": -0.7999999999999999,
+        "topRated": 0.9,
+        "bestValue": 0.7333333333333334
+      },
+      {
+        "eventSlug": "blast-rivals-2026-season-1",
+        "loss": 0.6516666666666666,
+        "spearman": 0,
+        "topRated": 1,
+        "bestValue": 0.7583333333333333
+      },
+      {
+        "eventSlug": "epl-stage-1-2026",
+        "loss": 0.15530090786434783,
+        "spearman": -0.5004398328763929,
+        "topRated": 0.9481481481481482,
+        "bestValue": 0.9083333333333333
+      },
+      {
+        "eventSlug": "epl-stage-2-2026",
+        "loss": 0.1101461716624259,
+        "spearman": -0.5094966854804313,
+        "topRated": 0.8976190476190476,
+        "bestValue": 0.8541666666666666
+      }
+    ]
+  },
+  "optimizedTestLoss": {
+    "total": -0.06860915920066996,
+    "spearman": -0.6674202703117811,
+    "topRatedCoverage": 0.8655555555555555,
+    "bestValueCoverage": 0.8291666666666667,
+    "regularization": 0.010000000000000009,
+    "perEvent": [
+      {
+        "eventSlug": "epl-stage-3-2026",
+        "loss": -0.09042114358010672,
+        "spearman": -0.6995878102467734,
+        "topRated": 0.86,
+        "bestValue": 0.8958333333333334
+      },
+      {
+        "eventSlug": "group-stage-BLAST-Open-Rotterdam-2026",
+        "loss": 0.040055103188539665,
+        "spearman": -0.5543893412559048,
+        "topRated": 0.8888888888888888,
+        "bestValue": 0.75
+      },
+      {
+        "eventSlug": "group-stage-pgl-astana-2026",
+        "loss": -0.042470446017981944,
+        "spearman": -0.7083037793513153,
+        "topRated": 0.9666666666666667,
+        "bestValue": 0.9125
+      },
+      {
+        "eventSlug": "playoffs-pgl-astana-2026",
+        "loss": -0.18240015039313068,
+        "spearman": -0.7074001503931306,
+        "topRated": 0.7466666666666666,
+        "bestValue": 0.7583333333333333
+      }
+    ]
+  },
+  "allRuns": [
+    {
+      "seed": 654017,
+      "iterations": 3,
+      "converged": true,
+      "trainLoss": 0.1016382663647529,
+      "testLoss": -0.06860915920066996,
+      "weights": {
+        "cardRatingBenefit": 0.25,
+        "historicalTop20RatingBenefit": 3,
+        "topTeamRankBenefit": 1.45,
+        "awperRoleBenefit": 0.05,
+        "lowDeathRateBenefit": 0,
+        "ctVsTRatingImbalancePenalty": 0.55,
+        "stackCorrelationBenefit": 0.5,
+        "topRankedTeamStackBenefit": 0.25,
+        "awpPerRoundWeight": 0.05,
+        "deathPenaltyWeight": 0,
+        "priceEfficiencyBenefit": 0
+      }
+    },
+    {
+      "seed": 262105,
+      "iterations": 3,
+      "converged": false,
+      "trainLoss": 0.11857890044759173,
+      "testLoss": -0.039079732742080334,
+      "weights": {
+        "cardRatingBenefit": 0.27416455406638696,
+        "historicalTop20RatingBenefit": 2,
+        "topTeamRankBenefit": 1.5107291644513114,
+        "awperRoleBenefit": 0.051319122374857445,
+        "lowDeathRateBenefit": 0.007006983108147133,
+        "ctVsTRatingImbalancePenalty": 0.5106650673567341,
+        "stackCorrelationBenefit": 0.4748169594979816,
+        "topRankedTeamStackBenefit": 0.23006942873833744,
+        "awpPerRoundWeight": 0.022374133703731005,
+        "deathPenaltyWeight": 0,
+        "priceEfficiencyBenefit": 0.03805877906199258
+      }
+    },
+    {
+      "seed": 508721,
+      "iterations": 4,
+      "converged": false,
+      "trainLoss": 0.11943081073872598,
+      "testLoss": -0.03286556123303511,
+      "weights": {
+        "cardRatingBenefit": 0.3460317563974719,
+        "historicalTop20RatingBenefit": 2,
+        "topTeamRankBenefit": 1.5329562307132214,
+        "awperRoleBenefit": 0,
+        "lowDeathRateBenefit": 0,
+        "ctVsTRatingImbalancePenalty": 0.5604840101214607,
+        "stackCorrelationBenefit": 0.4187719270563616,
+        "topRankedTeamStackBenefit": 0.21960349720776856,
+        "awpPerRoundWeight": 0.11742436718802439,
+        "deathPenaltyWeight": 0.04526144938179933,
+        "priceEfficiencyBenefit": 0
+      }
+    }
+  ],
+  "loo": {
+    "meanTestLoss": 0.08034730251048569,
+    "perEvent": [
+      {
+        "eventSlug": "CS Asia Championships 2026",
+        "testLoss": -0.1297475400113905,
+        "weights": {
+          "cardRatingBenefit": 0.33499999999999996,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 1.4375,
+          "awperRoleBenefit": 0.037500000000000006,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.332,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0,
+          "deathPenaltyWeight": 0,
+          "priceEfficiencyBenefit": 0.05
+        }
+      },
+      {
+        "eventSlug": "IEM Atlanta 2026",
+        "testLoss": 0.09084942008840693,
+        "weights": {
+          "cardRatingBenefit": 0.25,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 1.45,
+          "awperRoleBenefit": 0.05,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.55,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0.05,
+          "deathPenaltyWeight": 0,
+          "priceEfficiencyBenefit": 0
+        }
+      },
+      {
+        "eventSlug": "IEM Rio 2026 - Group Stage",
+        "testLoss": 0.1853168236043614,
+        "weights": {
+          "cardRatingBenefit": 0.265,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 0.2573311999999999,
+          "awperRoleBenefit": 0.037500000000000006,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.30456000000000005,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0,
+          "deathPenaltyWeight": 0.017750000000000002,
+          "priceEfficiencyBenefit": 0.03025
+        }
+      },
+      {
+        "eventSlug": "IEM Rio 2026 - Playoffs",
+        "testLoss": 0.24105656565656566,
+        "weights": {
+          "cardRatingBenefit": 0.25,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 1.4,
+          "awperRoleBenefit": 0.05,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.55,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0.05,
+          "deathPenaltyWeight": 0,
+          "priceEfficiencyBenefit": 0.05
+        }
+      },
+      {
+        "eventSlug": "PGL Bucharest 2026",
+        "testLoss": 0.0316493244185805,
+        "weights": {
+          "cardRatingBenefit": 0.25,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 1.45,
+          "awperRoleBenefit": 0.05,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.55,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0.05,
+          "deathPenaltyWeight": 0,
+          "priceEfficiencyBenefit": 0
+        }
+      },
+      {
+        "eventSlug": "Playoffs - BLAST Open Rotterdam 2026",
+        "testLoss": -0.20313333333333322,
+        "weights": {
+          "cardRatingBenefit": 0.25,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 1.45,
+          "awperRoleBenefit": 0.05,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.55,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0.05,
+          "deathPenaltyWeight": 0,
+          "priceEfficiencyBenefit": 0
+        }
+      },
+      {
+        "eventSlug": "blast-rivals-2026-season-1",
+        "testLoss": 0.6518666666666666,
+        "weights": {
+          "cardRatingBenefit": 0.25,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 1.45,
+          "awperRoleBenefit": 0.05,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.55,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0.05,
+          "deathPenaltyWeight": 0,
+          "priceEfficiencyBenefit": 0
+        }
+      },
+      {
+        "eventSlug": "epl-stage-1-2026",
+        "testLoss": 0.18632401351306457,
+        "weights": {
+          "cardRatingBenefit": 0.25,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 1.45,
+          "awperRoleBenefit": 0.05,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.55,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0.05,
+          "deathPenaltyWeight": 0,
+          "priceEfficiencyBenefit": 0
+        }
+      },
+      {
+        "eventSlug": "epl-stage-2-2026",
+        "testLoss": 0.008229038526362073,
+        "weights": {
+          "cardRatingBenefit": 0.311375,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 0.5073311999999999,
+          "awperRoleBenefit": 0.043750000000000004,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.5027999999999999,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0.05,
+          "deathPenaltyWeight": 0,
+          "priceEfficiencyBenefit": 0.0125
+        }
+      },
+      {
+        "eventSlug": "epl-stage-3-2026",
+        "testLoss": 0.07281395018422852,
+        "weights": {
+          "cardRatingBenefit": 0.3,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 1.4,
+          "awperRoleBenefit": 0.05,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.5,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0.05,
+          "deathPenaltyWeight": 0,
+          "priceEfficiencyBenefit": 0.05
+        }
+      },
+      {
+        "eventSlug": "group-stage-BLAST-Open-Rotterdam-2026",
+        "testLoss": 0.16248460123903735,
+        "weights": {
+          "cardRatingBenefit": 0.21751648000000004,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 0.4126278799999999,
+          "awperRoleBenefit": 0.043750000000000004,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.5261975,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0.05,
+          "deathPenaltyWeight": 0,
+          "priceEfficiencyBenefit": 0.0125
+        }
+      },
+      {
+        "eventSlug": "group-stage-pgl-astana-2026",
+        "testLoss": -0.06516527890135977,
+        "weights": {
+          "cardRatingBenefit": 0.3826,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 0.6338079999999998,
+          "awperRoleBenefit": 0.028750000000000005,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.332,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0,
+          "deathPenaltyWeight": 0.03,
+          "priceEfficiencyBenefit": 0.007500000000000003
+        }
+      },
+      {
+        "eventSlug": "playoffs-pgl-astana-2026",
+        "testLoss": -0.18802931901487624,
+        "weights": {
+          "cardRatingBenefit": 0.3,
+          "historicalTop20RatingBenefit": 3,
+          "topTeamRankBenefit": 1.3299999999999998,
+          "awperRoleBenefit": 0.05,
+          "lowDeathRateBenefit": 0,
+          "ctVsTRatingImbalancePenalty": 0.43,
+          "stackCorrelationBenefit": 0.5,
+          "topRankedTeamStackBenefit": 0.25,
+          "awpPerRoundWeight": 0.05,
+          "deathPenaltyWeight": 0,
+          "priceEfficiencyBenefit": 0.05
+        }
+      }
+    ]
+  },
+  "perEvent": [
+    {
+      "eventSlug": "CS Asia Championships 2026",
+      "spearman": 0.5299955219239867,
+      "topRatedCoverage": 0.12222222222222222,
+      "bestValueCoverage": 1,
+      "meanActualInTopLineups": 1.0645,
+      "meanPredictedInTopLineups": 3.922931881612503
+    },
+    {
+      "eventSlug": "IEM Atlanta 2026",
+      "spearman": 0.5137470064276408,
+      "topRatedCoverage": 0.02666666666666667,
+      "bestValueCoverage": 0.0375,
+      "meanActualInTopLineups": 1.0419999999999998,
+      "meanPredictedInTopLineups": 4.0639692408838135
+    },
+    {
+      "eventSlug": "IEM Rio 2026 - Group Stage",
+      "spearman": 0.534237508284365,
+      "topRatedCoverage": 0.013333333333333334,
+      "bestValueCoverage": 0.0125,
+      "meanActualInTopLineups": 1.03875,
+      "meanPredictedInTopLineups": 4.381246723469767
+    },
+    {
+      "eventSlug": "IEM Rio 2026 - Playoffs",
+      "spearman": 0.5757575757575757,
+      "topRatedCoverage": 0.6444444444444445,
+      "bestValueCoverage": 0.2916666666666667,
+      "meanActualInTopLineups": 1.17,
+      "meanPredictedInTopLineups": 3.9282414622051087
+    },
+    {
+      "eventSlug": "PGL Bucharest 2026",
+      "spearman": 0.5831665639764865,
+      "topRatedCoverage": 0.058333333333333334,
+      "bestValueCoverage": 0.15416666666666667,
+      "meanActualInTopLineups": 1.0311111111111113,
+      "meanPredictedInTopLineups": 4.139763271497329
+    },
+    {
+      "eventSlug": "Playoffs - BLAST Open Rotterdam 2026",
+      "spearman": 0.7999999999999999,
+      "topRatedCoverage": 0.1,
+      "bestValueCoverage": 0.26666666666666666,
+      "meanActualInTopLineups": 1.048,
+      "meanPredictedInTopLineups": 3.9195579101218754
+    },
+    {
+      "eventSlug": "blast-rivals-2026-season-1",
+      "spearman": 0,
+      "topRatedCoverage": 0,
+      "bestValueCoverage": 0.24166666666666667,
+      "meanActualInTopLineups": 0,
+      "meanPredictedInTopLineups": 0
+    },
+    {
+      "eventSlug": "epl-stage-1-2026",
+      "spearman": 0.5001780844443289,
+      "topRatedCoverage": 0.044444444444444446,
+      "bestValueCoverage": 0.0875,
+      "meanActualInTopLineups": 1.04,
+      "meanPredictedInTopLineups": 4.1346157930760326
+    },
+    {
+      "eventSlug": "epl-stage-2-2026",
+      "spearman": 0.5115707464123762,
+      "topRatedCoverage": 0.10238095238095238,
+      "bestValueCoverage": 0.14583333333333334,
+      "meanActualInTopLineups": 1.0357894736842104,
+      "meanPredictedInTopLineups": 3.974041582196356
+    },
+    {
+      "eventSlug": "epl-stage-3-2026",
+      "spearman": 0.6995878102467734,
+      "topRatedCoverage": 0.14,
+      "bestValueCoverage": 0.10416666666666667,
+      "meanActualInTopLineups": 1.052,
+      "meanPredictedInTopLineups": 4.003804428959182
+    },
+    {
+      "eventSlug": "group-stage-BLAST-Open-Rotterdam-2026",
+      "spearman": 0.5543893412559048,
+      "topRatedCoverage": 0.1111111111111111,
+      "bestValueCoverage": 0.25,
+      "meanActualInTopLineups": 1.006470588235294,
+      "meanPredictedInTopLineups": 3.7980185392252785
+    },
+    {
+      "eventSlug": "group-stage-pgl-astana-2026",
+      "spearman": 0.7083037793513153,
+      "topRatedCoverage": 0.03333333333333333,
+      "bestValueCoverage": 0.0875,
+      "meanActualInTopLineups": 1.0783333333333331,
+      "meanPredictedInTopLineups": 4.283695166828721
+    },
+    {
+      "eventSlug": "playoffs-pgl-astana-2026",
+      "spearman": 0.7074001503931306,
+      "topRatedCoverage": 0.25333333333333335,
+      "bestValueCoverage": 0.24166666666666667,
+      "meanActualInTopLineups": 1.1424999999999998,
+      "meanPredictedInTopLineups": 4.428215767431054
+    }
+  ]
+}
