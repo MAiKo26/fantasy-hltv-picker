@@ -1,27 +1,38 @@
 import type {
-  EventBundleContext,
   FantasyPlayer,
   FantasyTeam,
   Strategy,
   FantasyConfig,
 } from "../types/player.ts";
-import {matchupPredictor} from "./matchupPredictor.ts";
 import {env} from "../env.ts";
 import {normalizePlayerName, normalizeTeamName} from "../utils/normalize.ts";
 
 interface ScoreWeights {
-  historical12m: number;
-  teamRankBonus: number;
-  awpBonus: number;
-  survivalBonus: number;
-  sideVariancePenalty: number;
-  teamOutcome: number;
-  stackCorrelation: number;
-  matchupRiskPenalty: number;
-  stackRankBonus: number;
+  cardRatingBenefit: number;
+  historicalTop10RatingBenefit: number;
+  historicalTop20RatingBenefit: number;
+  historicalTop30RatingBenefit: number;
+  historicalTop50RatingBenefit: number;
+  topTeamRankBenefit: number;
+  awperRoleBenefit: number;
+  lowDeathRateBenefit: number;
+  ctVsTRatingImbalancePenalty: number;
+  stackCorrelationBenefit: number;
+  topRankedTeamStackBenefit: number;
+  awpPerRoundWeight: number;
+  deathPenaltyWeight: number;
+  priceEfficiencyBenefit: number;
+}
+
+const PRICE_EFFICIENCY_ANCHOR = 200000;
+
+interface ScoreThresholds {
+  awperRoleMinAwpPerRound: number;
+  lowDeathRateMaxDeathsPerRound: number;
 }
 
 export type OptimizerWeightOverrides = Partial<ScoreWeights>;
+export type OptimizerThresholdOverrides = Partial<ScoreThresholds>;
 
 export interface MathLineup {
   players: FantasyPlayer[];
@@ -30,9 +41,7 @@ export interface MathLineup {
   strategyUsed: Strategy;
   scoringBreakdown?: {
     baseSkillEV: number;
-    teamOutcomeEV: number;
     stackCorrelationEV: number;
-    matchupRiskPenalty: number;
     stackRankBonus: number;
   };
 }
@@ -40,7 +49,6 @@ export interface MathLineup {
 interface PlayerProjection {
   total: number;
   baseSkillEV: number;
-  teamOutcomeEV: number;
 }
 
 export interface PlayerScoreDiagnostics {
@@ -50,7 +58,28 @@ export interface PlayerScoreDiagnostics {
   price: number;
   total: number;
   baseSkillEV: number;
-  teamOutcomeEV: number;
+  cardRating: number;
+  cardRatingWeight: number;
+  historicalTop10Rating: number | null;
+  historicalTop10RatingWeight: number;
+  historicalTop20Rating: number | null;
+  historicalTop20RatingWeight: number;
+  historicalTop30Rating: number | null;
+  historicalTop30RatingWeight: number;
+  historicalTop50Rating: number | null;
+  historicalTop50RatingWeight: number;
+  availableRatingCount: number;
+  combinedRatingContribution: number;
+  topTeamRankBenefit: number;
+  awperRoleBenefit: number;
+  lowDeathRateBenefit: number;
+  ctVsTRatingImbalancePenalty: number;
+  awpPerRoundWeight: number;
+  awpPerRoundContribution: number;
+  deathPenaltyWeight: number;
+  deathPenaltyContribution: number;
+  priceEfficiencyBenefit: number;
+  priceEfficiencyContribution: number;
 }
 
 export interface LineupScoreDiagnostics {
@@ -66,37 +95,69 @@ export interface OptimizationDiagnostics {
   topLineups: LineupScoreDiagnostics[];
 }
 
+// 0.25 step
 const DEFAULT_WEIGHTS: ScoreWeights = {
-  historical12m: 0.15,
-  teamRankBonus: 0.35,
-  awpBonus: 0.01,
-  survivalBonus: 0.02,
-  sideVariancePenalty: 0.1,
-  teamOutcome: 0.15,
-  stackCorrelation: 0.05,
-  matchupRiskPenalty: 0.2,
-  stackRankBonus: 0.12,
+  historicalTop10RatingBenefit: 1.75,
+  historicalTop20RatingBenefit: 1.25,
+  historicalTop30RatingBenefit: 1,
+  historicalTop50RatingBenefit: 0.75,
+  cardRatingBenefit: 0.25,
+  topTeamRankBenefit: 0.5,
+  ctVsTRatingImbalancePenalty: 0.75,
+  awperRoleBenefit: 0,
+  lowDeathRateBenefit: 0,
+
+  // applies to assembling the team
+  stackCorrelationBenefit: 0.5,
+  topRankedTeamStackBenefit: 0.75,
+
+  // v5 additions: continuous signals (default 0 = backward-compatible)
+  awpPerRoundWeight: 0,
+  deathPenaltyWeight: 0,
+  priceEfficiencyBenefit: 0,
+};
+
+const DEFAULT_THRESHOLDS: ScoreThresholds = {
+  awperRoleMinAwpPerRound: 0.25,
+  lowDeathRateMaxDeathsPerRound: 0.6,
 };
 
 function resolveWeights(overrides?: OptimizerWeightOverrides): ScoreWeights {
   const envWeights: Partial<ScoreWeights> = {};
-  if (env.WEIGHT_HISTORICAL_12M != null)
-    envWeights.historical12m = env.WEIGHT_HISTORICAL_12M;
-  if (env.WEIGHT_TEAM_RANK_BONUS != null)
-    envWeights.teamRankBonus = env.WEIGHT_TEAM_RANK_BONUS;
-  if (env.WEIGHT_AWP_BONUS != null) envWeights.awpBonus = env.WEIGHT_AWP_BONUS;
-  if (env.WEIGHT_SURVIVAL_BONUS != null)
-    envWeights.survivalBonus = env.WEIGHT_SURVIVAL_BONUS;
-  if (env.WEIGHT_SIDE_VARIANCE_PENALTY != null)
-    envWeights.sideVariancePenalty = env.WEIGHT_SIDE_VARIANCE_PENALTY;
-  if (env.WEIGHT_TEAM_OUTCOME != null)
-    envWeights.teamOutcome = env.WEIGHT_TEAM_OUTCOME;
-  if (env.WEIGHT_STACK_CORRELATION != null)
-    envWeights.stackCorrelation = env.WEIGHT_STACK_CORRELATION;
-  if (env.WEIGHT_MATCHUP_RISK_PENALTY != null)
-    envWeights.matchupRiskPenalty = env.WEIGHT_MATCHUP_RISK_PENALTY;
-  if (env.WEIGHT_STACK_RANK_BONUS != null)
-    envWeights.stackRankBonus = env.WEIGHT_STACK_RANK_BONUS;
+  if (env.WEIGHT_CARD_RATING_BENEFIT != null)
+    envWeights.cardRatingBenefit = env.WEIGHT_CARD_RATING_BENEFIT;
+  if (env.WEIGHT_HISTORICAL_TOP10_RATING_BENEFIT != null)
+    envWeights.historicalTop10RatingBenefit =
+      env.WEIGHT_HISTORICAL_TOP10_RATING_BENEFIT;
+  if (env.WEIGHT_HISTORICAL_TOP20_RATING_BENEFIT != null)
+    envWeights.historicalTop20RatingBenefit =
+      env.WEIGHT_HISTORICAL_TOP20_RATING_BENEFIT;
+  if (env.WEIGHT_HISTORICAL_TOP30_RATING_BENEFIT != null)
+    envWeights.historicalTop30RatingBenefit =
+      env.WEIGHT_HISTORICAL_TOP30_RATING_BENEFIT;
+  if (env.WEIGHT_HISTORICAL_TOP50_RATING_BENEFIT != null)
+    envWeights.historicalTop50RatingBenefit =
+      env.WEIGHT_HISTORICAL_TOP50_RATING_BENEFIT;
+  if (env.WEIGHT_TOP_TEAM_RANK_BENEFIT != null)
+    envWeights.topTeamRankBenefit = env.WEIGHT_TOP_TEAM_RANK_BENEFIT;
+  if (env.WEIGHT_AWPER_ROLE_BENEFIT != null)
+    envWeights.awperRoleBenefit = env.WEIGHT_AWPER_ROLE_BENEFIT;
+  if (env.WEIGHT_LOW_DEATH_RATE_BENEFIT != null)
+    envWeights.lowDeathRateBenefit = env.WEIGHT_LOW_DEATH_RATE_BENEFIT;
+  if (env.WEIGHT_CT_VS_T_RATING_IMBALANCE_PENALTY != null)
+    envWeights.ctVsTRatingImbalancePenalty =
+      env.WEIGHT_CT_VS_T_RATING_IMBALANCE_PENALTY;
+  if (env.WEIGHT_STACK_CORRELATION_BENEFIT != null)
+    envWeights.stackCorrelationBenefit = env.WEIGHT_STACK_CORRELATION_BENEFIT;
+  if (env.WEIGHT_TOP_RANKED_TEAM_STACK_BENEFIT != null)
+    envWeights.topRankedTeamStackBenefit =
+      env.WEIGHT_TOP_RANKED_TEAM_STACK_BENEFIT;
+  if (env.WEIGHT_AWP_PER_ROUND_WEIGHT != null)
+    envWeights.awpPerRoundWeight = env.WEIGHT_AWP_PER_ROUND_WEIGHT;
+  if (env.WEIGHT_DEATH_PENALTY_WEIGHT != null)
+    envWeights.deathPenaltyWeight = env.WEIGHT_DEATH_PENALTY_WEIGHT;
+  if (env.WEIGHT_PRICE_EFFICIENCY_BENEFIT != null)
+    envWeights.priceEfficiencyBenefit = env.WEIGHT_PRICE_EFFICIENCY_BENEFIT;
 
   return {
     ...DEFAULT_WEIGHTS,
@@ -105,16 +166,38 @@ function resolveWeights(overrides?: OptimizerWeightOverrides): ScoreWeights {
   };
 }
 
+function resolveThresholds(
+  overrides?: OptimizerThresholdOverrides,
+): ScoreThresholds {
+  const envThresholds: Partial<ScoreThresholds> = {};
+  if (env.THRESHOLD_AWPER_ROLE_MIN_AWP_PER_ROUND != null)
+    envThresholds.awperRoleMinAwpPerRound =
+      env.THRESHOLD_AWPER_ROLE_MIN_AWP_PER_ROUND;
+  if (env.THRESHOLD_LOW_DEATH_RATE_MAX_DEATHS_PER_ROUND != null)
+    envThresholds.lowDeathRateMaxDeathsPerRound =
+      env.THRESHOLD_LOW_DEATH_RATE_MAX_DEATHS_PER_ROUND;
+
+  return {
+    ...DEFAULT_THRESHOLDS,
+    ...envThresholds,
+    ...(overrides ?? {}),
+  };
+}
+
 export class MathOptimizer {
   private readonly MAX_BUDGET = 1000000;
-  private readonly MAX_PLAYER_PRICE = 245000;
-  private readonly TARGET_RESULTS = 30;
+  private readonly MAX_PLAYER_PRICE = 251000;
+  private readonly TARGET_RESULTS = 50;
   private readonly CANDIDATE_POOL_LIMIT = 65;
   private readonly TEAM_CANDIDATES_LIMIT = 4;
   private readonly MAX_TRACKED_LINEUPS = 50;
 
   private teamRankings: Map<string, number> = new Map();
+  private teamRankMin = 0;
+  private teamRankMax = 0;
   private runtimeWeights: ScoreWeights = DEFAULT_WEIGHTS;
+  private runtimeThresholds: ScoreThresholds = DEFAULT_THRESHOLDS;
+  private effectiveTargetResults = 50;
   private lastDiagnostics: OptimizationDiagnostics = {
     topPlayers: [],
     topLineups: [],
@@ -122,58 +205,96 @@ export class MathOptimizer {
 
   setTeams(teams: FantasyTeam[]): void {
     this.teamRankings.clear();
+    let min = Infinity;
+    let max = -Infinity;
     for (const team of teams) {
-      this.teamRankings.set(normalizeTeamName(team.name), team.worldRank);
+      const rank = team.worldRank;
+      this.teamRankings.set(normalizeTeamName(team.name), rank);
+      if (rank > 0) {
+        if (rank < min) min = rank;
+        if (rank > max) max = rank;
+      }
     }
+    this.teamRankMin = min === Infinity ? 0 : min;
+    this.teamRankMax = max === -Infinity ? 0 : max;
+  }
+
+  private getFieldRelativeRankBonus(teamRank: number): number {
+    if (teamRank <= 0) return 0;
+    const range = this.teamRankMax - this.teamRankMin;
+    if (range <= 0) return Math.log(2);
+    const relative = 1 - (teamRank - this.teamRankMin) / range;
+    return Math.log(1 + relative);
+  }
+
+  private getAvailableRatingCount(player: FantasyPlayer): number {
+    let count = 0;
+    if (player.stats.rating > 0) count++;
+    if (player.stats.rating12mTop10 != null) count++;
+    if (player.stats.rating12mTop20 != null) count++;
+    if (player.stats.rating12mTop30 != null) count++;
+    if (player.stats.rating12mTop50 != null) count++;
+    return count;
+  }
+
+  private getCombinedRatingContribution(player: FantasyPlayer): number {
+    const stats = player.stats;
+    const weights = this.runtimeWeights;
+    const numerator =
+      stats.rating * weights.cardRatingBenefit +
+      (stats.rating12mTop10 ?? 0) * weights.historicalTop10RatingBenefit +
+      (stats.rating12mTop20 ?? 0) * weights.historicalTop20RatingBenefit +
+      (stats.rating12mTop30 ?? 0) * weights.historicalTop30RatingBenefit +
+      (stats.rating12mTop50 ?? 0) * weights.historicalTop50RatingBenefit;
+    const count = this.getAvailableRatingCount(player);
+    return count > 0 ? numerator / count : 0;
   }
 
   getExpectedBaseScore(player: FantasyPlayer): number {
     const teamRank = this.teamRankings.get(normalizeTeamName(player.team));
 
-    let score = player.stats.rating;
-
-    const historicalBonus =
-      (player.stats.rating12mTop50 ?? 0) * this.runtimeWeights.historical12m;
-    score += historicalBonus;
+    let score = this.getCombinedRatingContribution(player);
 
     if (teamRank) {
-      score += Math.log(1 + 1 / teamRank) * this.runtimeWeights.teamRankBonus;
+      score +=
+        this.getFieldRelativeRankBonus(teamRank) *
+        this.runtimeWeights.topTeamRankBenefit;
     }
 
-    if (player.stats.awpPerRound >= 0.25) score += this.runtimeWeights.awpBonus;
+    if (
+      player.stats.awpPerRound >= this.runtimeThresholds.awperRoleMinAwpPerRound
+    ) {
+      score += this.runtimeWeights.awperRoleBenefit;
+    }
 
-    if (player.stats.deathsPerRound <= 0.6)
-      score += this.runtimeWeights.survivalBonus;
+    if (
+      player.stats.deathsPerRound <=
+      this.runtimeThresholds.lowDeathRateMaxDeathsPerRound
+    ) {
+      score += this.runtimeWeights.lowDeathRateBenefit;
+    }
 
     const sideVariance = Math.abs(player.stats.ctRating - player.stats.tRating);
-    score -= sideVariance * this.runtimeWeights.sideVariancePenalty;
+    score -= sideVariance * this.runtimeWeights.ctVsTRatingImbalancePenalty;
+
+    score += player.stats.awpPerRound * this.runtimeWeights.awpPerRoundWeight;
+    score -=
+      player.stats.deathsPerRound * this.runtimeWeights.deathPenaltyWeight;
+    if (player.price > 0) {
+      const priceRatio = player.price / PRICE_EFFICIENCY_ANCHOR;
+      const efficiency = player.stats.rating / priceRatio;
+      score += efficiency * this.runtimeWeights.priceEfficiencyBenefit;
+    }
 
     return score;
   }
 
-  private clamp(value: number, min: number, max: number): number {
-    return Math.max(min, Math.min(max, value));
-  }
-
-  private getSkillGate(baseSkillEV: number): number {
-    return this.clamp((baseSkillEV - 1.08) / 0.42, 0.15, 1);
-  }
-
-  private getTeamOutcomeEV(player: FantasyPlayer): number {
-    const raw = matchupPredictor.getTeamExpectedOutcomeScore(player.team);
-    const bounded = this.clamp(Math.tanh(raw), -0.8, 0.8);
-    return bounded * this.runtimeWeights.teamOutcome;
-  }
-
   private getPlayerProjection(player: FantasyPlayer): PlayerProjection {
     const baseSkillEV = this.getExpectedBaseScore(player);
-    const skillGate = this.getSkillGate(baseSkillEV);
-    const teamOutcomeEV = this.getTeamOutcomeEV(player) * skillGate;
 
     return {
-      total: baseSkillEV + teamOutcomeEV,
+      total: baseSkillEV,
       baseSkillEV,
-      teamOutcomeEV,
     };
   }
 
@@ -265,12 +386,13 @@ export class MathOptimizer {
     players: FantasyPlayer[],
     teams: FantasyTeam[],
     config: FantasyConfig,
-    bundle?: EventBundleContext,
     weightOverrides?: OptimizerWeightOverrides,
+    thresholdOverrides?: OptimizerThresholdOverrides,
   ): MathLineup[] {
     this.runtimeWeights = resolveWeights(weightOverrides);
+    this.runtimeThresholds = resolveThresholds(thresholdOverrides);
+    this.effectiveTargetResults = config.lineupLimit ?? this.TARGET_RESULTS;
     this.setTeams(teams);
-    matchupPredictor.configure(teams, bundle?.matches);
 
     const targetStrategies: Strategy[] =
       config.strategy === "Auto"
@@ -280,10 +402,14 @@ export class MathOptimizer {
     const blacklist = new Set(
       env.BLACKLISTED_PLAYERS.map((name) => normalizePlayerName(name)),
     );
+    const excludedTeams = new Set(
+      (config.excludedTeams ?? []).map((name) => normalizeTeamName(name)),
+    );
     const validPlayers = players.filter(
       (p) =>
         p.price <= this.MAX_PLAYER_PRICE &&
-        !blacklist.has(normalizePlayerName(p.name)),
+        !blacklist.has(normalizePlayerName(p.name)) &&
+        !excludedTeams.has(normalizeTeamName(p.team)),
     );
     if (validPlayers.length < 5) return [];
 
@@ -302,13 +428,15 @@ export class MathOptimizer {
     const addLineup = (lineup: MathLineup) => {
       validLineups.push(lineup);
       validLineups.sort((a, b) => b.expectedBaseScore - a.expectedBaseScore);
-      if (validLineups.length > this.MAX_TRACKED_LINEUPS) {
-        validLineups.length = this.MAX_TRACKED_LINEUPS;
+      const maxTracked = Math.max(this.MAX_TRACKED_LINEUPS, this.effectiveTargetResults);
+      if (validLineups.length > maxTracked) {
+        validLineups.length = maxTracked;
       }
     };
 
     const getCutoffScore = () => {
-      if (validLineups.length < this.MAX_TRACKED_LINEUPS)
+      const maxTracked = Math.max(this.MAX_TRACKED_LINEUPS, this.effectiveTargetResults);
+      if (validLineups.length < maxTracked)
         return Number.NEGATIVE_INFINITY;
       return (
         validLineups[validLineups.length - 1]?.expectedBaseScore ??
@@ -326,7 +454,6 @@ export class MathOptimizer {
       forcedTeamCount: number,
       componentSums: {
         baseSkillEV: number;
-        teamOutcomeEV: number;
       },
     ) => {
       const remainingSlots = 5 - selectedPlayers.length;
@@ -348,11 +475,6 @@ export class MathOptimizer {
         }
         if (!strategyUsed) return;
 
-        const rosterTeams = Object.keys(teamCounts);
-        const matchupRiskPenalty =
-          matchupPredictor.evaluateRosterRisk(rosterTeams) *
-          this.runtimeWeights.matchupRiskPenalty;
-
         let stackCorrelationEV = 0;
         for (const [team, count] of Object.entries(teamCounts)) {
           if (count <= 1) continue;
@@ -363,12 +485,10 @@ export class MathOptimizer {
               0,
             );
           const avgStackSkill = stackSkill / count;
-          const stackGate = this.getSkillGate(avgStackSkill);
           stackCorrelationEV +=
-            matchupPredictor.getTeamExpectedOutcomeScore(team) *
+            avgStackSkill *
             (count - 1) *
-            this.runtimeWeights.stackCorrelation *
-            stackGate;
+            this.runtimeWeights.stackCorrelationBenefit;
         }
 
         let stackRankBonus = 0;
@@ -381,22 +501,19 @@ export class MathOptimizer {
           for (const team of stackTeams) {
             const rank = this.teamRankings.get(normalizeTeamName(team));
             if (rank) {
-              totalRankBonus += Math.log(1 + 1 / rank);
+              totalRankBonus += this.getFieldRelativeRankBonus(rank);
               rankCount++;
             }
           }
           if (rankCount > 0) {
             stackRankBonus =
-              (totalRankBonus / rankCount) * this.runtimeWeights.stackRankBonus;
+              (totalRankBonus / rankCount) *
+              this.runtimeWeights.topRankedTeamStackBenefit;
           }
         }
 
         const expectedBaseScore =
-          componentSums.baseSkillEV +
-          componentSums.teamOutcomeEV +
-          stackCorrelationEV +
-          stackRankBonus -
-          matchupRiskPenalty;
+          componentSums.baseSkillEV + stackCorrelationEV + stackRankBonus;
 
         addLineup({
           players: [...selectedPlayers],
@@ -405,9 +522,7 @@ export class MathOptimizer {
           strategyUsed,
           scoringBreakdown: {
             baseSkillEV: componentSums.baseSkillEV,
-            teamOutcomeEV: componentSums.teamOutcomeEV,
             stackCorrelationEV,
-            matchupRiskPenalty,
             stackRankBonus,
           },
         });
@@ -418,7 +533,6 @@ export class MathOptimizer {
 
       const optimisticUpperBound =
         componentSums.baseSkillEV +
-        componentSums.teamOutcomeEV +
         this.getOptimisticUpperBound(sortedScores, startIndex, remainingSlots) +
         1.5;
 
@@ -455,7 +569,6 @@ export class MathOptimizer {
 
         search(i + 1, totalPrice + player.price, nextForcedTeamCount, {
           baseSkillEV: componentSums.baseSkillEV + projection.baseSkillEV,
-          teamOutcomeEV: componentSums.teamOutcomeEV + projection.teamOutcomeEV,
         });
 
         selectedPlayers.pop();
@@ -469,7 +582,6 @@ export class MathOptimizer {
 
     search(0, 0, 0, {
       baseSkillEV: 0,
-      teamOutcomeEV: 0,
     });
 
     const diversified = this.selectDiverseLineups(validLineups);
@@ -493,7 +605,7 @@ export class MathOptimizer {
   }
 
   private selectDiverseLineups(lineups: MathLineup[]): MathLineup[] {
-    if (lineups.length <= 1) return lineups.slice(0, this.TARGET_RESULTS);
+    if (lineups.length <= 1) return lineups.slice(0, this.effectiveTargetResults);
     const sorted = [...lineups].sort(
       (a, b) => b.expectedBaseScore - a.expectedBaseScore,
     );
@@ -503,7 +615,7 @@ export class MathOptimizer {
 
     for (
       let i = 1;
-      i < sorted.length && selected.length < this.TARGET_RESULTS;
+      i < sorted.length && selected.length < this.effectiveTargetResults;
       i++
     ) {
       const candidate = sorted[i];
@@ -517,7 +629,7 @@ export class MathOptimizer {
 
     for (
       let i = 1;
-      i < sorted.length && selected.length < this.TARGET_RESULTS;
+      i < sorted.length && selected.length < this.effectiveTargetResults;
       i++
     ) {
       if (used.has(i)) continue;
@@ -526,17 +638,33 @@ export class MathOptimizer {
       selected.push(candidate);
     }
 
-    return selected.slice(0, this.TARGET_RESULTS);
+    return selected.slice(0, this.effectiveTargetResults);
   }
 
   private buildDiagnostics(
     lineups: MathLineup[],
     projectionById: Map<string, PlayerProjection>,
-    playerById: Map<string, FantasyPlayer>,
+    playerById: Map<FantasyPlayer["id"], FantasyPlayer>,
   ): OptimizationDiagnostics {
     const topPlayers = [...projectionById.entries()]
       .map(([playerId, projection]) => {
         const player = playerById.get(playerId);
+        const teamRank = player
+          ? this.teamRankings.get(normalizeTeamName(player.team))
+          : undefined;
+        const sideVariance = player
+          ? Math.abs(player.stats.ctRating - player.stats.tRating)
+          : 0;
+        const awpPerRound = player?.stats.awpPerRound ?? 0;
+        const deathsPerRound = player?.stats.deathsPerRound ?? 0;
+        const priceRatio =
+          player && player.price > 0
+            ? player.price / PRICE_EFFICIENCY_ANCHOR
+            : 0;
+        const efficiencyTrait =
+          player && priceRatio > 0
+            ? (player.stats.rating ?? 0) / priceRatio
+            : 0;
         return {
           playerId,
           name: player?.name ?? playerId,
@@ -544,38 +672,77 @@ export class MathOptimizer {
           price: player?.price ?? 0,
           total: projection.total,
           baseSkillEV: projection.baseSkillEV,
-          teamOutcomeEV: projection.teamOutcomeEV,
+          cardRating: player?.stats.rating ?? 0,
+          cardRatingWeight: this.runtimeWeights.cardRatingBenefit,
+          historicalTop10Rating: player?.stats.rating12mTop10 ?? null,
+          historicalTop10RatingWeight:
+            this.runtimeWeights.historicalTop10RatingBenefit,
+          historicalTop20Rating: player?.stats.rating12mTop20 ?? null,
+          historicalTop20RatingWeight:
+            this.runtimeWeights.historicalTop20RatingBenefit,
+          historicalTop30Rating: player?.stats.rating12mTop30 ?? null,
+          historicalTop30RatingWeight:
+            this.runtimeWeights.historicalTop30RatingBenefit,
+          historicalTop50Rating: player?.stats.rating12mTop50 ?? null,
+          historicalTop50RatingWeight:
+            this.runtimeWeights.historicalTop50RatingBenefit,
+          availableRatingCount: player
+            ? this.getAvailableRatingCount(player)
+            : 0,
+          combinedRatingContribution: player
+            ? this.getCombinedRatingContribution(player)
+            : 0,
+          topTeamRankBenefit: teamRank
+            ? this.getFieldRelativeRankBonus(teamRank) *
+              this.runtimeWeights.topTeamRankBenefit
+            : 0,
+          awperRoleBenefit:
+            player &&
+            player.stats.awpPerRound >=
+              this.runtimeThresholds.awperRoleMinAwpPerRound
+              ? this.runtimeWeights.awperRoleBenefit
+              : 0,
+          lowDeathRateBenefit:
+            player &&
+            player.stats.deathsPerRound <=
+              this.runtimeThresholds.lowDeathRateMaxDeathsPerRound
+              ? this.runtimeWeights.lowDeathRateBenefit
+              : 0,
+          ctVsTRatingImbalancePenalty:
+            sideVariance * this.runtimeWeights.ctVsTRatingImbalancePenalty,
+          awpPerRoundWeight: this.runtimeWeights.awpPerRoundWeight,
+          awpPerRoundContribution:
+            awpPerRound * this.runtimeWeights.awpPerRoundWeight,
+          deathPenaltyWeight: this.runtimeWeights.deathPenaltyWeight,
+          deathPenaltyContribution:
+            deathsPerRound * this.runtimeWeights.deathPenaltyWeight,
+          priceEfficiencyBenefit: this.runtimeWeights.priceEfficiencyBenefit,
+          priceEfficiencyContribution:
+            efficiencyTrait * this.runtimeWeights.priceEfficiencyBenefit,
         };
       })
       .sort((a, b) => b.total - a.total)
-      .slice(0, 15);
+      .slice(0, 100);
 
     const topLineups: LineupScoreDiagnostics[] = lineups
       .slice(0, 5)
       .map((lineup, idx) => {
         const b = lineup.scoringBreakdown ?? {
           baseSkillEV: 0,
-          teamOutcomeEV: 0,
           stackCorrelationEV: 0,
-          matchupRiskPenalty: 0,
           stackRankBonus: 0,
         };
 
         const componentMagnitude =
           Math.abs(b.baseSkillEV) +
-          Math.abs(b.teamOutcomeEV) +
           Math.abs(b.stackCorrelationEV) +
-          Math.abs(b.matchupRiskPenalty) +
           Math.abs(b.stackRankBonus) +
           0.0001;
 
         const sharesPct: Record<string, number> = {
           baseSkill: (Math.abs(b.baseSkillEV) / componentMagnitude) * 100,
-          teamOutcome: (Math.abs(b.teamOutcomeEV) / componentMagnitude) * 100,
           stackCorrelation:
             (Math.abs(b.stackCorrelationEV) / componentMagnitude) * 100,
-          matchupRisk:
-            (Math.abs(b.matchupRiskPenalty) / componentMagnitude) * 100,
           stackRankBonus:
             (Math.abs(b.stackRankBonus) / componentMagnitude) * 100,
         };
@@ -597,6 +764,46 @@ export class MathOptimizer {
 
   getLatestDiagnostics(): OptimizationDiagnostics {
     return this.lastDiagnostics;
+  }
+
+  getPlayerTraitVector(player: FantasyPlayer): {
+    traits: Record<keyof ScoreWeights, number>;
+  } {
+    const teamRank = this.teamRankings.get(normalizeTeamName(player.team));
+    const sideVariance = Math.abs(player.stats.ctRating - player.stats.tRating);
+    const priceRatio =
+      player.price > 0 ? player.price / PRICE_EFFICIENCY_ANCHOR : 0;
+    const efficiencyTrait =
+      priceRatio > 0 ? player.stats.rating / priceRatio : 0;
+
+    return {
+      traits: {
+        cardRatingBenefit: player.stats.rating,
+        historicalTop10RatingBenefit: player.stats.rating12mTop10 ?? 0,
+        historicalTop20RatingBenefit: player.stats.rating12mTop20 ?? 0,
+        historicalTop30RatingBenefit: player.stats.rating12mTop30 ?? 0,
+        historicalTop50RatingBenefit: player.stats.rating12mTop50 ?? 0,
+        topTeamRankBenefit: teamRank
+          ? this.getFieldRelativeRankBonus(teamRank)
+          : 0,
+        awperRoleBenefit:
+          player.stats.awpPerRound >=
+          this.runtimeThresholds.awperRoleMinAwpPerRound
+            ? 1
+            : 0,
+        lowDeathRateBenefit:
+          player.stats.deathsPerRound <=
+          this.runtimeThresholds.lowDeathRateMaxDeathsPerRound
+            ? 1
+            : 0,
+        ctVsTRatingImbalancePenalty: -sideVariance,
+        stackCorrelationBenefit: 0,
+        topRankedTeamStackBenefit: 0,
+        awpPerRoundWeight: player.stats.awpPerRound,
+        deathPenaltyWeight: -player.stats.deathsPerRound,
+        priceEfficiencyBenefit: efficiencyTrait,
+      },
+    };
   }
 }
 

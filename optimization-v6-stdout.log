@@ -1,0 +1,640 @@
+­ƒÜÇ v6 Weight Optimization ÔÇö Long-Run Grid Search
+
+­ƒôé Ratings:  C:\Users\MSI\Workstation\fantasy-hltv-picker\results\player-ratings-at-end-of-event
+­ƒôé Results:  C:\Users\MSI\Workstation\fantasy-hltv-picker\results
+­ƒôé Drafts:   C:\Users\MSI\Workstation\fantasy-hltv-picker\source\draft
+
+­ƒÄ» Optimizing 4 weights via multi-resolution grid search on ALL events:
+   - cardRatingBenefit
+   - historicalTop20RatingBenefit
+   - topTeamRankBenefit
+   - ctVsTRatingImbalancePenalty
+   (other 7 weights held at user-specified baseline values)
+   Progress log: C:\Users\MSI\Workstation\fantasy-hltv-picker\optimization-v6.log
+
+Loading cached events from C:\Users\MSI\Workstation\fantasy-hltv-picker\.cache\v6-events.json...
+
+Ô£à Loaded 13 events
+
+­ƒôè BASELINES (all 13 events):
+   v5 default weights:    loss=0.05760  Spearman=0.550
+   user-suggested values: loss=0.04830  Spearman=0.546
+
+  ­ƒôª Pre-computing lineups at baseline weights (used for fast grid search)...
+  Ô£ô Cached lineups for 13 events
+
+
+  ­ƒôÉ [coarse-cached] 15├ù15├ù15├ù15 = 50625 evaluations (cached lineups)
+      1012/50625 (  2.0%) best=0.0306 elapsed=0.0m eta=1.0m
+      2024/50625 (  4.0%) best=0.0306 elapsed=0.0m eta=1.2m
+      3036/50625 (  6.0%) best=0.0305 elapsed=0.1m eta=2.0m
+      4048/50625 (  8.0%) best=0.0305 elapsed=0.2m eta=2.1m
+      5060/50625 ( 10.0%) best=0.0303 elapsed=0.2m eta=2.1m
+      6072/50625 ( 12.0%) best=0.0303 elapsed=0.3m eta=2.3m
+      7084/50625 ( 14.0%) best=0.0303 elapsed=0.4m eta=2.3m
+      8096/50625 ( 16.0%) best=0.0303 elapsed=0.4m eta=2.3m
+      9108/50625 ( 18.0%) best=0.0303 elapsed=0.5m eta=2.3m
+     10120/50625 ( 20.0%) best=0.0303 elapsed=0.5m eta=2.2m
+     11132/50625 ( 22.0%) best=0.0303 elapsed=0.6m eta=2.1m
+     12144/50625 ( 24.0%) best=0.0300 elapsed=0.7m eta=2.1m
+     13156/50625 ( 26.0%) best=0.0300 elapsed=0.7m eta=2.1m
+     14168/50625 ( 28.0%) best=0.0300 elapsed=0.8m eta=2.1m
+     15180/50625 ( 30.0%) best=0.0300 elapsed=0.9m eta=2.1m
+     16192/50625 ( 32.0%) best=0.0300 elapsed=1.0m eta=2.1m
+     17204/50625 ( 34.0%) best=0.0300 elapsed=1.0m eta=2.0m
+     18216/50625 ( 36.0%) best=0.0300 elapsed=1.1m eta=1.9m
+     19228/50625 ( 38.0%) best=0.0300 elapsed=1.2m eta=1.9m
+     20240/50625 ( 40.0%) best=0.0300 elapsed=1.2m eta=1.9m
+     21252/50625 ( 42.0%) best=0.0300 elapsed=1.3m eta=1.8m
+     22264/50625 ( 44.0%) best=0.0300 elapsed=1.4m eta=1.8m
+     23276/50625 ( 46.0%) best=0.0300 elapsed=1.5m eta=1.8m
+     24288/50625 ( 48.0%) best=0.0300 elapsed=1.6m eta=1.7m
+     25300/50625 ( 50.0%) best=0.0300 elapsed=1.7m eta=1.7m
+     26312/50625 ( 52.0%) best=0.0300 elapsed=1.7m eta=1.6m
+     27324/50625 ( 54.0%) best=0.0300 elapsed=1.8m eta=1.5m
+     28336/50625 ( 56.0%) best=0.0300 elapsed=1.9m eta=1.5m
+     29348/50625 ( 58.0%) best=0.0300 elapsed=1.9m eta=1.4m
+     30360/50625 ( 60.0%) best=0.0300 elapsed=2.0m eta=1.3m
+     31372/50625 ( 62.0%) best=0.0300 elapsed=2.0m eta=1.2m
+     32384/50625 ( 64.0%) best=0.0300 elapsed=2.1m eta=1.2m
+     33396/50625 ( 66.0%) best=0.0300 elapsed=2.1m eta=1.1m
+     34408/50625 ( 68.0%) best=0.0300 elapsed=2.2m eta=1.0m
+     35420/50625 ( 70.0%) best=0.0300 elapsed=2.3m eta=1.0m
+     36432/50625 ( 72.0%) best=0.0300 elapsed=2.3m eta=0.9m
+     37444/50625 ( 74.0%) best=0.0300 elapsed=2.4m eta=0.8m
+     38456/50625 ( 76.0%) best=0.0300 elapsed=2.4m eta=0.8m
+     39468/50625 ( 78.0%) best=0.0300 elapsed=2.5m eta=0.7m
+     40480/50625 ( 80.0%) best=0.0300 elapsed=2.6m eta=0.6m
+     41492/50625 ( 82.0%) best=0.0300 elapsed=2.6m eta=0.6m
+     42504/50625 ( 84.0%) best=0.0300 elapsed=2.7m eta=0.5m
+     43516/50625 ( 86.0%) best=0.0300 elapsed=2.8m eta=0.5m
+     44528/50625 ( 88.0%) best=0.0300 elapsed=2.9m eta=0.4m
+     45540/50625 ( 90.0%) best=0.0300 elapsed=3.0m eta=0.3m
+     46552/50625 ( 92.0%) best=0.0300 elapsed=3.1m eta=0.3m
+     47564/50625 ( 94.0%) best=0.0300 elapsed=3.2m eta=0.2m
+     48576/50625 ( 96.0%) best=0.0300 elapsed=3.3m eta=0.1m
+     49588/50625 ( 98.0%) best=0.0300 elapsed=3.4m eta=0.1m
+     50600/50625 (100.0%) best=0.0300 elapsed=3.5m eta=0.0m
+    Ô£ô done in 3.5 min | best loss = 0.0300
+
+  ­ƒö¼ PHASE 1.5: VERIFYING TOP 20 FROM COARSE WITH FULL MODE (recomputes lineups)...
+    [ 1/20] loss_full=0.0669 (cached was 0.0300)  elapsed=0.2s  cardRatingBenefit=0.30 historicalTop20RatingBenefit=4.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=0.70
+    [ 2/20] loss_full=0.0589 (cached was 0.0301)  elapsed=0.7s  cardRatingBenefit=0.50 historicalTop20RatingBenefit=7.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=1.20
+    [ 3/20] loss_full=0.0609 (cached was 0.0302)  elapsed=1.3s  cardRatingBenefit=0.40 historicalTop20RatingBenefit=5.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=0.90
+    [ 4/20] loss_full=0.0644 (cached was 0.0303)  elapsed=1.6s  cardRatingBenefit=0.10 historicalTop20RatingBenefit=3.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=0.50
+    [ 5/20] loss_full=0.0652 (cached was 0.0303)  elapsed=2.0s  cardRatingBenefit=0.20 historicalTop20RatingBenefit=6.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=1.00
+    [ 6/20] loss_full=0.0603 (cached was 0.0303)  elapsed=2.4s  cardRatingBenefit=0.40 historicalTop20RatingBenefit=5.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=0.70
+    [ 7/20] loss_full=0.0549 (cached was 0.0304)  elapsed=2.8s  cardRatingBenefit=0.60 historicalTop20RatingBenefit=8.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=1.10
+    [ 8/20] loss_full=0.0590 (cached was 0.0304)  elapsed=3.0s  cardRatingBenefit=0.10 historicalTop20RatingBenefit=7.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=1.10
+    [ 9/20] loss_full=0.0622 (cached was 0.0304)  elapsed=3.9s  cardRatingBenefit=0.30 historicalTop20RatingBenefit=8.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=1.35
+    [10/20] loss_full=0.0558 (cached was 0.0304)  elapsed=4.5s  cardRatingBenefit=0.70 historicalTop20RatingBenefit=8.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=1.20
+    [11/20] loss_full=0.0467 (cached was 0.0305)  elapsed=4.9s  cardRatingBenefit=0.10 historicalTop20RatingBenefit=1.50 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=0.20
+    [12/20] loss_full=0.0615 (cached was 0.0305)  elapsed=5.1s  cardRatingBenefit=0.20 historicalTop20RatingBenefit=3.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=0.40
+    [13/20] loss_full=0.0565 (cached was 0.0305)  elapsed=5.3s  cardRatingBenefit=0.40 historicalTop20RatingBenefit=6.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=0.80
+    [14/20] loss_full=0.0606 (cached was 0.0305)  elapsed=5.7s  cardRatingBenefit=0.40 historicalTop20RatingBenefit=5.50 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=1.00
+    [15/20] loss_full=0.0606 (cached was 0.0305)  elapsed=6.5s  cardRatingBenefit=0.10 historicalTop20RatingBenefit=5.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=0.80
+    [16/20] loss_full=0.0618 (cached was 0.0305)  elapsed=7.2s  cardRatingBenefit=0.30 historicalTop20RatingBenefit=4.50 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=0.60
+    [17/20] loss_full=0.0583 (cached was 0.0305)  elapsed=7.9s  cardRatingBenefit=0.00 historicalTop20RatingBenefit=6.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=0.90
+    [18/20] loss_full=0.0647 (cached was 0.0305)  elapsed=8.2s  cardRatingBenefit=0.20 historicalTop20RatingBenefit=3.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=0.50
+    [19/20] loss_full=0.0620 (cached was 0.0305)  elapsed=8.6s  cardRatingBenefit=0.40 historicalTop20RatingBenefit=6.00 topTeamRankBenefit=0.00 ctVsTRatingImbalancePenalty=1.00
+    [20/20] loss_full=0.0711 (cached was 0.0306)  elapsed=8.8s  cardRatingBenefit=0.30 historicalTop20RatingBenefit=3.50 topTeamRankBenefit=0.20 ctVsTRatingImbalancePenalty=0.20
+  Ô£ô Verified top done in 8.8s
+
+  ­ƒôÉ PHASE 2: MEDIUM REFINE (full mode, 5 centers ├ù 7^4 = 12,005 evals)
+
+  ­ƒôÉ [medium-1] 5├ù7├ù4├ù6 = 840 evaluations (full mode)
+        16/840 (  1.9%) best=0.0260 elapsed=0.7m eta=33.8m
+        32/840 (  3.8%) best=0.0254 elapsed=0.8m eta=19.9m
+        48/840 (  5.7%) best=0.0189 elapsed=0.9m eta=14.5m
+        64/840 (  7.6%) best=0.0189 elapsed=1.0m eta=11.9m
+        80/840 (  9.5%) best=0.0189 elapsed=1.2m eta=11.5m
+        96/840 ( 11.4%) best=0.0189 elapsed=1.4m eta=10.9m
+       112/840 ( 13.3%) best=0.0189 elapsed=1.6m eta=10.7m
+       128/840 ( 15.2%) best=0.0189 elapsed=1.9m eta=10.5m
+       144/840 ( 17.1%) best=0.0189 elapsed=2.1m eta=10.1m
+       160/840 ( 19.0%) best=0.0189 elapsed=2.2m eta=9.3m
+       176/840 ( 21.0%) best=0.0189 elapsed=2.4m eta=9.0m
+       192/840 ( 22.9%) best=0.0189 elapsed=2.6m eta=8.8m
+       208/840 ( 24.8%) best=0.0189 elapsed=2.8m eta=8.6m
+       224/840 ( 26.7%) best=0.0189 elapsed=3.0m eta=8.2m
+       240/840 ( 28.6%) best=0.0189 elapsed=3.2m eta=7.9m
+       256/840 ( 30.5%) best=0.0189 elapsed=3.3m eta=7.5m
+       272/840 ( 32.4%) best=0.0189 elapsed=3.4m eta=7.2m
+       288/840 ( 34.3%) best=0.0189 elapsed=3.6m eta=6.9m
+       304/840 ( 36.2%) best=0.0189 elapsed=3.7m eta=6.6m
+       320/840 ( 38.1%) best=0.0189 elapsed=4.0m eta=6.4m
+       336/840 ( 40.0%) best=0.0189 elapsed=4.1m eta=6.2m
+       352/840 ( 41.9%) best=0.0189 elapsed=4.4m eta=6.1m
+       368/840 ( 43.8%) best=0.0189 elapsed=4.7m eta=6.0m
+       384/840 ( 45.7%) best=0.0189 elapsed=4.9m eta=5.8m
+       400/840 ( 47.6%) best=0.0189 elapsed=5.0m eta=5.5m
+       416/840 ( 49.5%) best=0.0189 elapsed=5.1m eta=5.2m
+       432/840 ( 51.4%) best=0.0189 elapsed=5.3m eta=5.0m
+       448/840 ( 53.3%) best=0.0189 elapsed=5.4m eta=4.8m
+       464/840 ( 55.2%) best=0.0189 elapsed=5.6m eta=4.5m
+       480/840 ( 57.1%) best=0.0189 elapsed=5.7m eta=4.3m
+       496/840 ( 59.0%) best=0.0189 elapsed=5.8m eta=4.0m
+       512/840 ( 61.0%) best=0.0189 elapsed=5.9m eta=3.8m
+       528/840 ( 62.9%) best=0.0189 elapsed=6.0m eta=3.6m
+       544/840 ( 64.8%) best=0.0189 elapsed=6.1m eta=3.3m
+       560/840 ( 66.7%) best=0.0189 elapsed=6.2m eta=3.1m
+       576/840 ( 68.6%) best=0.0189 elapsed=6.3m eta=2.9m
+       592/840 ( 70.5%) best=0.0189 elapsed=6.4m eta=2.7m
+       608/840 ( 72.4%) best=0.0189 elapsed=6.5m eta=2.5m
+       624/840 ( 74.3%) best=0.0189 elapsed=6.6m eta=2.3m
+       640/840 ( 76.2%) best=0.0189 elapsed=6.7m eta=2.1m
+       656/840 ( 78.1%) best=0.0189 elapsed=6.7m eta=1.9m
+       672/840 ( 80.0%) best=0.0189 elapsed=6.8m eta=1.7m
+       688/840 ( 81.9%) best=0.0189 elapsed=7.0m eta=1.5m
+       704/840 ( 83.8%) best=0.0189 elapsed=7.1m eta=1.4m
+       720/840 ( 85.7%) best=0.0189 elapsed=7.3m eta=1.2m
+       736/840 ( 87.6%) best=0.0189 elapsed=7.4m eta=1.1m
+       752/840 ( 89.5%) best=0.0189 elapsed=7.6m eta=0.9m
+       768/840 ( 91.4%) best=0.0189 elapsed=7.7m eta=0.7m
+       784/840 ( 93.3%) best=0.0189 elapsed=7.7m eta=0.6m
+       800/840 ( 95.2%) best=0.0189 elapsed=7.8m eta=0.4m
+       816/840 ( 97.1%) best=0.0189 elapsed=7.9m eta=0.2m
+       832/840 ( 99.0%) best=0.0189 elapsed=8.0m eta=0.1m
+    Ô£ô done in 8.0 min | best loss = 0.0189
+
+  ­ƒôÉ [medium-2] 7├ù7├ù4├ù7 = 1372 evaluations (full mode)
+        27/1372 (  2.0%) best=0.0597 elapsed=0.1m eta=4.2m
+        54/1372 (  3.9%) best=0.0594 elapsed=0.2m eta=4.7m
+        81/1372 (  5.9%) best=0.0592 elapsed=0.3m eta=4.7m
+       108/1372 (  7.9%) best=0.0592 elapsed=0.4m eta=5.2m
+       135/1372 (  9.8%) best=0.0590 elapsed=0.6m eta=5.6m
+       162/1372 ( 11.8%) best=0.0590 elapsed=0.8m eta=5.9m
+       189/1372 ( 13.8%) best=0.0590 elapsed=0.9m eta=5.8m
+       216/1372 ( 15.7%) best=0.0576 elapsed=1.1m eta=6.1m
+       243/1372 ( 17.7%) best=0.0574 elapsed=1.4m eta=6.4m
+       270/1372 ( 19.7%) best=0.0574 elapsed=1.6m eta=6.5m
+       297/1372 ( 21.6%) best=0.0574 elapsed=1.8m eta=6.5m
+       324/1372 ( 23.6%) best=0.0574 elapsed=2.0m eta=6.5m
+       351/1372 ( 25.6%) best=0.0571 elapsed=2.2m eta=6.3m
+       378/1372 ( 27.6%) best=0.0571 elapsed=2.3m eta=6.1m
+       405/1372 ( 29.5%) best=0.0571 elapsed=2.4m eta=5.8m
+       432/1372 ( 31.5%) best=0.0569 elapsed=2.6m eta=5.6m
+       459/1372 ( 33.5%) best=0.0563 elapsed=2.6m eta=5.3m
+       486/1372 ( 35.4%) best=0.0563 elapsed=2.7m eta=5.0m
+       513/1372 ( 37.4%) best=0.0563 elapsed=2.8m eta=4.7m
+       540/1372 ( 39.4%) best=0.0563 elapsed=2.9m eta=4.5m
+       567/1372 ( 41.3%) best=0.0563 elapsed=3.0m eta=4.3m
+       594/1372 ( 43.3%) best=0.0555 elapsed=3.2m eta=4.2m
+       621/1372 ( 45.3%) best=0.0555 elapsed=3.3m eta=4.0m
+       648/1372 ( 47.2%) best=0.0554 elapsed=3.5m eta=3.9m
+       675/1372 ( 49.2%) best=0.0554 elapsed=3.6m eta=3.7m
+       702/1372 ( 51.2%) best=0.0549 elapsed=3.7m eta=3.5m
+       729/1372 ( 53.1%) best=0.0549 elapsed=3.8m eta=3.4m
+       756/1372 ( 55.1%) best=0.0549 elapsed=4.0m eta=3.2m
+       783/1372 ( 57.1%) best=0.0549 elapsed=4.1m eta=3.1m
+       810/1372 ( 59.0%) best=0.0549 elapsed=4.1m eta=2.8m
+       837/1372 ( 61.0%) best=0.0549 elapsed=4.1m eta=2.6m
+       864/1372 ( 63.0%) best=0.0549 elapsed=4.2m eta=2.5m
+       891/1372 ( 64.9%) best=0.0549 elapsed=4.2m eta=2.3m
+       918/1372 ( 66.9%) best=0.0549 elapsed=4.3m eta=2.1m
+       945/1372 ( 68.9%) best=0.0549 elapsed=4.3m eta=1.9m
+       972/1372 ( 70.8%) best=0.0549 elapsed=4.4m eta=1.8m
+       999/1372 ( 72.8%) best=0.0549 elapsed=4.5m eta=1.7m
+      1026/1372 ( 74.8%) best=0.0549 elapsed=4.6m eta=1.5m
+      1053/1372 ( 76.7%) best=0.0549 elapsed=4.7m eta=1.4m
+      1080/1372 ( 78.7%) best=0.0549 elapsed=4.8m eta=1.3m
+      1107/1372 ( 80.7%) best=0.0549 elapsed=4.9m eta=1.2m
+      1134/1372 ( 82.7%) best=0.0549 elapsed=5.1m eta=1.1m
+      1161/1372 ( 84.6%) best=0.0549 elapsed=5.2m eta=0.9m
+      1188/1372 ( 86.6%) best=0.0549 elapsed=5.3m eta=0.8m
+      1215/1372 ( 88.6%) best=0.0549 elapsed=5.5m eta=0.7m
+      1242/1372 ( 90.5%) best=0.0549 elapsed=5.6m eta=0.6m
+      1269/1372 ( 92.5%) best=0.0549 elapsed=5.7m eta=0.5m
+      1296/1372 ( 94.5%) best=0.0549 elapsed=5.8m eta=0.3m
+      1323/1372 ( 96.4%) best=0.0549 elapsed=5.9m eta=0.2m
+      1350/1372 ( 98.4%) best=0.0549 elapsed=6.0m eta=0.1m
+    Ô£ô done in 6.1 min | best loss = 0.0549
+
+  ­ƒôÉ [medium-3] 7├ù7├ù4├ù7 = 1372 evaluations (full mode)
+        27/1372 (  2.0%) best=0.0576 elapsed=0.1m eta=4.7m
+        54/1372 (  3.9%) best=0.0574 elapsed=0.2m eta=4.5m
+        81/1372 (  5.9%) best=0.0574 elapsed=0.3m eta=4.5m
+       108/1372 (  7.9%) best=0.0574 elapsed=0.4m eta=4.6m
+       135/1372 (  9.8%) best=0.0574 elapsed=0.5m eta=4.9m
+       162/1372 ( 11.8%) best=0.0571 elapsed=0.7m eta=5.0m
+       189/1372 ( 13.8%) best=0.0571 elapsed=0.8m eta=4.8m
+       216/1372 ( 15.7%) best=0.0571 elapsed=0.9m eta=4.6m
+       243/1372 ( 17.7%) best=0.0569 elapsed=0.9m eta=4.3m
+       270/1372 ( 19.7%) best=0.0563 elapsed=1.1m eta=4.4m
+       297/1372 ( 21.6%) best=0.0563 elapsed=1.2m eta=4.4m
+       324/1372 ( 23.6%) best=0.0563 elapsed=1.4m eta=4.5m
+       351/1372 ( 25.6%) best=0.0563 elapsed=1.5m eta=4.4m
+       378/1372 ( 27.6%) best=0.0563 elapsed=1.6m eta=4.3m
+       405/1372 ( 29.5%) best=0.0555 elapsed=1.8m eta=4.2m
+       432/1372 ( 31.5%) best=0.0555 elapsed=1.9m eta=4.1m
+       459/1372 ( 33.5%) best=0.0554 elapsed=2.0m eta=3.9m
+       486/1372 ( 35.4%) best=0.0549 elapsed=2.1m eta=3.8m
+       513/1372 ( 37.4%) best=0.0549 elapsed=2.2m eta=3.7m
+       540/1372 ( 39.4%) best=0.0549 elapsed=2.3m eta=3.5m
+       567/1372 ( 41.3%) best=0.0549 elapsed=2.4m eta=3.4m
+       594/1372 ( 43.3%) best=0.0549 elapsed=2.5m eta=3.3m
+       621/1372 ( 45.3%) best=0.0549 elapsed=2.6m eta=3.2m
+       648/1372 ( 47.2%) best=0.0549 elapsed=2.8m eta=3.1m
+       675/1372 ( 49.2%) best=0.0549 elapsed=2.9m eta=3.0m
+       702/1372 ( 51.2%) best=0.0549 elapsed=3.0m eta=2.9m
+       729/1372 ( 53.1%) best=0.0549 elapsed=3.2m eta=2.8m
+       756/1372 ( 55.1%) best=0.0549 elapsed=3.4m eta=2.8m
+       783/1372 ( 57.1%) best=0.0549 elapsed=3.5m eta=2.7m
+       810/1372 ( 59.0%) best=0.0549 elapsed=3.7m eta=2.6m
+       837/1372 ( 61.0%) best=0.0549 elapsed=3.9m eta=2.5m
+       864/1372 ( 63.0%) best=0.0549 elapsed=4.0m eta=2.4m
+       891/1372 ( 64.9%) best=0.0549 elapsed=4.2m eta=2.3m
+       918/1372 ( 66.9%) best=0.0549 elapsed=4.3m eta=2.2m
+       945/1372 ( 68.9%) best=0.0549 elapsed=4.5m eta=2.0m
+       972/1372 ( 70.8%) best=0.0549 elapsed=4.7m eta=1.9m
+       999/1372 ( 72.8%) best=0.0549 elapsed=4.9m eta=1.8m
+      1026/1372 ( 74.8%) best=0.0549 elapsed=5.1m eta=1.7m
+      1053/1372 ( 76.7%) best=0.0549 elapsed=5.4m eta=1.6m
+      1080/1372 ( 78.7%) best=0.0549 elapsed=5.6m eta=1.5m
+      1107/1372 ( 80.7%) best=0.0549 elapsed=5.7m eta=1.4m
+      1134/1372 ( 82.7%) best=0.0549 elapsed=5.8m eta=1.2m
+      1161/1372 ( 84.6%) best=0.0549 elapsed=6.0m eta=1.1m
+      1188/1372 ( 86.6%) best=0.0549 elapsed=6.1m eta=0.9m
+      1215/1372 ( 88.6%) best=0.0549 elapsed=6.2m eta=0.8m
+      1242/1372 ( 90.5%) best=0.0549 elapsed=6.2m eta=0.7m
+      1269/1372 ( 92.5%) best=0.0549 elapsed=6.3m eta=0.5m
+      1296/1372 ( 94.5%) best=0.0549 elapsed=6.3m eta=0.4m
+      1323/1372 ( 96.4%) best=0.0549 elapsed=6.4m eta=0.2m
+      1350/1372 ( 98.4%) best=0.0549 elapsed=6.6m eta=0.1m
+    Ô£ô done in 6.6 min | best loss = 0.0549
+
+  ­ƒôÉ [medium-4] 7├ù7├ù4├ù7 = 1372 evaluations (full mode)
+        27/1372 (  2.0%) best=0.0576 elapsed=0.1m eta=6.6m
+        54/1372 (  3.9%) best=0.0576 elapsed=0.3m eta=7.1m
+        81/1372 (  5.9%) best=0.0575 elapsed=0.4m eta=7.0m
+       108/1372 (  7.9%) best=0.0575 elapsed=0.6m eta=6.9m
+       135/1372 (  9.8%) best=0.0575 elapsed=0.7m eta=6.6m
+       162/1372 ( 11.8%) best=0.0575 elapsed=0.8m eta=6.3m
+       189/1372 ( 13.8%) best=0.0575 elapsed=0.9m eta=5.9m
+       216/1372 ( 15.7%) best=0.0575 elapsed=1.1m eta=5.7m
+       243/1372 ( 17.7%) best=0.0575 elapsed=1.2m eta=5.5m
+       270/1372 ( 19.7%) best=0.0575 elapsed=1.3m eta=5.4m
+       297/1372 ( 21.6%) best=0.0575 elapsed=1.5m eta=5.5m
+       324/1372 ( 23.6%) best=0.0575 elapsed=1.6m eta=5.3m
+       351/1372 ( 25.6%) best=0.0575 elapsed=1.7m eta=5.0m
+       378/1372 ( 27.6%) best=0.0575 elapsed=1.8m eta=4.8m
+       405/1372 ( 29.5%) best=0.0575 elapsed=1.9m eta=4.6m
+       432/1372 ( 31.5%) best=0.0575 elapsed=2.1m eta=4.5m
+       459/1372 ( 33.5%) best=0.0575 elapsed=2.2m eta=4.3m
+       486/1372 ( 35.4%) best=0.0575 elapsed=2.3m eta=4.2m
+       513/1372 ( 37.4%) best=0.0575 elapsed=2.4m eta=4.0m
+       540/1372 ( 39.4%) best=0.0575 elapsed=2.6m eta=4.0m
+       567/1372 ( 41.3%) best=0.0575 elapsed=2.7m eta=3.8m
+       594/1372 ( 43.3%) best=0.0575 elapsed=2.8m eta=3.7m
+       621/1372 ( 45.3%) best=0.0575 elapsed=2.9m eta=3.5m
+       648/1372 ( 47.2%) best=0.0575 elapsed=3.1m eta=3.4m
+       675/1372 ( 49.2%) best=0.0575 elapsed=3.2m eta=3.3m
+       702/1372 ( 51.2%) best=0.0565 elapsed=3.3m eta=3.1m
+       729/1372 ( 53.1%) best=0.0562 elapsed=3.4m eta=3.0m
+       756/1372 ( 55.1%) best=0.0562 elapsed=3.5m eta=2.9m
+       783/1372 ( 57.1%) best=0.0562 elapsed=3.6m eta=2.7m
+       810/1372 ( 59.0%) best=0.0562 elapsed=3.7m eta=2.6m
+       837/1372 ( 61.0%) best=0.0562 elapsed=3.9m eta=2.5m
+       864/1372 ( 63.0%) best=0.0562 elapsed=4.0m eta=2.4m
+       891/1372 ( 64.9%) best=0.0562 elapsed=4.1m eta=2.2m
+       918/1372 ( 66.9%) best=0.0562 elapsed=4.2m eta=2.1m
+       945/1372 ( 68.9%) best=0.0562 elapsed=4.4m eta=2.0m
+       972/1372 ( 70.8%) best=0.0562 elapsed=4.6m eta=1.9m
+       999/1372 ( 72.8%) best=0.0562 elapsed=4.7m eta=1.7m
+      1026/1372 ( 74.8%) best=0.0562 elapsed=4.8m eta=1.6m
+      1053/1372 ( 76.7%) best=0.0562 elapsed=4.9m eta=1.5m
+      1080/1372 ( 78.7%) best=0.0562 elapsed=5.0m eta=1.4m
+      1107/1372 ( 80.7%) best=0.0562 elapsed=5.1m eta=1.2m
+      1134/1372 ( 82.7%) best=0.0562 elapsed=5.2m eta=1.1m
+      1161/1372 ( 84.6%) best=0.0562 elapsed=5.3m eta=1.0m
+      1188/1372 ( 86.6%) best=0.0562 elapsed=5.5m eta=0.8m
+      1215/1372 ( 88.6%) best=0.0562 elapsed=5.6m eta=0.7m
+      1242/1372 ( 90.5%) best=0.0562 elapsed=5.7m eta=0.6m
+      1269/1372 ( 92.5%) best=0.0562 elapsed=5.9m eta=0.5m
+      1296/1372 ( 94.5%) best=0.0562 elapsed=6.0m eta=0.4m
+      1323/1372 ( 96.4%) best=0.0562 elapsed=6.1m eta=0.2m
+      1350/1372 ( 98.4%) best=0.0562 elapsed=6.2m eta=0.1m
+    Ô£ô done in 6.3 min | best loss = 0.0562
+
+  ­ƒôÉ [medium-5] 4├ù7├ù4├ù7 = 784 evaluations (full mode)
+        15/784 (  1.9%) best=0.0583 elapsed=0.1m eta=3.2m
+        30/784 (  3.8%) best=0.0583 elapsed=0.1m eta=3.4m
+        45/784 (  5.7%) best=0.0572 elapsed=0.2m eta=3.5m
+        60/784 (  7.7%) best=0.0572 elapsed=0.3m eta=3.6m
+        75/784 (  9.6%) best=0.0572 elapsed=0.4m eta=3.7m
+        90/784 ( 11.5%) best=0.0572 elapsed=0.5m eta=3.6m
+       105/784 ( 13.4%) best=0.0572 elapsed=0.5m eta=3.4m
+       120/784 ( 15.3%) best=0.0572 elapsed=0.6m eta=3.3m
+       135/784 ( 17.2%) best=0.0572 elapsed=0.7m eta=3.1m
+       150/784 ( 19.1%) best=0.0572 elapsed=0.7m eta=3.0m
+       165/784 ( 21.0%) best=0.0572 elapsed=0.8m eta=3.0m
+       180/784 ( 23.0%) best=0.0572 elapsed=0.8m eta=2.8m
+       195/784 ( 24.9%) best=0.0572 elapsed=0.9m eta=2.8m
+       210/784 ( 26.8%) best=0.0572 elapsed=1.0m eta=2.6m
+       225/784 ( 28.7%) best=0.0572 elapsed=1.0m eta=2.5m
+       240/784 ( 30.6%) best=0.0572 elapsed=1.0m eta=2.4m
+       255/784 ( 32.5%) best=0.0572 elapsed=1.1m eta=2.3m
+       270/784 ( 34.4%) best=0.0572 elapsed=1.1m eta=2.2m
+       285/784 ( 36.4%) best=0.0572 elapsed=1.2m eta=2.2m
+       300/784 ( 38.3%) best=0.0572 elapsed=1.3m eta=2.1m
+       315/784 ( 40.2%) best=0.0572 elapsed=1.4m eta=2.1m
+       330/784 ( 42.1%) best=0.0572 elapsed=1.5m eta=2.1m
+       345/784 ( 44.0%) best=0.0572 elapsed=1.6m eta=2.0m
+       360/784 ( 45.9%) best=0.0572 elapsed=1.7m eta=2.0m
+       375/784 ( 47.8%) best=0.0572 elapsed=1.8m eta=1.9m
+       390/784 ( 49.7%) best=0.0572 elapsed=1.9m eta=1.9m
+       405/784 ( 51.7%) best=0.0572 elapsed=2.0m eta=1.8m
+       420/784 ( 53.6%) best=0.0572 elapsed=2.1m eta=1.8m
+       435/784 ( 55.5%) best=0.0572 elapsed=2.2m eta=1.8m
+       450/784 ( 57.4%) best=0.0572 elapsed=2.3m eta=1.7m
+       465/784 ( 59.3%) best=0.0572 elapsed=2.4m eta=1.7m
+       480/784 ( 61.2%) best=0.0572 elapsed=2.5m eta=1.6m
+       495/784 ( 63.1%) best=0.0572 elapsed=2.6m eta=1.5m
+       510/784 ( 65.1%) best=0.0572 elapsed=2.6m eta=1.4m
+       525/784 ( 67.0%) best=0.0572 elapsed=2.7m eta=1.3m
+       540/784 ( 68.9%) best=0.0572 elapsed=2.8m eta=1.3m
+       555/784 ( 70.8%) best=0.0572 elapsed=2.9m eta=1.2m
+       570/784 ( 72.7%) best=0.0572 elapsed=2.9m eta=1.1m
+       585/784 ( 74.6%) best=0.0572 elapsed=3.0m eta=1.0m
+       600/784 ( 76.5%) best=0.0572 elapsed=3.0m eta=0.9m
+       615/784 ( 78.4%) best=0.0572 elapsed=3.1m eta=0.9m
+       630/784 ( 80.4%) best=0.0572 elapsed=3.2m eta=0.8m
+       645/784 ( 82.3%) best=0.0572 elapsed=3.2m eta=0.7m
+       660/784 ( 84.2%) best=0.0572 elapsed=3.3m eta=0.6m
+       675/784 ( 86.1%) best=0.0572 elapsed=3.3m eta=0.5m
+       690/784 ( 88.0%) best=0.0572 elapsed=3.4m eta=0.5m
+       705/784 ( 89.9%) best=0.0572 elapsed=3.5m eta=0.4m
+       720/784 ( 91.8%) best=0.0572 elapsed=3.5m eta=0.3m
+       735/784 ( 93.8%) best=0.0572 elapsed=3.6m eta=0.2m
+       750/784 ( 95.7%) best=0.0572 elapsed=3.7m eta=0.2m
+       765/784 ( 97.6%) best=0.0572 elapsed=3.7m eta=0.1m
+       780/784 ( 99.5%) best=0.0572 elapsed=3.8m eta=0.0m
+    Ô£ô done in 3.8 min | best loss = 0.0572
+  Ô£ô Medium done in 30.8 min
+
+  ­ƒôÉ PHASE 3: FINE REFINE (full mode, 5^4 = 625 evals around best)
+
+  ­ƒôÉ [fine] 3├ù5├ù5├ù5 = 375 evaluations (full mode)
+         7/375 (  1.9%) best=0.0224 elapsed=0.1m eta=6.3m
+        14/375 (  3.7%) best=0.0169 elapsed=0.2m eta=6.4m
+        21/375 (  5.6%) best=0.0169 elapsed=0.4m eta=6.7m
+        28/375 (  7.5%) best=0.0169 elapsed=0.5m eta=6.3m
+        35/375 (  9.3%) best=0.0169 elapsed=0.6m eta=5.9m
+        42/375 ( 11.2%) best=0.0169 elapsed=0.7m eta=5.5m
+        49/375 ( 13.1%) best=0.0169 elapsed=0.8m eta=5.4m
+        56/375 ( 14.9%) best=0.0169 elapsed=0.9m eta=5.1m
+        63/375 ( 16.8%) best=0.0169 elapsed=1.0m eta=4.9m
+        70/375 ( 18.7%) best=0.0169 elapsed=1.1m eta=4.7m
+        77/375 ( 20.5%) best=0.0169 elapsed=1.2m eta=4.5m
+        84/375 ( 22.4%) best=0.0169 elapsed=1.2m eta=4.3m
+        91/375 ( 24.3%) best=0.0169 elapsed=1.3m eta=4.1m
+        98/375 ( 26.1%) best=0.0169 elapsed=1.4m eta=4.0m
+       105/375 ( 28.0%) best=0.0169 elapsed=1.5m eta=3.9m
+       112/375 ( 29.9%) best=0.0169 elapsed=1.6m eta=3.7m
+       119/375 ( 31.7%) best=0.0169 elapsed=1.7m eta=3.6m
+       126/375 ( 33.6%) best=0.0169 elapsed=1.8m eta=3.6m
+       133/375 ( 35.5%) best=0.0169 elapsed=2.0m eta=3.7m
+       140/375 ( 37.3%) best=0.0169 elapsed=2.2m eta=3.7m
+       147/375 ( 39.2%) best=0.0169 elapsed=2.4m eta=3.7m
+       154/375 ( 41.1%) best=0.0169 elapsed=2.6m eta=3.8m
+       161/375 ( 42.9%) best=0.0169 elapsed=2.8m eta=3.7m
+       168/375 ( 44.8%) best=0.0165 elapsed=3.0m eta=3.7m
+       175/375 ( 46.7%) best=0.0165 elapsed=3.1m eta=3.6m
+       182/375 ( 48.5%) best=0.0165 elapsed=3.3m eta=3.4m
+       189/375 ( 50.4%) best=0.0165 elapsed=3.4m eta=3.3m
+       196/375 ( 52.3%) best=0.0165 elapsed=3.5m eta=3.2m
+       203/375 ( 54.1%) best=0.0165 elapsed=3.6m eta=3.0m
+       210/375 ( 56.0%) best=0.0165 elapsed=3.7m eta=2.9m
+       217/375 ( 57.9%) best=0.0165 elapsed=3.8m eta=2.8m
+       224/375 ( 59.7%) best=0.0165 elapsed=3.9m eta=2.6m
+       231/375 ( 61.6%) best=0.0165 elapsed=4.0m eta=2.5m
+       238/375 ( 63.5%) best=0.0165 elapsed=4.1m eta=2.3m
+       245/375 ( 65.3%) best=0.0165 elapsed=4.2m eta=2.2m
+       252/375 ( 67.2%) best=0.0165 elapsed=4.3m eta=2.1m
+       259/375 ( 69.1%) best=0.0165 elapsed=4.4m eta=2.0m
+       266/375 ( 70.9%) best=0.0165 elapsed=4.5m eta=1.9m
+       273/375 ( 72.8%) best=0.0165 elapsed=4.7m eta=1.7m
+       280/375 ( 74.7%) best=0.0165 elapsed=4.7m eta=1.6m
+       287/375 ( 76.5%) best=0.0165 elapsed=4.8m eta=1.5m
+       294/375 ( 78.4%) best=0.0165 elapsed=5.0m eta=1.4m
+       301/375 ( 80.3%) best=0.0165 elapsed=5.1m eta=1.2m
+       308/375 ( 82.1%) best=0.0165 elapsed=5.1m eta=1.1m
+       315/375 ( 84.0%) best=0.0165 elapsed=5.2m eta=1.0m
+       322/375 ( 85.9%) best=0.0165 elapsed=5.3m eta=0.9m
+       329/375 ( 87.7%) best=0.0165 elapsed=5.4m eta=0.8m
+       336/375 ( 89.6%) best=0.0165 elapsed=5.5m eta=0.6m
+       343/375 ( 91.5%) best=0.0165 elapsed=5.6m eta=0.5m
+       350/375 ( 93.3%) best=0.0165 elapsed=5.6m eta=0.4m
+       357/375 ( 95.2%) best=0.0165 elapsed=5.7m eta=0.3m
+       364/375 ( 97.1%) best=0.0165 elapsed=5.8m eta=0.2m
+       371/375 ( 98.9%) best=0.0165 elapsed=5.9m eta=0.1m
+    Ô£ô done in 5.9 min | best loss = 0.0165
+  Ô£ô Fine done in 356.0s
+
+  ÔÅ▒´©Å  Total multi-resolution: 40.4 min
+
+­ƒöì Top 5 from coarse grid (cached lineups):
+    loss=0.0300 | cardRatingBenefit=0.30, historicalTop20RatingBenefit=4.00, topTeamRankBenefit=0.00, ctVsTRatingImbalancePenalty=0.70
+    loss=0.0301 | cardRatingBenefit=0.50, historicalTop20RatingBenefit=7.00, topTeamRankBenefit=0.00, ctVsTRatingImbalancePenalty=1.20
+    loss=0.0302 | cardRatingBenefit=0.40, historicalTop20RatingBenefit=5.00, topTeamRankBenefit=0.00, ctVsTRatingImbalancePenalty=0.90
+    loss=0.0303 | cardRatingBenefit=0.10, historicalTop20RatingBenefit=3.00, topTeamRankBenefit=0.00, ctVsTRatingImbalancePenalty=0.50
+    loss=0.0303 | cardRatingBenefit=0.20, historicalTop20RatingBenefit=6.00, topTeamRankBenefit=0.00, ctVsTRatingImbalancePenalty=1.00
+
+­ƒöì Top 5 from full-mode verification:
+    loss_full=0.0467 | cardRatingBenefit=0.100, historicalTop20RatingBenefit=1.500, topTeamRankBenefit=0.000, ctVsTRatingImbalancePenalty=0.200
+    loss_full=0.0549 | cardRatingBenefit=0.600, historicalTop20RatingBenefit=8.000, topTeamRankBenefit=0.000, ctVsTRatingImbalancePenalty=1.100
+    loss_full=0.0558 | cardRatingBenefit=0.700, historicalTop20RatingBenefit=8.000, topTeamRankBenefit=0.000, ctVsTRatingImbalancePenalty=1.200
+    loss_full=0.0565 | cardRatingBenefit=0.400, historicalTop20RatingBenefit=6.000, topTeamRankBenefit=0.000, ctVsTRatingImbalancePenalty=0.800
+    loss_full=0.0583 | cardRatingBenefit=0.000, historicalTop20RatingBenefit=6.000, topTeamRankBenefit=0.000, ctVsTRatingImbalancePenalty=0.900
+
+­ƒöì Top 5 from medium refine (full mode):
+    loss=0.0189 | cardRatingBenefit=0.000, historicalTop20RatingBenefit=1.300, topTeamRankBenefit=0.300, ctVsTRatingImbalancePenalty=0.100
+    loss=0.0212 | cardRatingBenefit=0.200, historicalTop20RatingBenefit=1.800, topTeamRankBenefit=0.200, ctVsTRatingImbalancePenalty=0.200
+    loss=0.0212 | cardRatingBenefit=0.100, historicalTop20RatingBenefit=1.800, topTeamRankBenefit=0.200, ctVsTRatingImbalancePenalty=0.100
+    loss=0.0549 | cardRatingBenefit=0.600, historicalTop20RatingBenefit=8.000, topTeamRankBenefit=0.000, ctVsTRatingImbalancePenalty=1.100
+    loss=0.0549 | cardRatingBenefit=0.600, historicalTop20RatingBenefit=8.000, topTeamRankBenefit=0.000, ctVsTRatingImbalancePenalty=1.100
+
+­ƒöì Top 5 from fine refine (full mode):
+    loss=0.0165 | cardRatingBenefit=0.0200, historicalTop20RatingBenefit=1.2800, topTeamRankBenefit=0.3000, ctVsTRatingImbalancePenalty=0.1200
+    loss=0.0167 | cardRatingBenefit=0.0200, historicalTop20RatingBenefit=1.3000, topTeamRankBenefit=0.3200, ctVsTRatingImbalancePenalty=0.1400
+    loss=0.0169 | cardRatingBenefit=0.0000, historicalTop20RatingBenefit=1.2600, topTeamRankBenefit=0.3000, ctVsTRatingImbalancePenalty=0.1000
+    loss=0.0169 | cardRatingBenefit=0.0400, historicalTop20RatingBenefit=1.2600, topTeamRankBenefit=0.3000, ctVsTRatingImbalancePenalty=0.1200
+    loss=0.0177 | cardRatingBenefit=0.0000, historicalTop20RatingBenefit=1.2600, topTeamRankBenefit=0.3000, ctVsTRatingImbalancePenalty=0.1400
+
+  ­ƒôê PHASE 4: 1D LOSS SURFACE SLICES (full mode, recomputes lineups)
+    cardRatingBenefit                 : sweeping 0 ÔåÆ 2 (41 pts)
+    historicalTop20RatingBenefit      : sweeping 0 ÔåÆ 8 (41 pts)
+    topTeamRankBenefit                : sweeping 0 ÔåÆ 3 (41 pts)
+    ctVsTRatingImbalancePenalty       : sweeping 0 ÔåÆ 1.5 (41 pts)
+
+ÔÅ▒´©Å  Total runtime: 58.9 min
+
+­ƒÅå OPTIMAL WEIGHTS (4-weight grid search, no regularization)
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  cardRatingBenefit               optimal=  0.020   user_hunch= 0.500   v5_default= 0.250
+  historicalTop20RatingBenefit    optimal=  1.280   user_hunch= 1.000   v5_default= 3.000
+  topTeamRankBenefit              optimal=  0.300   user_hunch= 0.500   v5_default= 1.500
+  ctVsTRatingImbalancePenalty     optimal=  0.120   user_hunch= 0.500   v5_default= 0.500
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  Total loss:
+    optimal:        0.01653
+    user hunch:     0.04830  (╬ö vs optimal = 0.03176)
+    v5 defaults:    0.05760  (╬ö vs optimal = 0.04107)
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  Loss components at optimum:
+    -Spearman correlation:   0.5661  (was 0.5460 at user hunch)
+    Top-rated coverage:      0.1756  (was 0.1442)
+    Best-value coverage:     0.1479  (was 0.1681)
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+­ƒö¼ SENSITIVITY (how much does loss change if we move each weight away from optimum?)
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+  Weight                        Optimum  Loss @ opt  Loss @ +25%  Loss @ -25%  Loss @ +50%  Loss @ -50%  ╬ömax     Tolerance
+  cardRatingBenefit             0.020    0.0165      0.0208       0.0208       0.0215       0.0208       +0.0050  ┬▒25%     
+  historicalTop20RatingBenefit  1.280    0.0165      0.0424       0.0370       0.0305       0.0504       +0.0338  tight    
+  topTeamRankBenefit            0.300    0.0165      0.0261       0.0264       0.0218       0.0237       +0.0098  ┬▒10%     
+  ctVsTRatingImbalancePenalty   0.120    0.0165      0.0182       0.0210       0.0249       0.0210       +0.0084  ┬▒10%     
+ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+
+  ­ƒôè cardRatingBenefit (optimum = 0.020, loss = 0.0165)
+    ÔöîÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÉ
+    Ôöé                                                 ┬À ┬À┬À ┬À┬À ┬ÀÔöé
+    Ôöé                                               ┬À┬À         Ôöé
+    Ôöé                                       ┬À     ┬À            Ôöé
+    Ôöé                           ┬À          ┬À  ┬À┬À ┬À             Ôöé
+    Ôöé                        ┬À┬À  ┬À┬À ┬À┬À ┬À┬À ┬À                    Ôöé
+    Ôöé               ┬À ┬À┬À┬À                                      Ôöé
+    Ôöé           ┬À┬À ┬À      ┬À┬À                                   Ôöé
+    Ôöé        ┬À┬À                                                Ôöé
+    Ôöé     ┬À ┬À                                                  Ôöé
+    Ôöé                                                          Ôöé
+    Ôöé                                                          Ôöé
+    Ôöé                                                          Ôöé
+    Ôöé                                                          Ôöé
+    ÔöéÔÿà┬À┬À ┬À                                                     Ôöé
+    ÔööÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÿ
+    x: [0.00 ÔöÇÔöÇÔöÇ 2.00]
+    y: [0.0206 ÔöÇÔöÇÔöÇ 0.0843]    Ôÿà = optimum, ┬À = sample
+
+  ­ƒôè historicalTop20RatingBenefit (optimum = 1.280, loss = 0.0165)
+    ÔöîÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÉ
+    Ôöé┬À                                                         Ôöé
+    Ôöé                                                          Ôöé
+    Ôöé                                                          Ôöé
+    Ôöé                                                          Ôöé
+    Ôöé                                                          Ôöé
+    Ôöé                                                          Ôöé
+    Ôöé                                                          Ôöé
+    Ôöé                                                          Ôöé
+    Ôöé                                                          Ôöé
+    Ôöé ┬À                                                        Ôöé
+    Ôöé                                                          Ôöé
+    Ôöé  ┬À                                                       Ôöé
+    Ôöé    ┬À                    ┬À ┬À┬À┬À ┬À┬À ┬À┬À ┬À┬À┬À ┬À┬À ┬À┬À ┬À┬À┬À ┬À┬À ┬À┬À ┬ÀÔöé
+    Ôöé     ┬À ┬À┬ÀÔÿà ┬À┬À ┬À┬À ┬À┬À┬À ┬À┬À ┬À                                 Ôöé
+    ÔööÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÿ
+    x: [0.00 ÔöÇÔöÇÔöÇ 8.00]
+    y: [0.0209 ÔöÇÔöÇÔöÇ 0.3460]    Ôÿà = optimum, ┬À = sample
+
+  ­ƒôè topTeamRankBenefit (optimum = 0.300, loss = 0.0165)
+    ÔöîÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÉ
+    Ôöé                                                    ┬À ┬À┬À ┬ÀÔöé
+    Ôöé                                                ┬À┬À ┬À      Ôöé
+    Ôöé                                         ┬À┬À ┬À┬À ┬À          Ôöé
+    Ôöé                                      ┬À┬À                  Ôöé
+    Ôöé                                ┬À ┬À┬À ┬À                    Ôöé
+    Ôöé                           ┬À┬À┬À ┬À                          Ôöé
+    Ôöé                      ┬À ┬À┬À                                Ôöé
+    Ôöé                   ┬À ┬À                                    Ôöé
+    Ôöé                  ┬À                                       Ôöé
+    Ôöé┬À              ┬À ┬À                                        Ôöé
+    Ôöé              ┬À                                           Ôöé
+    Ôöé ┬À          ┬À                                             Ôöé
+    Ôöé           ┬À                                              Ôöé
+    Ôöé  ┬À ┬ÀÔÿà ┬À┬À┬À                                                Ôöé
+    ÔööÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÿ
+    x: [0.00 ÔöÇÔöÇÔöÇ 3.00]
+    y: [0.0165 ÔöÇÔöÇÔöÇ 0.1546]    Ôÿà = optimum, ┬À = sample
+
+  ­ƒôè ctVsTRatingImbalancePenalty (optimum = 0.120, loss = 0.0165)
+    ÔöîÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÉ
+    Ôöé                                                       ┬À ┬ÀÔöé
+    Ôöé                                                    ┬À ┬À   Ôöé
+    Ôöé                                                 ┬À        Ôöé
+    Ôöé                                                ┬À  ┬À      Ôöé
+    Ôöé                                             ┬À ┬À          Ôöé
+    Ôöé                                            ┬À             Ôöé
+    Ôöé                                         ┬À┬À               Ôöé
+    Ôöé                                     ┬À┬À┬À                  Ôöé
+    Ôöé                           ┬À      ┬À┬À                      Ôöé
+    Ôöé                        ┬À┬À  ┬À   ┬À                         Ôöé
+    Ôöé┬À                    ┬À┬À      ┬À ┬À                          Ôöé
+    Ôöé              ┬À┬À ┬À┬À┬À                                      Ôöé
+    Ôöé       ┬À┬À┬À ┬À┬À                                             Ôöé
+    Ôöé ┬À┬À Ôÿà┬À                                                    Ôöé
+    ÔööÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÿ
+    x: [0.00 ÔöÇÔöÇÔöÇ 1.50]
+    y: [0.0159 ÔöÇÔöÇÔöÇ 0.1246]    Ôÿà = optimum, ┬À = sample
+
+­ƒôï Per-event comparison
+
+  OPTIMAL (verified, full eval):
+    Event               Spearman            TopRated Cov        BestVal Cov         
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    CS Asia Championships 2026                        0.592                 20%                   n/a                 
+    IEM Atlanta 2026                                  0.523                 21%                   14%                 
+    IEM Rio 2026 - Group Stage                        0.543                 1%                    2%                  
+    IEM Rio 2026 - Playoffs                           0.491                 60%                   27%                 
+    PGL Bucharest 2026                                0.615                 10%                   15%                 
+    Playoffs - BLAST Open Rotterdam 2026              0.800                 30%                   24%                 
+    blast-rivals-2026-season-1                        0.000                 0%                    13%                 
+    epl-stage-1-2026                                  0.495                 24%                   15%                 
+    epl-stage-2-2026                                  0.558                 12%                   14%                 
+    epl-stage-3-2026                                  0.712                 1%                    2%                  
+    group-stage-BLAST-Open-Rotterdam-2026             0.580                 17%                   19%                 
+    group-stage-pgl-astana-2026                       0.717                 7%                    8%                  
+    playoffs-pgl-astana-2026                          0.733                 26%                   24%                 
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    MEAN: Spearman=0.566  TopRated=0.176  BestVal=0.148  Total=0.0165
+
+  USER HUNCH (0.5, 1, 0.5, 0.5):
+    Event               Spearman            TopRated Cov        BestVal Cov         
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    CS Asia Championships 2026                        0.535                 21%                   n/a                 
+    IEM Atlanta 2026                                  0.523                 7%                    6%                  
+    IEM Rio 2026 - Group Stage                        0.528                 3%                    5%                  
+    IEM Rio 2026 - Playoffs                           0.576                 66%                   27%                 
+    PGL Bucharest 2026                                0.510                 11%                   18%                 
+    Playoffs - BLAST Open Rotterdam 2026              0.800                 7%                    28%                 
+    blast-rivals-2026-season-1                        0.000                 0%                    17%                 
+    epl-stage-1-2026                                  0.471                 19%                   22%                 
+    epl-stage-2-2026                                  0.522                 9%                    14%                 
+    epl-stage-3-2026                                  0.642                 9%                    10%                 
+    group-stage-BLAST-Open-Rotterdam-2026             0.585                 11%                   25%                 
+    group-stage-pgl-astana-2026                       0.711                 4%                    11%                 
+    playoffs-pgl-astana-2026                          0.696                 21%                   20%                 
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    MEAN: Spearman=0.546  TopRated=0.144  BestVal=0.168  Total=0.0483
+
+  V5 DEFAULTS (0.25, 3, 1.5, 0.5):
+    Event               Spearman            TopRated Cov        BestVal Cov         
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    CS Asia Championships 2026                        0.527                 12%                   n/a                 
+    IEM Atlanta 2026                                  0.482                 1%                    3%                  
+    IEM Rio 2026 - Group Stage                        0.540                 1%                    2%                  
+    IEM Rio 2026 - Playoffs                           0.576                 64%                   29%                 
+    PGL Bucharest 2026                                0.561                 4%                    16%                 
+    Playoffs - BLAST Open Rotterdam 2026              0.800                 7%                    26%                 
+    blast-rivals-2026-season-1                        0.000                 0%                    24%                 
+    epl-stage-1-2026                                  0.497                 4%                    9%                  
+    epl-stage-2-2026                                  0.504                 10%                   15%                 
+    epl-stage-3-2026                                  0.682                 14%                   10%                 
+    group-stage-BLAST-Open-Rotterdam-2026             0.563                 11%                   13%                 
+    group-stage-pgl-astana-2026                       0.709                 6%                    9%                  
+    playoffs-pgl-astana-2026                          0.707                 26%                   25%                 
+    ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+    MEAN: Spearman=0.550  TopRated=0.125  BestVal=0.150  Total=0.0576
+
+­ƒÆ¥ Saved to C:\Users\MSI\Workstation\fantasy-hltv-picker\optimization-results-v6.json
+
+Ô£¿ Done.

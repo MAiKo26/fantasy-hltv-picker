@@ -11,6 +11,9 @@ export interface PlayerStats {
   supportRoundsPct: number;
   multiKillRoundsPct: number;
   deathsPerRound: number;
+  rating12mTop10?: number;
+  rating12mTop20?: number;
+  rating12mTop30?: number;
   rating12mTop50?: number;
 }
 
@@ -28,36 +31,6 @@ export interface FantasyTeam {
   name: string;
   worldRank: number;
   players: string[];
-}
-
-export interface TeamMatchInfo {
-  matchId: string;
-  matchUrl: string | null;
-  startUnixMs: number | null;
-  bestOf: string | null;
-  eventId: string | null;
-  eventName: string | null;
-  dayLabel: string | null;
-  team1Id: string | null;
-  team2Id: string | null;
-  team1Name: string | null;
-  team2Name: string | null;
-  pairingKnown: boolean;
-  isLive: boolean;
-}
-
-export interface MatchesExtractionResult {
-  eventSlug: string;
-  sourceFile: string;
-  matches: TeamMatchInfo[];
-  teamIdToName: Record<string, string>;
-  parseWarnings: string[];
-  extractedAt: Date;
-}
-
-export interface EventBundleContext {
-  eventSlug: string;
-  matches?: MatchesExtractionResult;
 }
 
 export interface ExtractionResult {
@@ -106,7 +79,6 @@ export interface AnalyzerService {
     teams: FantasyTeam[],
     config: FantasyConfig,
     sourceUrl: string,
-    bundle?: EventBundleContext,
   ): Promise<AnalysisResult>;
 }
 
@@ -125,4 +97,6 @@ export interface ForcedTeam {
 export interface FantasyConfig {
   strategy: Strategy;
   forcedTeam?: ForcedTeam | null;
+  excludedTeams?: string[];
+  lineupLimit?: number;
 }

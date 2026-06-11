@@ -47,29 +47,17 @@ source/draft/<event-slug>.html
 
 > **What is a slug?** A short, unique name for the event, like `epl-stage-2-2026` or `blast-rotterdam-playoffs`. Use the same slug across all files.
 
-### 2. (Optional) Save Match Listings for Better Results
+### 2. (Optional) Add Historical Stats
 
-The optimizer can penalize players whose teams face each other (cannibalization). Save the event's match listing page:
-
-| File                          | What it adds                                         |
-| ----------------------------- | ---------------------------------------------------- |
-| `source/matches/<slug>.html`  | Opening matchups → penalty if your players face each other |
-
-If this file is missing, the app still runs — it just skips the matchup penalty.
-
-**Where to get it:** Go to the event's match listing page → Save As
-
-### 3. (Optional) Add Historical Stats
-
-Download the [HLTV Top 50 Players (Last 12 Months)](https://www.hltv.org/stats) page and save it as:
+Download the [HLTV Top 20 Players (Last 12 Months)](https://www.hltv.org/stats) page and save it as:
 
 ```
-source/last_12_months_top_50.html
+source/last_12_months_top_20.html
 ```
 
 If missing, the optimizer uses only the in-game card ratings.
 
-### 4. Run the App
+### 3. Run the App
 
 ```bash
 bun index.ts
@@ -80,8 +68,7 @@ The CLI will:
 1. Show a list of files from `source/draft/` → pick one
 2. Ask your team strategy (Auto / 2-2-1 / 2-1-1-1 / 1-1-1-1-1)
 3. Ask if you want to force a specific team into your lineup
-4. Auto-load matching `source/matches/<slug>.html` if it exists
-5. Output the top ranked lineups
+4. Output the top ranked lineups
 
 ---
 
@@ -90,8 +77,7 @@ The CLI will:
 ```
 source/
   draft/                       ← Your fantasy draft HTML files (required)
-  matches/                     ← Match listing HTML (optional, matchup risk)
-  last_12_months_top_50.html   ← HLTV stats page (optional, enrichment)
+  last_12_months_top_20.html   ← HLTV stats page (optional, enrichment)
 ```
 
 ---
@@ -102,103 +88,77 @@ source/
 | --------------------- | -------- | ------------------------------------------------------ |
 | `BLACKLISTED_PLAYERS` | No       | Comma-separated player names to exclude                |
 | `SCORING_DIAGNOSTICS` | No       | Set to `true` for component-share debug output         |
-| `WEIGHT_*`            | No       | 9 optimizer coefficients (see below)                   |
+| `WEIGHT_*`            | No       | 8 optimizer coefficients (see below)                   |
+| `THRESHOLD_*`         | No       | 2 trigger thresholds for the gated benefits            |
 
 ---
 
 ## Scoring Weights Explained
 
-The optimizer computes a score for every possible 5-player lineup, then ranks them. The score is a sum of components, each multiplied by its weight. Higher weight = more impact on the final pick.
+The optimizer computes a score for every possible 5-player lineup, then ranks them. The score is a sum of components, each multiplied by its weight.
 
-### 1. `WEIGHT_HISTORICAL_12M` (default `0.15`)
+**Naming convention:** every weight ends in `Benefit` (adds to the score) or `Penalty` (subtracts from the score). Trigger-based benefits (`awp`, `survival`) are gated by `THRESHOLD_*` values.
 
-**What it does:** Adds a bonus based on the player's HLTV rating over the last 12 months.
+### Player-Level Weights
 
-**Why 0.15?** Historical form predicts future performance better than in-game card stats alone, but the card rating is the primary signal. 0.15 gives it a meaningful nudge without overpowering the current form shown on the card.
+#### 1. `WEIGHT_CARD_RATING_BENEFIT` (default `0.25`)
 
----
+Adds the player's current in-game card rating × this weight. This is the primary signal — the most recent form on the actual card.
 
----
+#### 2. `WEIGHT_HISTORICAL_TOP20_RATING_BENEFIT` (default `3`)
 
-### 2. `WEIGHT_TEAM_RANK_BONUS` (default `0.35`)
+Adds the player's HLTV Top-20 12-month rating × this weight. Captures proven form over the last year, weighted heavily because the rating is itself a high-quality statistic.
 
-**What it does:** Gives a bonus to players on high-ranked teams (e.g. #1 Vitality > #30 Grayhound). Better teams win more rounds → more fantasy points.
+#### 3. `WEIGHT_TOP_TEAM_RANK_BENEFIT` (default `0.5`)
 
-**Why 0.35?** Team quality is a strong predictor of individual output, but a slightly reduced weight prevents top-team bias from crowding out value picks from mid-tier teams with similarly skilled players at lower prices.
+Adds a log-scaled bonus for being on a top-ranked team. `log(1 + relativeRank)` × this weight, where `relativeRank` ∈ [0, 1] (1 = #1 team).
 
----
+#### 4. `WEIGHT_AWPER_ROLE_BENEFIT` (default `0`) + `THRESHOLD_AWPER_ROLE_MIN_AWP_PER_ROUND` (default `0.25`)
 
-### 3. `WEIGHT_AWP_BONUS` (default `0.01`)
+Adds a flat bonus when the player's AWP kills per round is at or above the threshold. Default is 0 (no effect) — increase to favor dedicated AWPers.
 
-**What it does:** A tiny flat bonus for AWPers (players with ≥0.25 AWP kills per round). AWPers tend to have higher frag potential.
+#### 5. `WEIGHT_LOW_DEATH_RATE_BENEFIT` (default `0`) + `THRESHOLD_LOW_DEATH_RATE_MAX_DEATHS_PER_ROUND` (default `0.6`)
 
-**Why 0.01?** The bonus is intentionally tiny. AWP skill is already reflected in the player's rating. This is just a slight tiebreaker, not a major factor.
+Adds a flat bonus when the player's deaths per round is at or below the threshold. Default is 0 (no effect) — increase to favor players who stay alive.
 
----
+#### 6. `WEIGHT_CT_VS_T_RATING_IMBALANCE_PENALTY` (default `0.5`)
 
-### 4. `WEIGHT_SURVIVAL_BONUS` (default `0.02`)
+Subtracts `|ctRating − tRating|` × this weight. Penalizes one-sided players whose bad side might come up in the map pool.
 
-**What it does:** A small bonus for players who die infrequently (≤0.6 deaths per round). Players who survive more get more opportunities to score.
+### Lineup-Level Weights
 
-**Why 0.02?** Like the AWP bonus, survival is already baked into the rating. This is a minor tiebreaker.
+#### 7. `WEIGHT_STACK_CORRELATION_BENEFIT` (default `0.5`)
 
----
+When 2 players from the same team are in a lineup ("stacking"), rewards the lineup proportional to the average base score of the stacked players × `(count - 1)` × this weight. Same-team players get the same matchup result.
 
-### 5. `WEIGHT_SIDE_VARIANCE_PENALTY` (default `0.1`)
+#### 8. `WEIGHT_TOP_RANKED_TEAM_STACK_BENEFIT` (default `0.25`)
 
-**What it does:** Penalizes players who perform very differently on CT vs T side. A one-sided player is riskier — if their bad side comes up in the map pool, they underperform.
-
-**Why 0.1?** It's a moderate penalty — enough to avoid extreme one-trick ponies, but not so harsh that it eliminates talented but slightly unbalanced players.
-
----
-
-### 6. `WEIGHT_TEAM_OUTCOME` (default `0.15`)
-
-**What it does:** Rewards players whose team is favored to win their opening match. Winning teams generate more fantasy points across the board.
-
-**Why 0.15?** Match outcomes are a real signal, but the raw score passes through a compression function (tanh + skill gate). A higher raw weight compensates for that compression so the component actually influences lineup selection, not just the final decimals.
-
----
-
-### 7. `WEIGHT_STACK_CORRELATION` (default `0.05`)
-
-**What it does:** When you pick 2 players from the same team ("stacking"), this rewards you if that team is expected to perform well. Both players benefit from the same team outcome.
-
-**Why 0.05?** Stacking is a proven DFS strategy with a measurable correlation benefit. This weight makes stacking a genuine factor in lineup decisions without over-weighting any single team.
-
----
-
-### 8. `WEIGHT_MATCHUP_RISK_PENALTY` (default `0.2`)
-
-**What it does:** Penalizes lineups where your players face each other (e.g. picking players from two teams that play each other in round 1). One team's win is the other's loss — you're betting against yourself.
-
-**Why 0.2?** Cannibalization is a real risk. This is the second-largest weight because having your own players compete directly is genuinely bad for your lineup's expected value.
-
----
-
-### 9. `WEIGHT_STACK_RANK_BONUS` (default `0.12`)
-
-**What it does:** Only applies in a **2-2-1** strategy. If both of your 2-player stacks are from top-ranked teams, you get an extra bonus on top of the stack correlation.
-
-**Why 0.12?** Stacking two strong teams is a proven high-upside strategy (popular in real DFS). This weight rewards that specific lineup structure when it makes sense.
+Only applies in a **2-2-1** strategy. When both 2-player stacks come from top-ranked teams, adds the average relative-rank bonus × this weight. Extra reward for the proven high-upside "double-stack" structure.
 
 ---
 
 ## Summary: How the Score Is Calculated
 
 ```
-Final Score = baseSkillEV + teamOutcomeEV + stackCorrelationEV + stackRankBonus - matchupRiskPenalty
-```
+Player base score = cardRating × cardRatingBenefit
+                  + rating12mTop20 × historicalTop20RatingBenefit
+                  + log(1 + relativeRank) × topTeamRankBenefit
+                  + (awpPerRound >= threshold) ? awperRoleBenefit : 0
+                  + (deathsPerRound <= threshold) ? lowDeathRateBenefit : 0
+                  - |ctRating − tRating| × ctVsTRatingImbalancePenalty
 
-Where each `*EV` is the raw component value multiplied by its weight.
+Lineup score = Σ playerBaseScores
+             + stackCorrelationEV      (sum over stacked teams)
+             + stackRankBonus          (only if strategy is 2-2-1)
+```
 
 ---
 
 ## Output
 
 - **Top 3 lineups** with player names, prices, and scores
-- **All lineups ranking** (top 20)
-- **Top players by base rating**
+- **All lineups ranking** (top 30)
+- **Top players by base rating** (with `--detailed` flag, a full score-component breakdown is shown)
 - With `SCORING_DIAGNOSTICS=true`: component breakdown of each score
 
 ---
@@ -208,5 +168,4 @@ Where each `*EV` is the raw component value multiplied by its weight.
 | Problem             | Fix                                                             |
 | ------------------- | --------------------------------------------------------------- |
 | No files in prompt  | Put `.html` files in `source/draft/`                            |
-| Bundle not loaded   | Same slug must exist in `source/matches/`                       |
 | Unexpected rankings | Set `SCORING_DIAGNOSTICS=true` to see score breakdown           |

@@ -9,6 +9,19 @@ export interface historicalPlayerStat {
   rating: number;
 }
 
+export type HistoricalSourceKey =
+  | "rating12mTop10"
+  | "rating12mTop20"
+  | "rating12mTop30"
+  | "rating12mTop50";
+
+const HISTORICAL_SOURCE_FILES: Record<HistoricalSourceKey, string> = {
+  rating12mTop10: "last_12_months_top_10.html",
+  rating12mTop20: "last_12_months_top_20.html",
+  rating12mTop30: "last_12_months_top_30.html",
+  rating12mTop50: "last_12_months_top_50.html",
+};
+
 export class StatsScraperService {
   private parseHtml(html: string): historicalPlayerStat[] {
     const $ = cheerio.load(html);
@@ -32,30 +45,56 @@ export class StatsScraperService {
     return stats;
   }
 
+  private loadSourceDict(filename: string): Record<string, number> {
+    const filePath = path.join(process.cwd(), "source", filename);
+    if (!fs.existsSync(filePath)) {
+      console.warn(`Missing historical source file: ${filePath}`);
+      return {};
+    }
+    const stats = this.parseHtml(fs.readFileSync(filePath, "utf-8"));
+    const dict: Record<string, number> = {};
+    for (const s of stats) {
+      dict[normalizePlayerName(s.name)] = s.rating;
+    }
+    return dict;
+  }
+
   async enrichPlayersWithHistoricalStats(
     players: FantasyPlayer[],
   ): Promise<FantasyPlayer[]> {
-    try {
-      const filePath = path.join(process.cwd(), "source", "last_12_months_top_50.html");
-      const html = fs.readFileSync(filePath, "utf-8");
-      const stats = this.parseHtml(html);
+    const dicts: Record<HistoricalSourceKey, Record<string, number>> = {
+      rating12mTop10: {},
+      rating12mTop20: {},
+      rating12mTop30: {},
+      rating12mTop50: {},
+    };
 
-      const dict: Record<string, number> = {};
-      for (const s of stats) {
-        dict[normalizePlayerName(s.name)] = s.rating;
+    for (const key of Object.keys(HISTORICAL_SOURCE_FILES) as HistoricalSourceKey[]) {
+      const filename = HISTORICAL_SOURCE_FILES[key];
+      try {
+        dicts[key] = this.loadSourceDict(filename);
+      } catch (error) {
+        console.warn(`Error reading stats from source/${filename}:`, error);
       }
+    }
 
-      return players.map((player) => ({
+    return players.map((player) => {
+      const normalized = normalizePlayerName(player.name);
+      const updates: Partial<FantasyPlayer["stats"]> = {};
+      for (const key of Object.keys(HISTORICAL_SOURCE_FILES) as HistoricalSourceKey[]) {
+        const value = dicts[key][normalized];
+        if (value !== undefined) {
+          updates[key] = value;
+        }
+      }
+      return {
         ...player,
         stats: {
           ...player.stats,
-          rating12mTop50: dict[normalizePlayerName(player.name)],
+          ...updates,
         },
-      }));
-    } catch (error) {
-      console.warn("Error reading stats from source/last_12_months_top_50.html:", error);
-      return players;
-    }
+      };
+    });
   }
 }
 

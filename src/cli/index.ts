@@ -4,8 +4,8 @@ import {
   printSuccess,
   printError,
   printExtractionSummary,
+  printRandomLineupPick,
   printGoodbye,
-  printFinalTeamBox,
   printAllLineupsRanking,
   printTopRatedPlayers,
 } from "./output.ts";
@@ -13,15 +13,19 @@ import {
   promptForSourceFile,
   promptForStrategy,
   promptForForcedTeam,
+  promptForExcludedTeams,
 } from "./prompts.ts";
+import {mathOptimizer} from "../services/mathOptimizer.ts";
 import {HtmlExtractorService} from "../services/extractor.ts";
 import {FantasyAnalyzerService} from "../services/analyzer.ts";
 import type {FantasyConfig, AnalysisResult} from "../types/player.ts";
-import {loadEventBundleForSource} from "../services/eventBundleLoader.ts";
-import chalk from "chalk";
 
 export async function main(): Promise<void> {
   printWelcome();
+
+  const teamsArg = process.argv.find((arg) => arg.startsWith("--teams="));
+  const teamDisplayLimit =
+    teamsArg != null ? parseInt(teamsArg.split("=")[1] ?? "", 10) || 50 : 50;
 
   let sourceFile: string;
   try {
@@ -39,7 +43,7 @@ export async function main(): Promise<void> {
     result = await extractor.extract(sourceFile);
     spinner.succeed();
     printSuccess("Extraction complete!");
-    printExtractionSummary(result);
+    printExtractionSummary(result, teamDisplayLimit);
   } catch (error) {
     spinner.fail();
     printError(
@@ -51,10 +55,18 @@ export async function main(): Promise<void> {
 
   const strategy = await promptForStrategy();
   const forcedTeam = await promptForForcedTeam(result.teams);
+  const rawExcludedTeams = await promptForExcludedTeams(result.teams);
+  const forcedTeamName = forcedTeam?.name ?? null;
+  const excludedTeams =
+    forcedTeamName != null
+      ? rawExcludedTeams.filter((name) => name !== forcedTeamName)
+      : rawExcludedTeams;
 
   const config: FantasyConfig = {
     strategy,
     forcedTeam: forcedTeam ?? null,
+    excludedTeams,
+    lineupLimit: teamDisplayLimit > 0 ? teamDisplayLimit : undefined,
   };
 
   console.log("\n📋 Configuration selected:");
@@ -62,28 +74,12 @@ export async function main(): Promise<void> {
   if (config.forcedTeam) {
     console.log(`   Forced team: ${config.forcedTeam.name} (min ${config.forcedTeam.minPlayers === "Auto" ? "auto" : config.forcedTeam.minPlayers})`);
   }
+  if (config.excludedTeams && config.excludedTeams.length > 0) {
+    console.log(`   Excluded teams: ${config.excludedTeams.join(", ")}`);
+  }
 
-  const bundleSpinner = createSpinner(
-    "Loading optional event overview + matches bundle...",
-  );
-  const {bundle, warnings: bundleWarnings} = await loadEventBundleForSource(sourceFile);
-  bundleSpinner.succeed();
-  if (bundle) {
-    printSuccess(
-      `Loaded event bundle for ${bundle.eventSlug} (matches: ${bundle.matches ? "yes" : "no"})`,
-    );
-  } else {
-    printSuccess("No additional event bundle found. Running with draft-only data.");
-  }
-  const actionableWarnings = bundleWarnings.filter(
-    (warning) => !warning.startsWith("Missing optional"),
-  );
-  if (actionableWarnings.length > 0) {
-    console.log(chalk.yellow("\n⚠️  Bundle parser warnings:"));
-    for (const warning of actionableWarnings) {
-      console.log(chalk.yellow(`   - ${warning}`));
-    }
-  }
+  const detailed =
+    process.argv.includes("--detailed") || process.argv.includes("-d");
 
   const analyzer = new FantasyAnalyzerService();
 
@@ -94,12 +90,14 @@ export async function main(): Promise<void> {
       result.teams,
       config,
       sourceFile,
-      bundle,
     );
 
-    printFinalTeamBox(analysisResult);
-    printAllLineupsRanking(analysisResult.allScoredLineups);
-    printTopRatedPlayers(analysisResult.top20ByRating);
+    printTopRatedPlayers(mathOptimizer.getLatestDiagnostics().topPlayers, detailed);
+
+    const limitedLineups = analysisResult.allScoredLineups
+      .slice(0, teamDisplayLimit > 0 ? teamDisplayLimit : undefined);
+    printRandomLineupPick(limitedLineups);
+    printAllLineupsRanking(limitedLineups);
   } catch (error) {
     printError(
       `Analysis failed: ${error instanceof Error ? error.message : "Unknown error"}`,

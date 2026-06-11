@@ -1,0 +1,1551 @@
+{
+  "generatedAt": "2026-06-05T22:17:56.064Z",
+  "completedAt": "2026-06-05T23:16:49.679Z",
+  "totalRuntimeMin": 58.89348333333333,
+  "eventCount": 13,
+  "optimizedKeys": [
+    "cardRatingBenefit",
+    "historicalTop20RatingBenefit",
+    "topTeamRankBenefit",
+    "ctVsTRatingImbalancePenalty"
+  ],
+  "fixedKeys": [
+    "awperRoleBenefit",
+    "lowDeathRateBenefit",
+    "stackCorrelationBenefit",
+    "topRankedTeamStackBenefit",
+    "awpPerRoundWeight",
+    "deathPenaltyWeight",
+    "priceEfficiencyBenefit"
+  ],
+  "userBaseline": {
+    "cardRatingBenefit": 0.5,
+    "historicalTop20RatingBenefit": 1,
+    "topTeamRankBenefit": 0.5,
+    "awperRoleBenefit": 0,
+    "lowDeathRateBenefit": 0,
+    "ctVsTRatingImbalancePenalty": 0.5,
+    "stackCorrelationBenefit": 0.5,
+    "topRankedTeamStackBenefit": 0.25,
+    "awpPerRoundWeight": 0,
+    "deathPenaltyWeight": 0,
+    "priceEfficiencyBenefit": 0
+  },
+  "v5Baseline": {
+    "cardRatingBenefit": 0.25,
+    "historicalTop20RatingBenefit": 3,
+    "topTeamRankBenefit": 1.5,
+    "awperRoleBenefit": 0,
+    "lowDeathRateBenefit": 0,
+    "ctVsTRatingImbalancePenalty": 0.5,
+    "stackCorrelationBenefit": 0.5,
+    "topRankedTeamStackBenefit": 0.25,
+    "awpPerRoundWeight": 0,
+    "deathPenaltyWeight": 0,
+    "priceEfficiencyBenefit": 0
+  },
+  "v5BaselineLoss": 0.057600622482221114,
+  "userBaselineLoss": 0.048297802883575325,
+  "optimalWeights": {
+    "cardRatingBenefit": 0.02,
+    "historicalTop20RatingBenefit": 1.28,
+    "topTeamRankBenefit": 0.3,
+    "awperRoleBenefit": 0,
+    "lowDeathRateBenefit": 0,
+    "ctVsTRatingImbalancePenalty": 0.12,
+    "stackCorrelationBenefit": 0.5,
+    "topRankedTeamStackBenefit": 0.25,
+    "awpPerRoundWeight": 0,
+    "deathPenaltyWeight": 0,
+    "priceEfficiencyBenefit": 0
+  },
+  "optimalValues": [
+    0.02,
+    1.28,
+    0.3,
+    0.12
+  ],
+  "optimalLoss": 0.016533247898586956,
+  "improvement": {
+    "overUserHunch": 0.03176455498498837,
+    "overV5Defaults": 0.04106737458363416,
+    "overUserHunchPct": 65.76811591524915,
+    "overV5DefaultsPct": 71.29675481599166
+  },
+  "phaseStats": {
+    "coarse": {
+      "count": 50625,
+      "runtimeMs": 209987,
+      "topN": 30,
+      "mode": "cached-lineups"
+    },
+    "verified": {
+      "count": 20,
+      "runtimeMs": 8792,
+      "topN": 10,
+      "mode": "full-eval"
+    },
+    "medium": {
+      "count": 5740,
+      "runtimeMs": 1850182,
+      "topN": 10,
+      "mode": "full-eval"
+    },
+    "fine": {
+      "count": 375,
+      "runtimeMs": 355997,
+      "topN": 5,
+      "mode": "full-eval"
+    }
+  },
+  "coarseTop30": [
+    {
+      "values": [
+        0.3,
+        4,
+        0,
+        0.7
+      ],
+      "loss": 0.02998383339480204
+    },
+    {
+      "values": [
+        0.5,
+        7,
+        0,
+        1.2
+      ],
+      "loss": 0.030132566316937837
+    },
+    {
+      "values": [
+        0.4,
+        5,
+        0,
+        0.9
+      ],
+      "loss": 0.030230088972267644
+    },
+    {
+      "values": [
+        0.1,
+        3,
+        0,
+        0.5
+      ],
+      "loss": 0.03028363942993295
+    },
+    {
+      "values": [
+        0.2,
+        6,
+        0,
+        1
+      ],
+      "loss": 0.03028363942993295
+    },
+    {
+      "values": [
+        0.4,
+        5,
+        0,
+        0.7
+      ],
+      "loss": 0.03033626386492938
+    },
+    {
+      "values": [
+        0.6,
+        8,
+        0,
+        1.1
+      ],
+      "loss": 0.030377111322942407
+    },
+    {
+      "values": [
+        0.1,
+        7,
+        0,
+        1.1
+      ],
+      "loss": 0.030378435140867688
+    },
+    {
+      "values": [
+        0.3,
+        8,
+        0,
+        1.35
+      ],
+      "loss": 0.03040754763433895
+    },
+    {
+      "values": [
+        0.7,
+        8,
+        0,
+        1.2
+      ],
+      "loss": 0.030417094414709633
+    },
+    {
+      "values": [
+        0.1,
+        1.5,
+        0,
+        0.2
+      ],
+      "loss": 0.030477513760954866
+    },
+    {
+      "values": [
+        0.2,
+        3,
+        0,
+        0.4
+      ],
+      "loss": 0.030477513760954866
+    },
+    {
+      "values": [
+        0.4,
+        6,
+        0,
+        0.8
+      ],
+      "loss": 0.030477513760954866
+    },
+    {
+      "values": [
+        0.4,
+        5.5,
+        0,
+        1
+      ],
+      "loss": 0.030523087218774503
+    },
+    {
+      "values": [
+        0.1,
+        5,
+        0,
+        0.8
+      ],
+      "loss": 0.03052424905533513
+    },
+    {
+      "values": [
+        0.3,
+        4.5,
+        0,
+        0.6
+      ],
+      "loss": 0.03052993849200658
+    },
+    {
+      "values": [
+        0,
+        6,
+        0,
+        0.9
+      ],
+      "loss": 0.030534370735620153
+    },
+    {
+      "values": [
+        0.2,
+        3,
+        0,
+        0.5
+      ],
+      "loss": 0.030548770810191916
+    },
+    {
+      "values": [
+        0.4,
+        6,
+        0,
+        1
+      ],
+      "loss": 0.030548770810191916
+    },
+    {
+      "values": [
+        0.3,
+        3.5,
+        0.2,
+        0.2
+      ],
+      "loss": 0.030550431197386207
+    },
+    {
+      "values": [
+        0.6,
+        7,
+        0.4,
+        0.4
+      ],
+      "loss": 0.030550431197386207
+    },
+    {
+      "values": [
+        0.3,
+        3.5,
+        0,
+        0.5
+      ],
+      "loss": 0.030558378467458347
+    },
+    {
+      "values": [
+        0.6,
+        7,
+        0,
+        1
+      ],
+      "loss": 0.030558378467458347
+    },
+    {
+      "values": [
+        0.5,
+        6,
+        0,
+        0.9
+      ],
+      "loss": 0.03056028096571972
+    },
+    {
+      "values": [
+        0,
+        2,
+        0,
+        0.3
+      ],
+      "loss": 0.030592974751200708
+    },
+    {
+      "values": [
+        0,
+        4,
+        0,
+        0.6
+      ],
+      "loss": 0.030592974751200708
+    },
+    {
+      "values": [
+        0,
+        8,
+        0,
+        1.2
+      ],
+      "loss": 0.030592974751200708
+    },
+    {
+      "values": [
+        0.5,
+        6,
+        0,
+        1.1
+      ],
+      "loss": 0.030679283421614967
+    },
+    {
+      "values": [
+        0.4,
+        7,
+        0,
+        0.9
+      ],
+      "loss": 0.030689001871279875
+    },
+    {
+      "values": [
+        0.6,
+        8,
+        0,
+        1.35
+      ],
+      "loss": 0.03073362771392929
+    }
+  ],
+  "verifiedTop10": [
+    {
+      "values": [
+        0.1,
+        1.5,
+        0,
+        0.2
+      ],
+      "loss": 0.04670487436331536
+    },
+    {
+      "values": [
+        0.6,
+        8,
+        0,
+        1.1
+      ],
+      "loss": 0.05493653338236443
+    },
+    {
+      "values": [
+        0.7,
+        8,
+        0,
+        1.2
+      ],
+      "loss": 0.0557788160264312
+    },
+    {
+      "values": [
+        0.4,
+        6,
+        0,
+        0.8
+      ],
+      "loss": 0.056536223569664534
+    },
+    {
+      "values": [
+        0,
+        6,
+        0,
+        0.9
+      ],
+      "loss": 0.0582666153428647
+    },
+    {
+      "values": [
+        0.5,
+        7,
+        0,
+        1.2
+      ],
+      "loss": 0.05894946700883852
+    },
+    {
+      "values": [
+        0.1,
+        7,
+        0,
+        1.1
+      ],
+      "loss": 0.05903228129471377
+    },
+    {
+      "values": [
+        0.4,
+        5,
+        0,
+        0.7
+      ],
+      "loss": 0.06028030130896672
+    },
+    {
+      "values": [
+        0.4,
+        5.5,
+        0,
+        1
+      ],
+      "loss": 0.060552085997773175
+    },
+    {
+      "values": [
+        0.1,
+        5,
+        0,
+        0.8
+      ],
+      "loss": 0.06055350220958827
+    }
+  ],
+  "mediumTop10": [
+    {
+      "values": [
+        0,
+        1.3,
+        0.3,
+        0.1
+      ],
+      "loss": 0.018941169775122113
+    },
+    {
+      "values": [
+        0.2,
+        1.8,
+        0.2,
+        0.2
+      ],
+      "loss": 0.021150851337913057
+    },
+    {
+      "values": [
+        0.1,
+        1.8,
+        0.2,
+        0.1
+      ],
+      "loss": 0.021247297179145863
+    },
+    {
+      "values": [
+        0.6,
+        8,
+        0,
+        1.1
+      ],
+      "loss": 0.05493653338236443
+    },
+    {
+      "values": [
+        0.6,
+        8,
+        0,
+        1.1
+      ],
+      "loss": 0.05493653338236443
+    },
+    {
+      "values": [
+        0.6,
+        8.2,
+        0,
+        1.1
+      ],
+      "loss": 0.055153780543950454
+    },
+    {
+      "values": [
+        0.6,
+        8.2,
+        0,
+        1.1
+      ],
+      "loss": 0.055153780543950454
+    },
+    {
+      "values": [
+        0.6,
+        8.1,
+        0,
+        1.1
+      ],
+      "loss": 0.05521729702817907
+    },
+    {
+      "values": [
+        0.6,
+        8.1,
+        0,
+        1.1
+      ],
+      "loss": 0.05521729702817907
+    },
+    {
+      "values": [
+        0.4,
+        6.1,
+        0,
+        0.8
+      ],
+      "loss": 0.056205512075497066
+    }
+  ],
+  "fineTop5": [
+    {
+      "values": [
+        0.02,
+        1.28,
+        0.3,
+        0.12
+      ],
+      "loss": 0.016533247898586956
+    },
+    {
+      "values": [
+        0.02,
+        1.3,
+        0.32,
+        0.14
+      ],
+      "loss": 0.016683553734033574
+    },
+    {
+      "values": [
+        0,
+        1.26,
+        0.3,
+        0.1
+      ],
+      "loss": 0.01685971642763845
+    },
+    {
+      "values": [
+        0.04,
+        1.26,
+        0.3,
+        0.12
+      ],
+      "loss": 0.01692233352464992
+    },
+    {
+      "values": [
+        0,
+        1.26,
+        0.3,
+        0.14
+      ],
+      "loss": 0.01767140569756409
+    }
+  ],
+  "slices": {
+    "cardRatingBenefit": [
+      {
+        "value": 0,
+        "loss": 0.020846950144696286
+      },
+      {
+        "value": 0.05,
+        "loss": 0.02153043953115341
+      },
+      {
+        "value": 0.1,
+        "loss": 0.024396815709168018
+      },
+      {
+        "value": 0.15,
+        "loss": 0.020556845198268142
+      },
+      {
+        "value": 0.2,
+        "loss": 0.0440197209906002
+      },
+      {
+        "value": 0.25,
+        "loss": 0.046382006370947665
+      },
+      {
+        "value": 0.3,
+        "loss": 0.05108990653315282
+      },
+      {
+        "value": 0.35,
+        "loss": 0.05221928102450868
+      },
+      {
+        "value": 0.4,
+        "loss": 0.05484264117615967
+      },
+      {
+        "value": 0.45,
+        "loss": 0.055763025381889986
+      },
+      {
+        "value": 0.5,
+        "loss": 0.056127665379058306
+      },
+      {
+        "value": 0.55,
+        "loss": 0.058637990420027375
+      },
+      {
+        "value": 0.6,
+        "loss": 0.05786585132080685
+      },
+      {
+        "value": 0.65,
+        "loss": 0.05716926527442023
+      },
+      {
+        "value": 0.7,
+        "loss": 0.059205235347139507
+      },
+      {
+        "value": 0.75,
+        "loss": 0.054560084642992
+      },
+      {
+        "value": 0.8,
+        "loss": 0.05525979954205992
+      },
+      {
+        "value": 0.85,
+        "loss": 0.06288481631859436
+      },
+      {
+        "value": 0.9,
+        "loss": 0.06264299390883268
+      },
+      {
+        "value": 0.95,
+        "loss": 0.0664954191898014
+      },
+      {
+        "value": 1,
+        "loss": 0.06343731777601375
+      },
+      {
+        "value": 1.05,
+        "loss": 0.06530691853147419
+      },
+      {
+        "value": 1.1,
+        "loss": 0.0652051055938713
+      },
+      {
+        "value": 1.15,
+        "loss": 0.06377093485919666
+      },
+      {
+        "value": 1.2,
+        "loss": 0.06400934524044913
+      },
+      {
+        "value": 1.25,
+        "loss": 0.06394798499960347
+      },
+      {
+        "value": 1.3,
+        "loss": 0.0659976813833959
+      },
+      {
+        "value": 1.35,
+        "loss": 0.06753990578059693
+      },
+      {
+        "value": 1.4,
+        "loss": 0.07280840675134381
+      },
+      {
+        "value": 1.45,
+        "loss": 0.07013120671992787
+      },
+      {
+        "value": 1.5,
+        "loss": 0.06848071801311742
+      },
+      {
+        "value": 1.55,
+        "loss": 0.07023014404848427
+      },
+      {
+        "value": 1.6,
+        "loss": 0.07173705162363209
+      },
+      {
+        "value": 1.65,
+        "loss": 0.07586748435043672
+      },
+      {
+        "value": 1.7,
+        "loss": 0.07934660732894216
+      },
+      {
+        "value": 1.75,
+        "loss": 0.08164249176028299
+      },
+      {
+        "value": 1.8,
+        "loss": 0.08246284701808632
+      },
+      {
+        "value": 1.85,
+        "loss": 0.08111811759151502
+      },
+      {
+        "value": 1.9,
+        "loss": 0.08309244514515518
+      },
+      {
+        "value": 1.95,
+        "loss": 0.08430749352178901
+      },
+      {
+        "value": 2,
+        "loss": 0.08403968586316174
+      }
+    ],
+    "historicalTop20RatingBenefit": [
+      {
+        "value": 0,
+        "loss": 0.3460129961799346
+      },
+      {
+        "value": 0.2,
+        "loss": 0.12599139662579426
+      },
+      {
+        "value": 0.4,
+        "loss": 0.0747989142336678
+      },
+      {
+        "value": 0.6,
+        "loss": 0.05038043764414893
+      },
+      {
+        "value": 0.8,
+        "loss": 0.03940929686937583
+      },
+      {
+        "value": 1,
+        "loss": 0.03704585297724769
+      },
+      {
+        "value": 1.2,
+        "loss": 0.025433992057100008
+      },
+      {
+        "value": 1.4,
+        "loss": 0.020923618002082534
+      },
+      {
+        "value": 1.6,
+        "loss": 0.04237188060028996
+      },
+      {
+        "value": 1.8,
+        "loss": 0.039815795632914375
+      },
+      {
+        "value": 2,
+        "loss": 0.030480182196626293
+      },
+      {
+        "value": 2.2,
+        "loss": 0.0301632895566247
+      },
+      {
+        "value": 2.4,
+        "loss": 0.02765354850896498
+      },
+      {
+        "value": 2.6,
+        "loss": 0.027585747510988523
+      },
+      {
+        "value": 2.8,
+        "loss": 0.027546663163961038
+      },
+      {
+        "value": 3,
+        "loss": 0.033455919240497595
+      },
+      {
+        "value": 3.2,
+        "loss": 0.03262250313577414
+      },
+      {
+        "value": 3.4,
+        "loss": 0.031246237600822152
+      },
+      {
+        "value": 3.6,
+        "loss": 0.047442805747424016
+      },
+      {
+        "value": 3.8,
+        "loss": 0.04787182810723481
+      },
+      {
+        "value": 4,
+        "loss": 0.051513293016312744
+      },
+      {
+        "value": 4.2,
+        "loss": 0.05267857575780954
+      },
+      {
+        "value": 4.4,
+        "loss": 0.051541714166674246
+      },
+      {
+        "value": 4.6,
+        "loss": 0.05177107597402775
+      },
+      {
+        "value": 4.8,
+        "loss": 0.051507794893576264
+      },
+      {
+        "value": 5,
+        "loss": 0.052434628919016624
+      },
+      {
+        "value": 5.2,
+        "loss": 0.05604635353656384
+      },
+      {
+        "value": 5.4,
+        "loss": 0.056470806173045174
+      },
+      {
+        "value": 5.6,
+        "loss": 0.056440930479124685
+      },
+      {
+        "value": 5.8,
+        "loss": 0.05652620089948865
+      },
+      {
+        "value": 6,
+        "loss": 0.05623295988674071
+      },
+      {
+        "value": 6.2,
+        "loss": 0.06277838125052082
+      },
+      {
+        "value": 6.4,
+        "loss": 0.062284863329644446
+      },
+      {
+        "value": 6.6,
+        "loss": 0.06252298239886195
+      },
+      {
+        "value": 6.8,
+        "loss": 0.06307129700056446
+      },
+      {
+        "value": 7,
+        "loss": 0.06219355225105294
+      },
+      {
+        "value": 7.2,
+        "loss": 0.06399003435807349
+      },
+      {
+        "value": 7.4,
+        "loss": 0.0638312517092251
+      },
+      {
+        "value": 7.6,
+        "loss": 0.06395022231719677
+      },
+      {
+        "value": 7.8,
+        "loss": 0.06326318072829623
+      },
+      {
+        "value": 8,
+        "loss": 0.06434980214985703
+      }
+    ],
+    "topTeamRankBenefit": [
+      {
+        "value": 0,
+        "loss": 0.056811503177734674
+      },
+      {
+        "value": 0.07500000000000001,
+        "loss": 0.04399044338909927
+      },
+      {
+        "value": 0.15000000000000002,
+        "loss": 0.023705811358606443
+      },
+      {
+        "value": 0.22499999999999998,
+        "loss": 0.026365174481840475
+      },
+      {
+        "value": 0.30000000000000004,
+        "loss": 0.016533247898586956
+      },
+      {
+        "value": 0.375,
+        "loss": 0.02613119412776152
+      },
+      {
+        "value": 0.44999999999999996,
+        "loss": 0.021816155027747308
+      },
+      {
+        "value": 0.5249999999999999,
+        "loss": 0.02625788171657567
+      },
+      {
+        "value": 0.6000000000000001,
+        "loss": 0.03185973275720991
+      },
+      {
+        "value": 0.675,
+        "loss": 0.04346901337434514
+      },
+      {
+        "value": 0.75,
+        "loss": 0.04938833181516447
+      },
+      {
+        "value": 0.8250000000000001,
+        "loss": 0.060097658174870755
+      },
+      {
+        "value": 0.8999999999999999,
+        "loss": 0.06250019116658223
+      },
+      {
+        "value": 0.9750000000000001,
+        "loss": 0.06743559820231093
+      },
+      {
+        "value": 1.0499999999999998,
+        "loss": 0.07663034550618159
+      },
+      {
+        "value": 1.125,
+        "loss": 0.08257479516596167
+      },
+      {
+        "value": 1.2000000000000002,
+        "loss": 0.08626513488596535
+      },
+      {
+        "value": 1.275,
+        "loss": 0.08750939859542439
+      },
+      {
+        "value": 1.35,
+        "loss": 0.09481446215464326
+      },
+      {
+        "value": 1.4249999999999998,
+        "loss": 0.09886177817151248
+      },
+      {
+        "value": 1.5,
+        "loss": 0.1000684130332562
+      },
+      {
+        "value": 1.5750000000000002,
+        "loss": 0.09997240709627433
+      },
+      {
+        "value": 1.6500000000000001,
+        "loss": 0.10388999416490152
+      },
+      {
+        "value": 1.7249999999999999,
+        "loss": 0.10614235552021789
+      },
+      {
+        "value": 1.7999999999999998,
+        "loss": 0.11168652561331066
+      },
+      {
+        "value": 1.875,
+        "loss": 0.11106537559744067
+      },
+      {
+        "value": 1.9500000000000002,
+        "loss": 0.11145443595065843
+      },
+      {
+        "value": 2.0250000000000004,
+        "loss": 0.11599862060483257
+      },
+      {
+        "value": 2.0999999999999996,
+        "loss": 0.11799293064890268
+      },
+      {
+        "value": 2.175,
+        "loss": 0.12531910552320186
+      },
+      {
+        "value": 2.25,
+        "loss": 0.12639548782109206
+      },
+      {
+        "value": 2.325,
+        "loss": 0.1283029401189333
+      },
+      {
+        "value": 2.4000000000000004,
+        "loss": 0.12980824192205095
+      },
+      {
+        "value": 2.4749999999999996,
+        "loss": 0.1320925788757445
+      },
+      {
+        "value": 2.55,
+        "loss": 0.13620442909110603
+      },
+      {
+        "value": 2.625,
+        "loss": 0.1409582156124936
+      },
+      {
+        "value": 2.7,
+        "loss": 0.14084673130356395
+      },
+      {
+        "value": 2.7750000000000004,
+        "loss": 0.14589656568814502
+      },
+      {
+        "value": 2.8499999999999996,
+        "loss": 0.14730242089999865
+      },
+      {
+        "value": 2.925,
+        "loss": 0.151005952646655
+      },
+      {
+        "value": 3,
+        "loss": 0.15458269019482962
+      }
+    ],
+    "ctVsTRatingImbalancePenalty": [
+      {
+        "value": 0,
+        "loss": 0.041811356466954025
+      },
+      {
+        "value": 0.037500000000000006,
+        "loss": 0.02221558293842882
+      },
+      {
+        "value": 0.07500000000000001,
+        "loss": 0.02097020981886316
+      },
+      {
+        "value": 0.11249999999999999,
+        "loss": 0.01586003293577959
+      },
+      {
+        "value": 0.15000000000000002,
+        "loss": 0.018161610720156707
+      },
+      {
+        "value": 0.1875,
+        "loss": 0.024942201049741874
+      },
+      {
+        "value": 0.22499999999999998,
+        "loss": 0.029521666228869314
+      },
+      {
+        "value": 0.26249999999999996,
+        "loss": 0.02721182291540858
+      },
+      {
+        "value": 0.30000000000000004,
+        "loss": 0.030031610024299493
+      },
+      {
+        "value": 0.3375,
+        "loss": 0.030486178687473553
+      },
+      {
+        "value": 0.375,
+        "loss": 0.033245027626887
+      },
+      {
+        "value": 0.41250000000000003,
+        "loss": 0.03481942267117555
+      },
+      {
+        "value": 0.44999999999999996,
+        "loss": 0.038527670375377465
+      },
+      {
+        "value": 0.48750000000000004,
+        "loss": 0.036960403471404835
+      },
+      {
+        "value": 0.5249999999999999,
+        "loss": 0.0383837586530166
+      },
+      {
+        "value": 0.5625,
+        "loss": 0.04329008686750091
+      },
+      {
+        "value": 0.6000000000000001,
+        "loss": 0.046543160687191165
+      },
+      {
+        "value": 0.6375,
+        "loss": 0.04840685063903086
+      },
+      {
+        "value": 0.675,
+        "loss": 0.051088846212359484
+      },
+      {
+        "value": 0.7124999999999999,
+        "loss": 0.05727983951767612
+      },
+      {
+        "value": 0.75,
+        "loss": 0.05053613431494916
+      },
+      {
+        "value": 0.7875000000000001,
+        "loss": 0.04413554059844585
+      },
+      {
+        "value": 0.8250000000000001,
+        "loss": 0.04388296483109291
+      },
+      {
+        "value": 0.8624999999999999,
+        "loss": 0.05277844497111331
+      },
+      {
+        "value": 0.8999999999999999,
+        "loss": 0.05685829173137416
+      },
+      {
+        "value": 0.9375,
+        "loss": 0.05843327321423264
+      },
+      {
+        "value": 0.9750000000000001,
+        "loss": 0.0663151192989957
+      },
+      {
+        "value": 1.0125000000000002,
+        "loss": 0.06608807690949547
+      },
+      {
+        "value": 1.0499999999999998,
+        "loss": 0.07012670009099081
+      },
+      {
+        "value": 1.0875,
+        "loss": 0.07276339881060973
+      },
+      {
+        "value": 1.125,
+        "loss": 0.0746240764346903
+      },
+      {
+        "value": 1.1625,
+        "loss": 0.08141695904104473
+      },
+      {
+        "value": 1.2000000000000002,
+        "loss": 0.08786311115487794
+      },
+      {
+        "value": 1.2374999999999998,
+        "loss": 0.09323789049862655
+      },
+      {
+        "value": 1.275,
+        "loss": 0.0960564318645599
+      },
+      {
+        "value": 1.3125,
+        "loss": 0.10249986500473449
+      },
+      {
+        "value": 1.35,
+        "loss": 0.10086927402124399
+      },
+      {
+        "value": 1.3875000000000002,
+        "loss": 0.11163750812405815
+      },
+      {
+        "value": 1.4249999999999998,
+        "loss": 0.11350446649366597
+      },
+      {
+        "value": 1.4625,
+        "loss": 0.11962419251031209
+      },
+      {
+        "value": 1.5,
+        "loss": 0.12458573287914004
+      }
+    ]
+  },
+  "perEvent": {
+    "optimal": [
+      {
+        "eventSlug": "CS Asia Championships 2026",
+        "spearman": 0.5923181448132544,
+        "topRatedCoverage": 0.2,
+        "bestValueCoverage": 1,
+        "meanActualInTopLineups": 1.0565217391304347
+      },
+      {
+        "eventSlug": "IEM Atlanta 2026",
+        "spearman": 0.522749437036371,
+        "topRatedCoverage": 0.20666666666666667,
+        "bestValueCoverage": 0.14166666666666666,
+        "meanActualInTopLineups": 1.0976923076923077
+      },
+      {
+        "eventSlug": "IEM Rio 2026 - Group Stage",
+        "spearman": 0.5426732052389545,
+        "topRatedCoverage": 0.006666666666666667,
+        "bestValueCoverage": 0.020833333333333332,
+        "meanActualInTopLineups": 1.086666666666667
+      },
+      {
+        "eventSlug": "IEM Rio 2026 - Playoffs",
+        "spearman": 0.4909090909090908,
+        "topRatedCoverage": 0.6,
+        "bestValueCoverage": 0.2708333333333333,
+        "meanActualInTopLineups": 1.16125
+      },
+      {
+        "eventSlug": "PGL Bucharest 2026",
+        "spearman": 0.6150080373054814,
+        "topRatedCoverage": 0.1,
+        "bestValueCoverage": 0.14583333333333334,
+        "meanActualInTopLineups": 1.0644444444444445
+      },
+      {
+        "eventSlug": "Playoffs - BLAST Open Rotterdam 2026",
+        "spearman": 0.7999999999999999,
+        "topRatedCoverage": 0.3,
+        "bestValueCoverage": 0.24166666666666667,
+        "meanActualInTopLineups": 1.048
+      },
+      {
+        "eventSlug": "blast-rivals-2026-season-1",
+        "spearman": 0,
+        "topRatedCoverage": 0,
+        "bestValueCoverage": 0.13333333333333333,
+        "meanActualInTopLineups": 0
+      },
+      {
+        "eventSlug": "epl-stage-1-2026",
+        "spearman": 0.49471136764329104,
+        "topRatedCoverage": 0.24074074074074073,
+        "bestValueCoverage": 0.15416666666666667,
+        "meanActualInTopLineups": 1.0657692307692308
+      },
+      {
+        "eventSlug": "epl-stage-2-2026",
+        "spearman": 0.5584954074867325,
+        "topRatedCoverage": 0.12142857142857143,
+        "bestValueCoverage": 0.1375,
+        "meanActualInTopLineups": 1.0405
+      },
+      {
+        "eventSlug": "epl-stage-3-2026",
+        "spearman": 0.7124035352189665,
+        "topRatedCoverage": 0.013333333333333334,
+        "bestValueCoverage": 0.020833333333333332,
+        "meanActualInTopLineups": 1.0325
+      },
+      {
+        "eventSlug": "group-stage-BLAST-Open-Rotterdam-2026",
+        "spearman": 0.5799905092213921,
+        "topRatedCoverage": 0.16666666666666666,
+        "bestValueCoverage": 0.1875,
+        "meanActualInTopLineups": 1.0531818181818182
+      },
+      {
+        "eventSlug": "group-stage-pgl-astana-2026",
+        "spearman": 0.7174105500693572,
+        "topRatedCoverage": 0.06666666666666667,
+        "bestValueCoverage": 0.08333333333333333,
+        "meanActualInTopLineups": 1.1042105263157895
+      },
+      {
+        "eventSlug": "playoffs-pgl-astana-2026",
+        "spearman": 0.7327305029574902,
+        "topRatedCoverage": 0.26,
+        "bestValueCoverage": 0.2375,
+        "meanActualInTopLineups": 1.15
+      }
+    ],
+    "userHunch": [
+      {
+        "eventSlug": "CS Asia Championships 2026",
+        "spearman": 0.5353443173980073,
+        "topRatedCoverage": 0.2074074074074074,
+        "bestValueCoverage": 1,
+        "meanActualInTopLineups": 1.055263157894737
+      },
+      {
+        "eventSlug": "IEM Atlanta 2026",
+        "spearman": 0.5232352390871875,
+        "topRatedCoverage": 0.07333333333333333,
+        "bestValueCoverage": 0.0625,
+        "meanActualInTopLineups": 1.08375
+      },
+      {
+        "eventSlug": "IEM Rio 2026 - Group Stage",
+        "spearman": 0.5275412768640219,
+        "topRatedCoverage": 0.02666666666666667,
+        "bestValueCoverage": 0.04583333333333333,
+        "meanActualInTopLineups": 1.1046153846153848
+      },
+      {
+        "eventSlug": "IEM Rio 2026 - Playoffs",
+        "spearman": 0.5757575757575757,
+        "topRatedCoverage": 0.6555555555555556,
+        "bestValueCoverage": 0.26666666666666666,
+        "meanActualInTopLineups": 1.1983333333333333
+      },
+      {
+        "eventSlug": "PGL Bucharest 2026",
+        "spearman": 0.5101315762008899,
+        "topRatedCoverage": 0.10833333333333334,
+        "bestValueCoverage": 0.175,
+        "meanActualInTopLineups": 1.0427272727272727
+      },
+      {
+        "eventSlug": "Playoffs - BLAST Open Rotterdam 2026",
+        "spearman": 0.7999999999999999,
+        "topRatedCoverage": 0.06666666666666667,
+        "bestValueCoverage": 0.2791666666666667,
+        "meanActualInTopLineups": 1.08
+      },
+      {
+        "eventSlug": "blast-rivals-2026-season-1",
+        "spearman": 0,
+        "topRatedCoverage": 0,
+        "bestValueCoverage": 0.17083333333333334,
+        "meanActualInTopLineups": 0
+      },
+      {
+        "eventSlug": "epl-stage-1-2026",
+        "spearman": 0.47056349686000765,
+        "topRatedCoverage": 0.18518518518518517,
+        "bestValueCoverage": 0.21666666666666667,
+        "meanActualInTopLineups": 1.0627272727272727
+      },
+      {
+        "eventSlug": "epl-stage-2-2026",
+        "spearman": 0.522398877841039,
+        "topRatedCoverage": 0.09285714285714286,
+        "bestValueCoverage": 0.14166666666666666,
+        "meanActualInTopLineups": 1.0322222222222224
+      },
+      {
+        "eventSlug": "epl-stage-3-2026",
+        "spearman": 0.6415401147844872,
+        "topRatedCoverage": 0.09333333333333334,
+        "bestValueCoverage": 0.1,
+        "meanActualInTopLineups": 1.0515384615384615
+      },
+      {
+        "eventSlug": "group-stage-BLAST-Open-Rotterdam-2026",
+        "spearman": 0.5846974362803015,
+        "topRatedCoverage": 0.11481481481481481,
+        "bestValueCoverage": 0.24583333333333332,
+        "meanActualInTopLineups": 1.0372727272727273
+      },
+      {
+        "eventSlug": "group-stage-pgl-astana-2026",
+        "spearman": 0.710581612588709,
+        "topRatedCoverage": 0.037037037037037035,
+        "bestValueCoverage": 0.10833333333333334,
+        "meanActualInTopLineups": 1.05
+      },
+      {
+        "eventSlug": "playoffs-pgl-astana-2026",
+        "spearman": 0.696130689644947,
+        "topRatedCoverage": 0.21333333333333335,
+        "bestValueCoverage": 0.20416666666666666,
+        "meanActualInTopLineups": 1.1477777777777778
+      }
+    ],
+    "v5Defaults": [
+      {
+        "eventSlug": "CS Asia Championships 2026",
+        "spearman": 0.527079788975223,
+        "topRatedCoverage": 0.12222222222222222,
+        "bestValueCoverage": 1,
+        "meanActualInTopLineups": 1.0645
+      },
+      {
+        "eventSlug": "IEM Atlanta 2026",
+        "spearman": 0.4823583380578893,
+        "topRatedCoverage": 0.013333333333333334,
+        "bestValueCoverage": 0.029166666666666667,
+        "meanActualInTopLineups": 1.0259999999999998
+      },
+      {
+        "eventSlug": "IEM Rio 2026 - Group Stage",
+        "spearman": 0.5403335740395961,
+        "topRatedCoverage": 0.013333333333333334,
+        "bestValueCoverage": 0.016666666666666666,
+        "meanActualInTopLineups": 1.0417647058823527
+      },
+      {
+        "eventSlug": "IEM Rio 2026 - Playoffs",
+        "spearman": 0.5757575757575757,
+        "topRatedCoverage": 0.6444444444444445,
+        "bestValueCoverage": 0.2916666666666667,
+        "meanActualInTopLineups": 1.17
+      },
+      {
+        "eventSlug": "PGL Bucharest 2026",
+        "spearman": 0.5613451347020705,
+        "topRatedCoverage": 0.041666666666666664,
+        "bestValueCoverage": 0.1625,
+        "meanActualInTopLineups": 1.02875
+      },
+      {
+        "eventSlug": "Playoffs - BLAST Open Rotterdam 2026",
+        "spearman": 0.7999999999999999,
+        "topRatedCoverage": 0.06666666666666667,
+        "bestValueCoverage": 0.2625,
+        "meanActualInTopLineups": 1.048
+      },
+      {
+        "eventSlug": "blast-rivals-2026-season-1",
+        "spearman": 0,
+        "topRatedCoverage": 0,
+        "bestValueCoverage": 0.24166666666666667,
+        "meanActualInTopLineups": 0
+      },
+      {
+        "eventSlug": "epl-stage-1-2026",
+        "spearman": 0.49699795926052065,
+        "topRatedCoverage": 0.044444444444444446,
+        "bestValueCoverage": 0.0875,
+        "meanActualInTopLineups": 1.04
+      },
+      {
+        "eventSlug": "epl-stage-2-2026",
+        "spearman": 0.5040596880852836,
+        "topRatedCoverage": 0.10476190476190476,
+        "bestValueCoverage": 0.15,
+        "meanActualInTopLineups": 1.054090909090909
+      },
+      {
+        "eventSlug": "epl-stage-3-2026",
+        "spearman": 0.6822488882255711,
+        "topRatedCoverage": 0.14,
+        "bestValueCoverage": 0.1,
+        "meanActualInTopLineups": 1.0442857142857143
+      },
+      {
+        "eventSlug": "group-stage-BLAST-Open-Rotterdam-2026",
+        "spearman": 0.563480399213052,
+        "topRatedCoverage": 0.1111111111111111,
+        "bestValueCoverage": 0.12916666666666668,
+        "meanActualInTopLineups": 1.0150000000000001
+      },
+      {
+        "eventSlug": "group-stage-pgl-astana-2026",
+        "spearman": 0.7086059401217438,
+        "topRatedCoverage": 0.05925925925925926,
+        "bestValueCoverage": 0.0875,
+        "meanActualInTopLineups": 1.054
+      },
+      {
+        "eventSlug": "playoffs-pgl-astana-2026",
+        "spearman": 0.7074001503931306,
+        "topRatedCoverage": 0.26,
+        "bestValueCoverage": 0.24583333333333332,
+        "meanActualInTopLineups": 1.1424999999999998
+      }
+    ]
+  }
+}

@@ -2,11 +2,13 @@ import chalk from "chalk";
 import boxen from "boxen";
 import ora, {type Ora} from "ora";
 import type {
-  AnalysisResult,
   ExtractionResult,
   Player,
 } from "../types/player.ts";
-import type {OptimizationDiagnostics} from "../services/mathOptimizer.ts";
+import type {
+  OptimizationDiagnostics,
+  PlayerScoreDiagnostics,
+} from "../services/mathOptimizer.ts";
 
 export function printWelcome(): void {
   const title = chalk.cyan.bold("⚡ Fantasy HLTV Picker");
@@ -40,7 +42,10 @@ export function printError(message: string): void {
   console.log(chalk.red("✗") + " " + chalk.red(message));
 }
 
-export function printExtractionSummary(result: ExtractionResult): void {
+export function printExtractionSummary(
+  result: ExtractionResult,
+  teamDisplayLimit = 30,
+): void {
   const totalPlayers = result.players.length;
   const uniqueTeams = result.teams.length;
   const totalTeamSlots = result.teams.reduce(
@@ -58,20 +63,6 @@ export function printExtractionSummary(result: ExtractionResult): void {
     `${chalk.cyan("Extraction:")} ${chalk.green(extractionPercent + "%")}`,
     `${chalk.cyan("Source file:")} ${chalk.gray(result.sourceFile)}`,
   ].join("\n");
-
-  const teamsHeader = chalk.bold.underline("\n🏆 Participating Teams\n");
-  const teamsList = result.teams
-    .sort((a, b) => a.worldRank - b.worldRank)
-    .map((team) => {
-      const rank =
-        team.worldRank > 0
-          ? chalk.yellow(`#${team.worldRank}`)
-          : chalk.gray("NR");
-      const name = chalk.white.bold(team.name);
-      const players = chalk.gray(`(${team.players.length} players)`);
-      return `  ${rank} ${name} ${players}`;
-    })
-    .join("\n");
 
   const playersHeader = chalk.bold.underline("\n🎮 Extracted Players\n");
   const playersList = result.players
@@ -96,12 +87,34 @@ export function printExtractionSummary(result: ExtractionResult): void {
       ? chalk.gray(`\n  ... and ${totalPlayers - 10} more players`)
       : "";
 
+  const sortedTeams = result.teams
+    .sort((a, b) => a.worldRank - b.worldRank)
+    .slice(0, teamDisplayLimit > 0 ? teamDisplayLimit : undefined);
+
+  const teamsHeader = chalk.bold.underline("\n🏆 Participating Teams\n");
+  const teamsList = sortedTeams
+    .map((team) => {
+      const rank =
+        team.worldRank > 0
+          ? chalk.yellow(`#${team.worldRank}`)
+          : chalk.gray("NR");
+      const name = chalk.white.bold(team.name);
+      const players = chalk.gray(`(${team.players.length} players)`);
+      return `  ${rank} ${name} ${players}`;
+    })
+    .join("\n");
+
+  const moreTeams =
+    uniqueTeams > teamDisplayLimit && teamDisplayLimit > 0
+      ? chalk.gray(`\n  ... and ${uniqueTeams - teamDisplayLimit} more teams`)
+      : "";
+
   const footer = chalk.gray(
     `\nExtracted at: ${result.extractedAt.toLocaleString()}`,
   );
 
   const summaryBox = boxen(
-    `${header}${statsLines}${teamsHeader}${teamsList}${playersHeader}${playersList}${morePlayers}${footer}`,
+    `${header}${statsLines}${playersHeader}${playersList}${morePlayers}${teamsHeader}${teamsList}${moreTeams}${footer}`,
     {
       padding: {top: 1, bottom: 1, left: 2, right: 2},
       borderStyle: "single",
@@ -112,6 +125,34 @@ export function printExtractionSummary(result: ExtractionResult): void {
   );
 
   console.log("\n" + summaryBox);
+}
+
+export function printRandomLineupPick(
+  lineups: Array<{
+    players: Player[];
+    lineupIndex: number;
+    score: number;
+    totalPrice: number;
+  }>,
+): void {
+  const picked = lineups[Math.floor(Math.random() * lineups.length)]!;
+
+  const playerNames = picked.players.map((p) => p.name).join(" | ");
+  const price = chalk.yellow(`$${(picked.totalPrice / 1000).toFixed(0)}k`);
+  const score = chalk.green(`Score ${picked.score.toFixed(2)}`);
+
+  const box = boxen(
+    `${chalk.bold.underline("\n🎲 Random Lineup Pick\n")}\n  ${chalk.white.bold(playerNames)}\n  ${price}  ${score}\n`,
+    {
+      padding: {top: 1, bottom: 1, left: 2, right: 2},
+      borderStyle: "single",
+      borderColor: "yellow",
+      title: "DICE ROLL",
+      titleAlignment: "center",
+    },
+  );
+
+  console.log("\n" + box);
 }
 
 const BAR_WIDTH = 26;
@@ -157,45 +198,6 @@ export function createProgressBar(title: string) {
   };
 }
 
-function formatPlayerLine(
-  p: {name: string; team: string; rating: number},
-): string {
-  const name = chalk.white.bold(p.name);
-  const team = chalk.cyan(`(${p.team})`);
-  const rating = chalk.green(`★ ${p.rating.toFixed(2)}`);
-  return `${name} ${team}  ${rating}`;
-}
-
-export function printFinalTeamBox(result: AnalysisResult): void {
-  const top3Box = result.top3
-    .map((lineup, idx) => {
-      const rank = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
-      const rankLabel = idx === 0 ? "RECOMMENDED" : `OPTION ${idx + 1}`;
-      const scoreLabel = chalk.gray(`Score: ${lineup.score}`);
-
-      const lines = lineup.players.map((p, i) => {
-        const idxNum = chalk.gray(`${i + 1}.`);
-        return `    ${idxNum} ${formatPlayerLine(p)}`;
-      });
-
-      const header = chalk.bold(`${rank} ${rankLabel} ${scoreLabel}`);
-      const divider = chalk.gray("─".repeat(58));
-
-      return `${header}\n${divider}\n${lines.join("\n")}\n${divider}\n${chalk.cyan("Reasoning:")} ${chalk.white(lineup.reasoning)}`;
-    })
-    .join("\n\n");
-
-  const box = boxen(top3Box, {
-    padding: {top: 1, bottom: 1, left: 2, right: 2},
-    borderStyle: "double",
-    borderColor: "green",
-    title: "TOP 3 LINEUPS",
-    titleAlignment: "center",
-  });
-
-  console.log("\n" + box);
-}
-
 export function printGoodbye(): void {
   console.log(chalk.cyan("\nThanks for using Fantasy HLTV Picker! 🎮\n"));
 }
@@ -235,7 +237,8 @@ export function printAllLineupsRanking(
 }
 
 export function printTopRatedPlayers(
-  players: Array<{id: string; name: string; team: string; rating: number}>,
+  players: PlayerScoreDiagnostics[],
+  detailed = false,
 ): void {
   const header = chalk.bold.underline("\n📊 TOP 20 BEST RATED PLAYERS\n");
 
@@ -244,8 +247,58 @@ export function printTopRatedPlayers(
       const rank = chalk.cyan(`${idx + 1}.`);
       const name = chalk.white.bold(p.name);
       const team = chalk.gray(`[${p.team}]`);
-      const rating = chalk.green(`★ ${p.rating.toFixed(2)}`);
-      return `${rank} ${name} ${team} ${rating}`;
+      const total = chalk.green(`★ ${p.total.toFixed(2)}`);
+
+      const line = `${rank} ${name} ${team} ${total}`;
+
+      if (!detailed) return line;
+
+      const cardTerm = chalk.white(
+        `${p.cardRating.toFixed(2)}×${p.cardRatingWeight.toFixed(2)}`,
+      );
+      const histTop10Term =
+        p.historicalTop10Rating != null
+          ? chalk.white(
+              `${p.historicalTop10Rating.toFixed(2)}×${p.historicalTop10RatingWeight.toFixed(2)}`,
+            )
+          : chalk.gray("N/A×—");
+      const histTop20Term =
+        p.historicalTop20Rating != null
+          ? chalk.white(
+              `${p.historicalTop20Rating.toFixed(2)}×${p.historicalTop20RatingWeight.toFixed(2)}`,
+            )
+          : chalk.gray("N/A×—");
+      const histTop30Term =
+        p.historicalTop30Rating != null
+          ? chalk.white(
+              `${p.historicalTop30Rating.toFixed(2)}×${p.historicalTop30RatingWeight.toFixed(2)}`,
+            )
+          : chalk.gray("N/A×—");
+      const histTop50Term =
+        p.historicalTop50Rating != null
+          ? chalk.white(
+              `${p.historicalTop50Rating.toFixed(2)}×${p.historicalTop50RatingWeight.toFixed(2)}`,
+            )
+          : chalk.gray("N/A×—");
+      const ratingTerm = chalk.white(
+        `${p.combinedRatingContribution.toFixed(2)}(rating,n=${p.availableRatingCount})`,
+      );
+      const rankTerm = chalk.white(
+        `${p.topTeamRankBenefit.toFixed(3)}(rank)`,
+      );
+      const awpTerm = chalk.white(`${p.awperRoleBenefit.toFixed(3)}(awp)`);
+      const survivalTerm = chalk.white(
+        `${p.lowDeathRateBenefit.toFixed(3)}(survival)`,
+      );
+      const sideTerm = chalk.white(
+        `${p.ctVsTRatingImbalancePenalty.toFixed(3)}(side)`,
+      );
+
+      const eq = chalk.gray(
+        `= (${cardTerm}+${histTop10Term}+${histTop20Term}+${histTop30Term}+${histTop50Term})/${p.availableRatingCount}=${ratingTerm} + ${rankTerm} + ${awpTerm} + ${survivalTerm} - ${sideTerm}`,
+      );
+
+      return `${line}\n   ${eq}`;
     })
     .join("\n");
 
@@ -281,7 +334,6 @@ export function printScoringDiagnostics(
     .map((player, idx) => {
       const parts = [
         `base:${player.baseSkillEV.toFixed(2)}`,
-        `team:${player.teamOutcomeEV.toFixed(2)}`,
         `price:$${(player.price / 1000).toFixed(0)}k`,
       ].join(" ");
       return `${idx + 1}. ${player.name} [${player.team}] total:${player.total.toFixed(2)} ${parts}`;

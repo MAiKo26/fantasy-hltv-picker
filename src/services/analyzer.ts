@@ -4,12 +4,10 @@ import type {
   FantasyPlayer,
   FantasyTeam,
   FantasyConfig,
-  EventBundleContext,
 } from "../types/player.ts";
 import {StatsScraperService} from "./statsScraper.ts";
 import {mathOptimizer} from "./mathOptimizer.ts";
 import {createProgressBar, printScoringDiagnostics} from "../cli/output.ts";
-import chalk from "chalk";
 import {env} from "../env.ts";
 
 export class FantasyAnalyzerService implements AnalyzerService {
@@ -18,7 +16,6 @@ export class FantasyAnalyzerService implements AnalyzerService {
     teams: FantasyTeam[],
     config: FantasyConfig,
     sourceUrl: string,
-    bundle?: EventBundleContext,
   ): Promise<AnalysisResult> {
     const statsBar = createProgressBar("Stage 1 · Enriching player stats");
     statsBar.tick(0, 1, "Fetching historical HLTV stats (cache or disk)...");
@@ -29,12 +26,7 @@ export class FantasyAnalyzerService implements AnalyzerService {
 
     const mathBar = createProgressBar("Stage 2 · Generating optimal lineups");
     mathBar.tick(0, 1, "Crunching combinations...");
-    const bestLineups = mathOptimizer.optimize(
-      enrichedPlayers,
-      teams,
-      config,
-      bundle,
-    );
+    const bestLineups = mathOptimizer.optimize(enrichedPlayers, teams, config);
 
     if (bestLineups.length === 0) {
       throw new Error(
@@ -42,23 +34,6 @@ export class FantasyAnalyzerService implements AnalyzerService {
       );
     }
     mathBar.done(`Generated ${bestLineups.length} valid lineups`, 1);
-
-    const lineupPreviewBar = createProgressBar("Previewing lineups");
-    lineupPreviewBar.tick(0, 1, "Showing math-optimized lineups...");
-    console.log(
-      chalk.bold.white("\n📊 TOP MATH-OPTIMIZED LINEUPS:\n"),
-    );
-    bestLineups.slice(0, 30).forEach((lineup, idx) => {
-      const playerNames = lineup.players.map((p) => p.name).join(" | ");
-      const price = chalk.yellow(`$${(lineup.totalPrice / 1000).toFixed(0)}k`);
-      const expected = chalk.cyan(
-        `Exp: ${lineup.expectedBaseScore.toFixed(2)}`,
-      );
-      console.log(
-        `  ${chalk.gray(`${idx + 1}.`)} ${playerNames} | ${price} | ${expected}`,
-      );
-    });
-    lineupPreviewBar.done("Lineups previewed", 1);
 
     if (env.SCORING_DIAGNOSTICS) {
       printScoringDiagnostics(mathOptimizer.getLatestDiagnostics());
@@ -81,12 +56,14 @@ export class FantasyAnalyzerService implements AnalyzerService {
       .slice(0, 30);
 
     const bestMathLineup = bestLineups[0]!;
-    const finalPlayers = bestMathLineup.players.map((fp) => ({
-      id: fp.id,
-      name: fp.name,
-      team: fp.team,
-      rating: fp.stats.rating,
-    }));
+    const finalPlayers = [...bestMathLineup.players]
+      .sort((a, b) => b.price - a.price)
+      .map((fp) => ({
+        id: fp.id,
+        name: fp.name,
+        team: fp.team,
+        rating: fp.stats.rating,
+      }));
 
     return {
       players: finalPlayers,
@@ -102,12 +79,14 @@ export class FantasyAnalyzerService implements AnalyzerService {
         },
       ],
       allScoredLineups: bestLineups.map((lineup, idx) => ({
-        players: lineup.players.map((fp) => ({
-          id: fp.id,
-          name: fp.name,
-          team: fp.team,
-          rating: fp.stats.rating,
-        })),
+        players: [...lineup.players]
+          .sort((a, b) => b.price - a.price)
+          .map((fp) => ({
+            id: fp.id,
+            name: fp.name,
+            team: fp.team,
+            rating: fp.stats.rating,
+          })),
         lineupIndex: idx,
         reasoning: "Math-optimized lineup",
         score: lineup.expectedBaseScore,

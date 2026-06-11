@@ -111,3 +111,23 @@ export async function promptForForcedTeam(
     minPlayers: countMap[countAnswers.minTeamPlayers] ?? "Auto",
   };
 }
+
+export interface ExcludedTeamsAnswers {
+  excludedTeams: string[];
+}
+
+export async function promptForExcludedTeams(
+  teams: FantasyTeam[],
+): Promise<string[]> {
+  const teamNames = teams.map((t) => t.name);
+
+  const question: Question<ExcludedTeamsAnswers> = {
+    type: "checkbox",
+    name: "excludedTeams",
+    message: "Exclude teams you don't want in your lineup:",
+    choices: teamNames,
+  };
+
+  const answers = await inquirer.prompt([question]);
+  return answers.excludedTeams ?? [];
+}
