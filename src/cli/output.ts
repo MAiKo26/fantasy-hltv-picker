@@ -280,6 +280,12 @@ export function printTopRatedPlayers(
               `${p.historicalTop50Rating.toFixed(2)}×${p.historicalTop50RatingWeight.toFixed(2)}`,
             )
           : chalk.gray("N/A×—");
+      const mvpEventsTerm =
+        p.oneMonthTop30MVPEventsRating != null
+          ? chalk.white(
+              `${p.oneMonthTop30MVPEventsRating.toFixed(2)}×${p.oneMonthTop30MVPEventsRatingWeight.toFixed(2)}`,
+            )
+          : chalk.gray("N/A×—");
       const ratingTerm = chalk.white(
         `${p.combinedRatingContribution.toFixed(2)}(rating,n=${p.availableRatingCount})`,
       );
@@ -295,7 +301,7 @@ export function printTopRatedPlayers(
       );
 
       const eq = chalk.gray(
-        `= (${cardTerm}+${histTop10Term}+${histTop20Term}+${histTop30Term}+${histTop50Term})/${p.availableRatingCount}=${ratingTerm} + ${rankTerm} + ${awpTerm} + ${survivalTerm} - ${sideTerm}`,
+        `= (${cardTerm}+${histTop10Term}+${histTop20Term}+${histTop30Term}+${histTop50Term}+${mvpEventsTerm})/${p.availableRatingCount}=${ratingTerm} + ${rankTerm} + ${awpTerm} + ${survivalTerm} - ${sideTerm}`,
       );
 
       return `${line}\n   ${eq}`;

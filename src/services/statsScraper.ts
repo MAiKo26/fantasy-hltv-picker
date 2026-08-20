@@ -13,13 +13,15 @@ export type HistoricalSourceKey =
   | "rating12mTop10"
   | "rating12mTop20"
   | "rating12mTop30"
-  | "rating12mTop50";
+  | "rating12mTop50"
+  | "rating1mTop30MVPEvents";
 
 const HISTORICAL_SOURCE_FILES: Record<HistoricalSourceKey, string> = {
   rating12mTop10: "last_12_months_top_10.html",
   rating12mTop20: "last_12_months_top_20.html",
   rating12mTop30: "last_12_months_top_30.html",
   rating12mTop50: "last_12_months_top_50.html",
+  rating1mTop30MVPEvents: "last_1_month_top_30_mvp_events.html",
 };
 
 export class StatsScraperService {
@@ -67,6 +69,7 @@ export class StatsScraperService {
       rating12mTop20: {},
       rating12mTop30: {},
       rating12mTop50: {},
+      rating1mTop30MVPEvents: {},
     };
 
     for (const key of Object.keys(HISTORICAL_SOURCE_FILES) as HistoricalSourceKey[]) {

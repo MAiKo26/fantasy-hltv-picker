@@ -37,7 +37,13 @@ export async function listSourceFiles(): Promise<string[]> {
     return [];
   }
   const files = fs.readdirSync(SOURCE_DIR);
-  return files.filter((f) => f.endsWith(".html"));
+  return files
+    .filter((f) => f.endsWith(".html"))
+    .sort(
+      (a, b) =>
+        fs.statSync(path.join(SOURCE_DIR, b)).mtimeMs -
+        fs.statSync(path.join(SOURCE_DIR, a)).mtimeMs,
+    );
 }
 
 export async function extractFromHtml(sourceFile: string): Promise<ExtractionResult> {

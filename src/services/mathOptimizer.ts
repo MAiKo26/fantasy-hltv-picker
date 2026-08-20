@@ -13,6 +13,7 @@ interface ScoreWeights {
   historicalTop20RatingBenefit: number;
   historicalTop30RatingBenefit: number;
   historicalTop50RatingBenefit: number;
+  oneMonthTop30MVPEventsRatingBenefit: number;
   topTeamRankBenefit: number;
   awperRoleBenefit: number;
   lowDeathRateBenefit: number;
@@ -68,6 +69,8 @@ export interface PlayerScoreDiagnostics {
   historicalTop30RatingWeight: number;
   historicalTop50Rating: number | null;
   historicalTop50RatingWeight: number;
+  oneMonthTop30MVPEventsRating: number | null;
+  oneMonthTop30MVPEventsRatingWeight: number;
   availableRatingCount: number;
   combinedRatingContribution: number;
   topTeamRankBenefit: number;
@@ -102,6 +105,7 @@ const DEFAULT_WEIGHTS: ScoreWeights = {
   historicalTop30RatingBenefit: 1,
   historicalTop50RatingBenefit: 0.75,
   cardRatingBenefit: 0.25,
+  oneMonthTop30MVPEventsRatingBenefit: 1,
   topTeamRankBenefit: 0.5,
   ctVsTRatingImbalancePenalty: 0.75,
   awperRoleBenefit: 0,
@@ -138,6 +142,9 @@ function resolveWeights(overrides?: OptimizerWeightOverrides): ScoreWeights {
   if (env.WEIGHT_HISTORICAL_TOP50_RATING_BENEFIT != null)
     envWeights.historicalTop50RatingBenefit =
       env.WEIGHT_HISTORICAL_TOP50_RATING_BENEFIT;
+  if (env.WEIGHT_1MONTH_TOP30_MVP_EVENTS_RATING_BENEFIT != null)
+    envWeights.oneMonthTop30MVPEventsRatingBenefit =
+      env.WEIGHT_1MONTH_TOP30_MVP_EVENTS_RATING_BENEFIT;
   if (env.WEIGHT_TOP_TEAM_RANK_BENEFIT != null)
     envWeights.topTeamRankBenefit = env.WEIGHT_TOP_TEAM_RANK_BENEFIT;
   if (env.WEIGHT_AWPER_ROLE_BENEFIT != null)
@@ -234,6 +241,7 @@ export class MathOptimizer {
     if (player.stats.rating12mTop20 != null) count++;
     if (player.stats.rating12mTop30 != null) count++;
     if (player.stats.rating12mTop50 != null) count++;
+    if (player.stats.rating1mTop30MVPEvents != null) count++;
     return count;
   }
 
@@ -245,7 +253,9 @@ export class MathOptimizer {
       (stats.rating12mTop10 ?? 0) * weights.historicalTop10RatingBenefit +
       (stats.rating12mTop20 ?? 0) * weights.historicalTop20RatingBenefit +
       (stats.rating12mTop30 ?? 0) * weights.historicalTop30RatingBenefit +
-      (stats.rating12mTop50 ?? 0) * weights.historicalTop50RatingBenefit;
+      (stats.rating12mTop50 ?? 0) * weights.historicalTop50RatingBenefit +
+      (stats.rating1mTop30MVPEvents ?? 0) *
+        weights.oneMonthTop30MVPEventsRatingBenefit;
     const count = this.getAvailableRatingCount(player);
     return count > 0 ? numerator / count : 0;
   }
@@ -428,16 +438,21 @@ export class MathOptimizer {
     const addLineup = (lineup: MathLineup) => {
       validLineups.push(lineup);
       validLineups.sort((a, b) => b.expectedBaseScore - a.expectedBaseScore);
-      const maxTracked = Math.max(this.MAX_TRACKED_LINEUPS, this.effectiveTargetResults);
+      const maxTracked = Math.max(
+        this.MAX_TRACKED_LINEUPS,
+        this.effectiveTargetResults,
+      );
       if (validLineups.length > maxTracked) {
         validLineups.length = maxTracked;
       }
     };
 
     const getCutoffScore = () => {
-      const maxTracked = Math.max(this.MAX_TRACKED_LINEUPS, this.effectiveTargetResults);
-      if (validLineups.length < maxTracked)
-        return Number.NEGATIVE_INFINITY;
+      const maxTracked = Math.max(
+        this.MAX_TRACKED_LINEUPS,
+        this.effectiveTargetResults,
+      );
+      if (validLineups.length < maxTracked) return Number.NEGATIVE_INFINITY;
       return (
         validLineups[validLineups.length - 1]?.expectedBaseScore ??
         Number.NEGATIVE_INFINITY
@@ -605,7 +620,8 @@ export class MathOptimizer {
   }
 
   private selectDiverseLineups(lineups: MathLineup[]): MathLineup[] {
-    if (lineups.length <= 1) return lineups.slice(0, this.effectiveTargetResults);
+    if (lineups.length <= 1)
+      return lineups.slice(0, this.effectiveTargetResults);
     const sorted = [...lineups].sort(
       (a, b) => b.expectedBaseScore - a.expectedBaseScore,
     );
@@ -686,6 +702,10 @@ export class MathOptimizer {
           historicalTop50Rating: player?.stats.rating12mTop50 ?? null,
           historicalTop50RatingWeight:
             this.runtimeWeights.historicalTop50RatingBenefit,
+          oneMonthTop30MVPEventsRating:
+            player?.stats.rating1mTop30MVPEvents ?? null,
+          oneMonthTop30MVPEventsRatingWeight:
+            this.runtimeWeights.oneMonthTop30MVPEventsRatingBenefit,
           availableRatingCount: player
             ? this.getAvailableRatingCount(player)
             : 0,
@@ -783,6 +803,8 @@ export class MathOptimizer {
         historicalTop20RatingBenefit: player.stats.rating12mTop20 ?? 0,
         historicalTop30RatingBenefit: player.stats.rating12mTop30 ?? 0,
         historicalTop50RatingBenefit: player.stats.rating12mTop50 ?? 0,
+        oneMonthTop30MVPEventsRatingBenefit:
+          player.stats.rating1mTop30MVPEvents ?? 0,
         topTeamRankBenefit: teamRank
           ? this.getFieldRelativeRankBonus(teamRank)
           : 0,

@@ -58,7 +58,7 @@ export async function promptForStrategy(): Promise<Strategy> {
 }
 
 export interface ForcedTeamAnswers {
-  forcedTeam: string;
+  forcedTeam: string[];
 }
 
 export interface MinTeamPlayersAnswers {
@@ -70,26 +70,34 @@ export async function promptForForcedTeam(
 ): Promise<ForcedTeam | null> {
   const teamNames = teams.map((t) => t.name);
 
-  const choices = ["None (let analyzer decide)", ...teamNames];
-
   const teamQuestion: Question<ForcedTeamAnswers> = {
-    type: "rawlist",
+    type: "checkbox",
     name: "forcedTeam",
-    message: "Force a specific team into your lineup:",
-    choices,
-    default: 0,
+    message:
+      "Force a specific team into your lineup (pick one, or leave empty to skip):",
+    choices: teamNames,
   };
 
-  const teamAnswers = await inquirer.prompt([teamQuestion]);
-
-  if (teamAnswers.forcedTeam === "None (let analyzer decide)") {
-    return null;
+  let selected: string[] = [];
+  while (selected.length !== 1) {
+    if (selected.length > 1) {
+      console.log(
+        "You can only force one team. Please pick a single team or leave it empty.",
+      );
+    }
+    const teamAnswers = await inquirer.prompt([teamQuestion]);
+    selected = teamAnswers.forcedTeam ?? [];
+    if (selected.length === 0) {
+      return null;
+    }
   }
+
+  const forcedTeamName = selected[0]!;
 
   const countQuestion: Question<MinTeamPlayersAnswers> = {
     type: "rawlist",
     name: "minTeamPlayers",
-    message: `Minimum number of ${teamAnswers.forcedTeam} players:`,
+    message: `Minimum number of ${forcedTeamName} players:`,
     choices: [
       "Auto (let analyzer decide)",
       "1 (at least 1 player)",
@@ -107,7 +115,7 @@ export async function promptForForcedTeam(
   };
 
   return {
-    name: teamAnswers.forcedTeam,
+    name: forcedTeamName,
     minPlayers: countMap[countAnswers.minTeamPlayers] ?? "Auto",
   };
 }

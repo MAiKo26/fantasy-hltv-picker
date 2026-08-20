@@ -15,6 +15,7 @@ export interface PlayerStats {
   rating12mTop20?: number;
   rating12mTop30?: number;
   rating12mTop50?: number;
+  rating1mTop30MVPEvents?: number;
 }
 
 export interface FantasyPlayer {
