@@ -3,6 +3,63 @@ import type {Question} from "inquirer";
 import {listSourceFiles} from "../services/extractor.ts";
 import type {FantasyTeam, Strategy, ForcedTeam, MinTeamPlayers} from "../types/player.ts";
 
+export type MainAction = "optimize" | "refresh" | "exit";
+
+export interface MainActionAnswers {
+  action: MainAction;
+}
+
+export async function promptForMainAction(): Promise<MainAction> {
+  const question: Question<MainActionAnswers> = {
+    type: "rawlist",
+    name: "action",
+    message: "What do you want to do?",
+    choices: [
+      {name: "Optimize a fantasy lineup", value: "optimize"},
+      {name: "Refresh HLTV historical stats", value: "refresh"},
+      {name: "Exit", value: "exit"},
+    ],
+  };
+
+  const answers = await inquirer.prompt([question]);
+  return answers.action;
+}
+
+export interface OptimizeOptionsAnswers {
+  lineupDisplayLimit: number;
+  detailedOutput: boolean;
+}
+
+export async function promptForOptimizeOptions(): Promise<OptimizeOptionsAnswers> {
+  const question: Question<OptimizeOptionsAnswers> = {
+    type: "rawlist",
+    name: "lineupDisplayLimit",
+    message: "How many lineups should be shown in the ranking?",
+    choices: [
+      {name: "Top 10", value: 10},
+      {name: "Top 30", value: 30},
+      {name: "Top 50 (default)", value: 50},
+      {name: "Top 100", value: 100},
+    ],
+    default: 2,
+  };
+
+  const detailedQuestion: Question<{detailedOutput: boolean}> = {
+    type: "confirm",
+    name: "detailedOutput",
+    message: "Show detailed player score breakdown?",
+    default: false,
+  };
+
+  const limitAnswers = await inquirer.prompt([question]);
+  const detailedAnswers = await inquirer.prompt([detailedQuestion]);
+
+  return {
+    lineupDisplayLimit: limitAnswers.lineupDisplayLimit,
+    detailedOutput: detailedAnswers.detailedOutput,
+  };
+}
+
 export interface SourceFileAnswers {
   sourceFile: string;
 }

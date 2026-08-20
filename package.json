@@ -6,7 +6,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "bun build index.ts --outdir dist --target bun",
-    "start": "bun run dist/index.js"
+    "start": "bun run dist/index.js",
+    "refresh-stats": "node scripts/refresh-hltv-sources.mjs"
   },
   "devDependencies": {
     "@types/boxen": "^3.0.5",
@@ -20,6 +21,7 @@
     "cheerio": "^1.2.0",
     "inquirer": "^13.3.0",
     "ora": "^9.3.0",
+    "playwright": "^1.62.1",
     "zod": "^4.3.6"
   }
 }

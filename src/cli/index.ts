@@ -10,6 +10,8 @@ import {
   printTopRatedPlayers,
 } from "./output.ts";
 import {
+  promptForMainAction,
+  promptForOptimizeOptions,
   promptForSourceFile,
   promptForStrategy,
   promptForForcedTeam,
@@ -18,15 +20,24 @@ import {
 import {mathOptimizer} from "../services/mathOptimizer.ts";
 import {HtmlExtractorService} from "../services/extractor.ts";
 import {FantasyAnalyzerService} from "../services/analyzer.ts";
+import {refreshHistoricalSources} from "../services/sourceRefresher.ts";
+import {isFirstTimeDraft, markDraftUsed} from "../services/draftRegistry.ts";
 import type {FantasyConfig, AnalysisResult} from "../types/player.ts";
 
-export async function main(): Promise<void> {
-  printWelcome();
+async function runRefresh(): Promise<boolean> {
+  try {
+    await refreshHistoricalSources();
+    printSuccess("Historical stats are up to date.");
+    return true;
+  } catch (error) {
+    printError(
+      error instanceof Error ? error.message : "Unknown refresh error",
+    );
+    return false;
+  }
+}
 
-  const teamsArg = process.argv.find((arg) => arg.startsWith("--teams="));
-  const teamDisplayLimit =
-    teamsArg != null ? parseInt(teamsArg.split("=")[1] ?? "", 10) || 50 : 50;
-
+async function runOptimize(): Promise<void> {
   let sourceFile: string;
   try {
     sourceFile = await promptForSourceFile();
@@ -34,6 +45,22 @@ export async function main(): Promise<void> {
     printError("Failed to get input. Exiting.");
     return;
   }
+
+  if (isFirstTimeDraft(sourceFile)) {
+    console.log(
+      `\nNew draft detected: ${sourceFile}\nRefreshing HLTV stats before optimization...`,
+    );
+    const refreshed = await runRefresh();
+    if (refreshed) {
+      markDraftUsed(sourceFile);
+    } else {
+      printError(
+        "Stats refresh failed. Continuing with existing source files if available.",
+      );
+    }
+  }
+
+  const {lineupDisplayLimit, detailedOutput} = await promptForOptimizeOptions();
 
   const spinner = createSpinner("Extracting player data from HTML...");
   const extractor = new HtmlExtractorService();
@@ -43,13 +70,12 @@ export async function main(): Promise<void> {
     result = await extractor.extract(sourceFile);
     spinner.succeed();
     printSuccess("Extraction complete!");
-    printExtractionSummary(result, teamDisplayLimit);
+    printExtractionSummary(result, lineupDisplayLimit);
   } catch (error) {
     spinner.fail();
     printError(
       `Extraction failed: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
-    printGoodbye();
     return;
   }
 
@@ -66,20 +92,19 @@ export async function main(): Promise<void> {
     strategy,
     forcedTeam: forcedTeam ?? null,
     excludedTeams,
-    lineupLimit: teamDisplayLimit > 0 ? teamDisplayLimit : undefined,
+    lineupLimit: lineupDisplayLimit > 0 ? lineupDisplayLimit : undefined,
   };
 
   console.log("\n📋 Configuration selected:");
   console.log(`   Strategy: ${config.strategy}`);
+  console.log(`   Lineups shown: ${lineupDisplayLimit}`);
+  console.log(`   Detailed output: ${detailedOutput ? "yes" : "no"}`);
   if (config.forcedTeam) {
     console.log(`   Forced team: ${config.forcedTeam.name} (min ${config.forcedTeam.minPlayers === "Auto" ? "auto" : config.forcedTeam.minPlayers})`);
   }
   if (config.excludedTeams && config.excludedTeams.length > 0) {
     console.log(`   Excluded teams: ${config.excludedTeams.join(", ")}`);
   }
-
-  const detailed =
-    process.argv.includes("--detailed") || process.argv.includes("-d");
 
   const analyzer = new FantasyAnalyzerService();
 
@@ -92,18 +117,42 @@ export async function main(): Promise<void> {
       sourceFile,
     );
 
-    printTopRatedPlayers(mathOptimizer.getLatestDiagnostics().topPlayers, detailed);
+    printTopRatedPlayers(
+      mathOptimizer.getLatestDiagnostics().topPlayers,
+      detailedOutput,
+    );
 
     const limitedLineups = analysisResult.allScoredLineups
-      .slice(0, teamDisplayLimit > 0 ? teamDisplayLimit : undefined);
+      .slice(0, lineupDisplayLimit > 0 ? lineupDisplayLimit : undefined);
     printRandomLineupPick(limitedLineups);
     printAllLineupsRanking(limitedLineups);
   } catch (error) {
     printError(
       `Analysis failed: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
-    printGoodbye();
-    return;
+  }
+}
+
+export async function main(): Promise<void> {
+  printWelcome();
+
+  while (true) {
+    let action;
+    try {
+      action = await promptForMainAction();
+    } catch {
+      printError("Failed to get input. Exiting.");
+      break;
+    }
+
+    if (action === "exit") {
+      break;
+    }
+    if (action === "refresh") {
+      await runRefresh();
+      continue;
+    }
+    await runOptimize();
   }
 
   printGoodbye();

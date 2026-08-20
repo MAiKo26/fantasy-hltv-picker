@@ -3,26 +3,17 @@ import * as fs from "fs";
 import * as path from "path";
 import type {FantasyPlayer} from "../types/player.ts";
 import {normalizePlayerName} from "../utils/normalize.ts";
+import {
+  HISTORICAL_SOURCE_FILES,
+  type HistoricalSourceKey,
+} from "./historicalSources.ts";
+
+export type {HistoricalSourceKey} from "./historicalSources.ts";
 
 export interface historicalPlayerStat {
   name: string;
   rating: number;
 }
-
-export type HistoricalSourceKey =
-  | "rating12mTop10"
-  | "rating12mTop20"
-  | "rating12mTop30"
-  | "rating12mTop50"
-  | "rating1mTop30MVPEvents";
-
-const HISTORICAL_SOURCE_FILES: Record<HistoricalSourceKey, string> = {
-  rating12mTop10: "last_12_months_top_10.html",
-  rating12mTop20: "last_12_months_top_20.html",
-  rating12mTop30: "last_12_months_top_30.html",
-  rating12mTop50: "last_12_months_top_50.html",
-  rating1mTop30MVPEvents: "last_1_month_top_30_mvp_events.html",
-};
 
 export class StatsScraperService {
   private parseHtml(html: string): historicalPlayerStat[] {
