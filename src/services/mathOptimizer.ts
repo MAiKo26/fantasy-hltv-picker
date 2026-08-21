@@ -6,6 +6,8 @@ import type {
 } from "../types/player.ts";
 import {env} from "../env.ts";
 import {normalizePlayerName, normalizeTeamName} from "../utils/normalize.ts";
+import {toFieldSplitRuntime} from "../types/fieldSplit.ts";
+import type {FieldSplitRuntime} from "../types/fieldSplit.ts";
 
 interface ScoreWeights {
   cardRatingBenefit: number;
@@ -23,6 +25,9 @@ interface ScoreWeights {
   awpPerRoundWeight: number;
   deathPenaltyWeight: number;
   priceEfficiencyBenefit: number;
+  fieldSide3PlayerPenalty: number;
+  fieldSide4PlusPlayerPenalty: number;
+  fieldSideCrossTeamPenalty: number;
 }
 
 const PRICE_EFFICIENCY_ANCHOR = 200000;
@@ -44,6 +49,7 @@ export interface MathLineup {
     baseSkillEV: number;
     stackCorrelationEV: number;
     stackRankBonus: number;
+    fieldSidePenaltyEV: number;
   };
 }
 
@@ -119,6 +125,10 @@ const DEFAULT_WEIGHTS: ScoreWeights = {
   awpPerRoundWeight: 0,
   deathPenaltyWeight: 0,
   priceEfficiencyBenefit: 0,
+
+  fieldSide3PlayerPenalty: 0.5,
+  fieldSide4PlusPlayerPenalty: 0.75,
+  fieldSideCrossTeamPenalty: 0.25,
 };
 
 const DEFAULT_THRESHOLDS: ScoreThresholds = {
@@ -165,6 +175,14 @@ function resolveWeights(overrides?: OptimizerWeightOverrides): ScoreWeights {
     envWeights.deathPenaltyWeight = env.WEIGHT_DEATH_PENALTY_WEIGHT;
   if (env.WEIGHT_PRICE_EFFICIENCY_BENEFIT != null)
     envWeights.priceEfficiencyBenefit = env.WEIGHT_PRICE_EFFICIENCY_BENEFIT;
+  if (env.WEIGHT_FIELD_SIDE_3_PLAYER_PENALTY != null)
+    envWeights.fieldSide3PlayerPenalty = env.WEIGHT_FIELD_SIDE_3_PLAYER_PENALTY;
+  if (env.WEIGHT_FIELD_SIDE_4PLUS_PLAYER_PENALTY != null)
+    envWeights.fieldSide4PlusPlayerPenalty =
+      env.WEIGHT_FIELD_SIDE_4PLUS_PLAYER_PENALTY;
+  if (env.WEIGHT_FIELD_SIDE_CROSS_TEAM_PENALTY != null)
+    envWeights.fieldSideCrossTeamPenalty =
+      env.WEIGHT_FIELD_SIDE_CROSS_TEAM_PENALTY;
 
   return {
     ...DEFAULT_WEIGHTS,
@@ -204,6 +222,7 @@ export class MathOptimizer {
   private teamRankMax = 0;
   private runtimeWeights: ScoreWeights = DEFAULT_WEIGHTS;
   private runtimeThresholds: ScoreThresholds = DEFAULT_THRESHOLDS;
+  private fieldSplitRuntime: FieldSplitRuntime | null = null;
   private effectiveTargetResults = 50;
   private lastDiagnostics: OptimizationDiagnostics = {
     topPlayers: [],
@@ -337,6 +356,58 @@ export class MathOptimizer {
     return false;
   }
 
+  private computeFieldSidePenalty(
+    players: FantasyPlayer[],
+    projectionById: Map<string, PlayerProjection>,
+  ): number {
+    if (!this.fieldSplitRuntime) return 0;
+
+    const playersBySide = new Map<number, FantasyPlayer[]>();
+    for (const player of players) {
+      const side = this.fieldSplitRuntime.teamSideByNormalizedName.get(
+        normalizeTeamName(player.team),
+      );
+      if (side == null) continue;
+      const list = playersBySide.get(side) ?? [];
+      list.push(player);
+      playersBySide.set(side, list);
+    }
+
+    let totalPenalty = 0;
+    for (const sidePlayers of playersBySide.values()) {
+      if (sidePlayers.length === 0) continue;
+
+      const avgSideSkill =
+        sidePlayers.reduce(
+          (sum, player) =>
+            sum + (projectionById.get(player.id)?.baseSkillEV ?? 0),
+          0,
+        ) / sidePlayers.length;
+
+      if (sidePlayers.length >= 4) {
+        totalPenalty +=
+          avgSideSkill *
+          this.runtimeWeights.fieldSide4PlusPlayerPenalty *
+          (sidePlayers.length - 3);
+      } else if (sidePlayers.length === 3) {
+        totalPenalty +=
+          avgSideSkill * this.runtimeWeights.fieldSide3PlayerPenalty;
+      }
+
+      const distinctTeams = new Set(
+        sidePlayers.map((player) => normalizeTeamName(player.team)),
+      ).size;
+      if (distinctTeams >= 2) {
+        totalPenalty +=
+          avgSideSkill *
+          this.runtimeWeights.fieldSideCrossTeamPenalty *
+          (distinctTeams - 1);
+      }
+    }
+
+    return totalPenalty;
+  }
+
   private buildCandidatePool(
     players: FantasyPlayer[],
     projectionById: Map<string, PlayerProjection>,
@@ -401,6 +472,7 @@ export class MathOptimizer {
   ): MathLineup[] {
     this.runtimeWeights = resolveWeights(weightOverrides);
     this.runtimeThresholds = resolveThresholds(thresholdOverrides);
+    this.fieldSplitRuntime = toFieldSplitRuntime(config.fieldSplit);
     this.effectiveTargetResults = config.lineupLimit ?? this.TARGET_RESULTS;
     this.setTeams(teams);
 
@@ -527,8 +599,16 @@ export class MathOptimizer {
           }
         }
 
+        const fieldSidePenaltyEV = this.computeFieldSidePenalty(
+          selectedPlayers,
+          projectionById,
+        );
+
         const expectedBaseScore =
-          componentSums.baseSkillEV + stackCorrelationEV + stackRankBonus;
+          componentSums.baseSkillEV +
+          stackCorrelationEV +
+          stackRankBonus -
+          fieldSidePenaltyEV;
 
         addLineup({
           players: [...selectedPlayers],
@@ -539,6 +619,7 @@ export class MathOptimizer {
             baseSkillEV: componentSums.baseSkillEV,
             stackCorrelationEV,
             stackRankBonus,
+            fieldSidePenaltyEV,
           },
         });
         return;
@@ -751,12 +832,14 @@ export class MathOptimizer {
           baseSkillEV: 0,
           stackCorrelationEV: 0,
           stackRankBonus: 0,
+          fieldSidePenaltyEV: 0,
         };
 
         const componentMagnitude =
           Math.abs(b.baseSkillEV) +
           Math.abs(b.stackCorrelationEV) +
           Math.abs(b.stackRankBonus) +
+          Math.abs(b.fieldSidePenaltyEV) +
           0.0001;
 
         const sharesPct: Record<string, number> = {
@@ -765,6 +848,8 @@ export class MathOptimizer {
             (Math.abs(b.stackCorrelationEV) / componentMagnitude) * 100,
           stackRankBonus:
             (Math.abs(b.stackRankBonus) / componentMagnitude) * 100,
+          fieldSidePenalty:
+            (Math.abs(b.fieldSidePenaltyEV) / componentMagnitude) * 100,
         };
 
         return {
@@ -824,6 +909,9 @@ export class MathOptimizer {
         awpPerRoundWeight: player.stats.awpPerRound,
         deathPenaltyWeight: -player.stats.deathsPerRound,
         priceEfficiencyBenefit: efficiencyTrait,
+        fieldSide3PlayerPenalty: 0,
+        fieldSide4PlusPlayerPenalty: 0,
+        fieldSideCrossTeamPenalty: 0,
       },
     };
   }

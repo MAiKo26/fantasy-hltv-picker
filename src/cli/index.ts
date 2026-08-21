@@ -16,6 +16,7 @@ import {
   promptForStrategy,
   promptForForcedTeam,
   promptForExcludedTeams,
+  promptForFieldSplit,
 } from "./prompts.ts";
 import {mathOptimizer} from "../services/mathOptimizer.ts";
 import {HtmlExtractorService} from "../services/extractor.ts";
@@ -23,6 +24,7 @@ import {FantasyAnalyzerService} from "../services/analyzer.ts";
 import {refreshHistoricalSources} from "../services/sourceRefresher.ts";
 import {isFirstTimeDraft, markDraftUsed} from "../services/draftRegistry.ts";
 import type {FantasyConfig, AnalysisResult} from "../types/player.ts";
+import {summarizeFieldSplit} from "./fieldSplitEditor.ts";
 
 async function runRefresh(): Promise<boolean> {
   try {
@@ -88,11 +90,14 @@ async function runOptimize(): Promise<void> {
       ? rawExcludedTeams.filter((name) => name !== forcedTeamName)
       : rawExcludedTeams;
 
+  const fieldSplit = await promptForFieldSplit(result.teams, sourceFile);
+
   const config: FantasyConfig = {
     strategy,
     forcedTeam: forcedTeam ?? null,
     excludedTeams,
     lineupLimit: lineupDisplayLimit > 0 ? lineupDisplayLimit : undefined,
+    fieldSplit,
   };
 
   console.log("\n📋 Configuration selected:");
@@ -104,6 +109,13 @@ async function runOptimize(): Promise<void> {
   }
   if (config.excludedTeams && config.excludedTeams.length > 0) {
     console.log(`   Excluded teams: ${config.excludedTeams.join(", ")}`);
+  }
+  if (config.fieldSplit && config.fieldSplit.sideCount > 1) {
+    console.log(
+      `   Field split: ${config.fieldSplit.sideCount} sides (${summarizeFieldSplit(config.fieldSplit, result.teams.map((team) => team.name))})`,
+    );
+  } else {
+    console.log("   Field split: disabled");
   }
 
   const analyzer = new FantasyAnalyzerService();

@@ -1,3 +1,5 @@
+import type {FieldSplitConfig} from "./fieldSplit.ts";
+
 export type CardLevel = "gold" | "silver" | "bronze";
 
 export interface PlayerStats {
@@ -100,4 +102,5 @@ export interface FantasyConfig {
   forcedTeam?: ForcedTeam | null;
   excludedTeams?: string[];
   lineupLimit?: number;
+  fieldSplit?: FieldSplitConfig | null;
 }

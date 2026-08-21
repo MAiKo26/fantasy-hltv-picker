@@ -1,7 +1,20 @@
 import inquirer from "inquirer";
 import type {Question} from "inquirer";
 import {listSourceFiles} from "../services/extractor.ts";
-import type {FantasyTeam, Strategy, ForcedTeam, MinTeamPlayers} from "../types/player.ts";
+import {
+  draftSlugFromSourceFile,
+  loadFieldSplit,
+  mergeTeamsIntoFieldSplit,
+  saveFieldSplit,
+} from "../services/fieldSplitStore.ts";
+import {runFieldSplitEditor, summarizeFieldSplit} from "./fieldSplitEditor.ts";
+import type {
+  FantasyTeam,
+  Strategy,
+  ForcedTeam,
+  MinTeamPlayers,
+} from "../types/player.ts";
+import type {FieldSplitConfig} from "../types/fieldSplit.ts";
 
 export type MainAction = "optimize" | "refresh" | "exit";
 
@@ -37,11 +50,11 @@ export async function promptForOptimizeOptions(): Promise<OptimizeOptionsAnswers
     message: "How many lineups should be shown in the ranking?",
     choices: [
       {name: "Top 10", value: 10},
-      {name: "Top 30", value: 30},
-      {name: "Top 50 (default)", value: 50},
+      {name: "Top 30 (default)", value: 30},
+      {name: "Top 50", value: 50},
       {name: "Top 100", value: 100},
     ],
-    default: 2,
+    default: 30,
   };
 
   const detailedQuestion: Question<{detailedOutput: boolean}> = {
@@ -99,7 +112,7 @@ export async function promptForStrategy(): Promise<Strategy> {
       "2-1-1-1-1 (2 Team X + 3 Unique Teams)",
       "1-1-1-1-1 (5 Unique Teams)",
     ],
-    default: 0,
+    default: "Auto (let analyzer decide)",
   };
 
   const answers = await inquirer.prompt([question]);
@@ -160,7 +173,7 @@ export async function promptForForcedTeam(
       "1 (at least 1 player)",
       "2 (at least 2 players)",
     ],
-    default: 0,
+    default: "Auto (let analyzer decide)",
   };
 
   const countAnswers = await inquirer.prompt([countQuestion]);
@@ -179,6 +192,80 @@ export async function promptForForcedTeam(
 
 export interface ExcludedTeamsAnswers {
   excludedTeams: string[];
+}
+
+export async function promptForFieldSplit(
+  teams: FantasyTeam[],
+  sourceFile: string,
+): Promise<FieldSplitConfig | null> {
+  const slug = draftSlugFromSourceFile(sourceFile);
+  const teamNames = teams.map((team) => team.name);
+  const cached = loadFieldSplit(slug);
+
+  if (cached && cached.sideCount > 1) {
+    const reconfigureQuestion: Question<{reconfigure: boolean}> = {
+      type: "confirm",
+      name: "reconfigure",
+      message: `Reconfigure saved field split (${cached.sideCount} sides)?`,
+      default: false,
+    };
+
+    const {reconfigure} = await inquirer.prompt([reconfigureQuestion]);
+    if (!reconfigure) {
+      const merged = mergeTeamsIntoFieldSplit(cached, teamNames);
+      if (merged !== cached) {
+        saveFieldSplit(merged);
+      }
+      console.log(
+        `Using saved field split: ${summarizeFieldSplit(merged, teamNames)}`,
+      );
+      return merged;
+    }
+  }
+
+  const sideCountQuestion: Question<{sideCount: number}> = {
+    type: "rawlist",
+    name: "sideCount",
+    message: "How many sides should the field be split into?",
+    choices: [
+      {name: "1 — no split (default)", value: 1},
+      {name: "2 sides", value: 2},
+      {name: "3 sides", value: 3},
+      {name: "4 sides", value: 4},
+      {name: "5 sides", value: 5},
+      {name: "6 sides", value: 6},
+    ],
+    default: 0,
+  };
+
+  const {sideCount} = await inquirer.prompt([sideCountQuestion]);
+  if (sideCount <= 1) {
+    if (cached && cached.sideCount > 1) {
+      console.log("Field split disabled for this run (saved split kept).");
+    }
+    return null;
+  }
+
+  const existingSides =
+    cached && cached.sideCount === sideCount ? cached.teamSides : undefined;
+  const editorResult = await runFieldSplitEditor(
+    teamNames,
+    sideCount,
+    existingSides,
+  );
+
+  const config: FieldSplitConfig = {
+    draftSlug: slug,
+    sideCount: editorResult.sideCount,
+    teamSides: editorResult.teamSides,
+    savedAt: new Date().toISOString(),
+  };
+
+  saveFieldSplit(config);
+  console.log(
+    `Saved field split for "${slug}": ${summarizeFieldSplit(config, teamNames)}`,
+  );
+  return config;
 }
 
 export async function promptForExcludedTeams(
