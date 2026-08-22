@@ -5,9 +5,11 @@
   "private": true,
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "bun test",
     "build": "bun build index.ts --outdir dist --target bun",
     "start": "bun run dist/index.js",
-    "refresh-stats": "node scripts/refresh-hltv-sources.mjs"
+    "refresh-stats": "node scripts/refresh-hltv-sources.mjs",
+    "optimize-weights-v7": "bun scripts/optimize-weights-v7.ts"
   },
   "devDependencies": {
     "@types/boxen": "^3.0.5",

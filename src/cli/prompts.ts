@@ -13,6 +13,7 @@ import type {
   Strategy,
   ForcedTeam,
   MinTeamPlayers,
+  OptimizationMode,
 } from "../types/player.ts";
 import type {FieldSplitConfig} from "../types/fieldSplit.ts";
 
@@ -41,6 +42,7 @@ export async function promptForMainAction(): Promise<MainAction> {
 export interface OptimizeOptionsAnswers {
   lineupDisplayLimit: number;
   detailedOutput: boolean;
+  mode: OptimizationMode;
 }
 
 export async function promptForOptimizeOptions(): Promise<OptimizeOptionsAnswers> {
@@ -64,12 +66,35 @@ export async function promptForOptimizeOptions(): Promise<OptimizeOptionsAnswers
     default: false,
   };
 
+  const modeQuestion: Question<{mode: OptimizationMode}> = {
+    type: "rawlist",
+    name: "mode",
+    message: "What are you optimizing for?",
+    choices: [
+      {
+        name: "Consistency — reliably top-30% of field, avoid bottom half (recommended)",
+        value: "consistency" as OptimizationMode,
+      },
+      {
+        name: "Max EV — highest expected score (old behavior)",
+        value: "ev" as OptimizationMode,
+      },
+      {
+        name: "Ceiling — chase top-10% finishes, high variance",
+        value: "ceiling" as OptimizationMode,
+      },
+    ],
+    default: "ev",
+  };
+
   const limitAnswers = await inquirer.prompt([question]);
+  const modeAnswers = await inquirer.prompt([modeQuestion]);
   const detailedAnswers = await inquirer.prompt([detailedQuestion]);
 
   return {
     lineupDisplayLimit: limitAnswers.lineupDisplayLimit,
     detailedOutput: detailedAnswers.detailedOutput,
+    mode: modeAnswers.mode,
   };
 }
 

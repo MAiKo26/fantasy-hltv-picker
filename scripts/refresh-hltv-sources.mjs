@@ -18,12 +18,28 @@ const CHROME_CANDIDATES = [
 const TABLE_SELECTOR =
   "table.stats-table.player-ratings-table tbody tr, table.stats-table tbody tr";
 
-const SOURCES = JSON.parse(
+const ALL_SOURCES = JSON.parse(
   fs.readFileSync(
     path.join(process.cwd(), "src", "services", "historical-sources.json"),
     "utf-8",
   ),
 );
+
+// --only=key1,key2 → refresh just those sources; otherwise everything.
+const onlyArg = process.argv
+  .slice(2)
+  .find((a) => a.startsWith("--only="));
+let SOURCES = ALL_SOURCES;
+if (onlyArg) {
+  const wanted = new Set(
+    onlyArg
+      .slice("--only=".length)
+      .split(",")
+      .map((s) => s.trim()),
+  );
+  SOURCES = ALL_SOURCES.filter((s) => wanted.has(s.key) || wanted.has(s.filename));
+  console.log(`Refreshing ${SOURCES.length}/${ALL_SOURCES.length} sources (--only).`);
+}
 
 function formatLocalIsoDate(date) {
   const year = date.getFullYear();

@@ -4,6 +4,8 @@ import ora, {type Ora} from "ora";
 import type {
   ExtractionResult,
   Player,
+  PortfolioEntry,
+  OptimizationMode,
 } from "../types/player.ts";
 import type {
   OptimizationDiagnostics,
@@ -127,30 +129,75 @@ export function printExtractionSummary(
   console.log("\n" + summaryBox);
 }
 
-export function printRandomLineupPick(
-  lineups: Array<{
-    players: Player[];
-    lineupIndex: number;
-    score: number;
-    totalPrice: number;
-  }>,
-): void {
-  const picked = lineups[Math.floor(Math.random() * lineups.length)]!;
+function pct(value: number): string {
+  return `${(value * 100).toFixed(0)}%`;
+}
 
-  const playerNames = picked.players.map((p) => p.name).join(" | ");
-  const price = chalk.yellow(`$${(picked.totalPrice / 1000).toFixed(0)}k`);
-  const score = chalk.green(`Score ${picked.score.toFixed(2)}`);
+function consistencyTag(entry: PortfolioEntry): string {
+  if (!entry.consistency) return "";
+  const c = entry.consistency;
+  return (
+    chalk.cyan(` P50=${pct(c.pTop50)}`) +
+    chalk.magenta(` P30=${pct(c.pTop30)}`) +
+    chalk.yellow(` P10=${pct(c.pTop10)}`)
+  );
+}
+
+export function printRecommendedLineup(
+  entry: PortfolioEntry,
+  mode: OptimizationMode,
+  recommendation: string,
+): void {
+  const playerNames = entry.players.map((p) => p.name).join(" | ");
+  const price = chalk.yellow(`$${(entry.totalPrice / 1000).toFixed(0)}k`);
+
+  const metricsLine = entry.consistency
+    ? `\n  ${chalk.gray("P(beat field median)")}${consistencyTag(entry)}`
+    : "";
+
+  const modeLabel =
+    mode === "consistency"
+      ? "CONSISTENCY PICK"
+      : mode === "ceiling"
+        ? "CEILING PICK"
+        : "MAX-EV PICK";
 
   const box = boxen(
-    `${chalk.bold.underline("\n🎲 Random Lineup Pick\n")}\n  ${chalk.white.bold(playerNames)}\n  ${price}  ${score}\n`,
+    `${chalk.bold.underline("\n🎯 Recommended Lineup\n")}\n  ${chalk.white.bold(playerNames)}\n  ${price}${metricsLine}\n\n  ${chalk.gray(recommendation)}\n`,
     {
       padding: {top: 1, bottom: 1, left: 2, right: 2},
       borderStyle: "single",
-      borderColor: "yellow",
-      title: "DICE ROLL",
+      borderColor: "green",
+      title: modeLabel,
       titleAlignment: "center",
     },
   );
+
+  console.log("\n" + box);
+}
+
+export function printPortfolio(portfolio: PortfolioEntry[]): void {
+  if (portfolio.length <= 1) return;
+  const header = chalk.bold.underline("\n🗂️  SUBMISSION PORTFOLIO\n");
+  const lines = portfolio
+    .map((entry, idx) => {
+      const names = entry.players.map((p) => p.name).join(" | ");
+      const price = chalk.yellow(`$${(entry.totalPrice / 1000).toFixed(0)}k`);
+      return `${chalk.green(`${idx + 1}.`)} ${names}\n   ${price}${consistencyTag(entry)}`;
+    })
+    .join("\n");
+
+  const legend = chalk.gray(
+    "\n\n  P50 = beats field median · P30 = top-30% of field · P10 = top-10% (simulated)",
+  );
+
+  const box = boxen(`${header}${lines}${legend}`, {
+    padding: {top: 1, bottom: 1, left: 2, right: 2},
+    borderStyle: "single",
+    borderColor: "magenta",
+    title: "PORTFOLIO",
+    titleAlignment: "center",
+  });
 
   console.log("\n" + box);
 }
@@ -172,13 +219,13 @@ export function createProgressBar(title: string) {
     const filled = Math.round(safePct * BAR_WIDTH);
     const empty = BAR_WIDTH - filled;
     const bar = chalk.cyan("█".repeat(filled)) + chalk.gray("░".repeat(empty));
-    const pct = Math.round(safePct * 100)
+    const pctStr = Math.round(safePct * 100)
       .toString()
       .padStart(3);
     const counter = chalk.gray(`${step}/${total}`);
     const labelText = finished ? chalk.green(label) : chalk.yellow(label);
 
-    const line = `  ${bar} ${pct}% ${counter}  ${labelText}`;
+    const line = `  ${bar} ${pctStr}% ${counter}  ${labelText}`;
 
     if (barLineWritten) {
       process.stdout.write("\x1b[1A\x1b[2K");
@@ -208,6 +255,7 @@ export function printAllLineupsRanking(
     lineupIndex: number;
     score: number;
     totalPrice: number;
+    consistency?: {pTop50: number; pTop30: number; pTop10: number};
   }>,
 ): void {
   const header = chalk.bold.underline("\n📊 ALL LINEUPS RANKING\n");
@@ -220,8 +268,12 @@ export function printAllLineupsRanking(
         .join(" | ");
       const price = chalk.yellow(`$${(lineup.totalPrice / 1000).toFixed(0)}k`);
       const score = chalk.green(`Score ${lineup.score.toFixed(2)}`);
-
-      return `${rank} ${playerNames} | ${price} | ${score}`;
+      const cons = lineup.consistency
+        ? chalk.gray(
+            ` P50=${pct(lineup.consistency.pTop50)} P30=${pct(lineup.consistency.pTop30)}`,
+          )
+        : "";
+      return `${rank} ${playerNames}\n   ${price} | ${score}${cons}`;
     })
     .join("\n");
 
@@ -248,61 +300,20 @@ export function printTopRatedPlayers(
       const name = chalk.white.bold(p.name);
       const team = chalk.gray(`[${p.team}]`);
       const total = chalk.green(`★ ${p.total.toFixed(2)}`);
+      const sigma = chalk.gray(`σ=${p.sigma.toFixed(3)}`);
 
-      const line = `${rank} ${name} ${team} ${total}`;
+      const line = `${rank} ${name} ${team} ${total} ${sigma}`;
 
       if (!detailed) return line;
 
-      const cardTerm = chalk.white(
-        `${p.cardRating.toFixed(2)}×${p.cardRatingWeight.toFixed(2)}`,
-      );
-      const histTop10Term =
-        p.historicalTop10Rating != null
-          ? chalk.white(
-              `${p.historicalTop10Rating.toFixed(2)}×${p.historicalTop10RatingWeight.toFixed(2)}`,
-            )
-          : chalk.gray("N/A×—");
-      const histTop20Term =
-        p.historicalTop20Rating != null
-          ? chalk.white(
-              `${p.historicalTop20Rating.toFixed(2)}×${p.historicalTop20RatingWeight.toFixed(2)}`,
-            )
-          : chalk.gray("N/A×—");
-      const histTop30Term =
-        p.historicalTop30Rating != null
-          ? chalk.white(
-              `${p.historicalTop30Rating.toFixed(2)}×${p.historicalTop30RatingWeight.toFixed(2)}`,
-            )
-          : chalk.gray("N/A×—");
-      const histTop50Term =
-        p.historicalTop50Rating != null
-          ? chalk.white(
-              `${p.historicalTop50Rating.toFixed(2)}×${p.historicalTop50RatingWeight.toFixed(2)}`,
-            )
-          : chalk.gray("N/A×—");
-      const mvpEventsTerm =
-        p.oneMonthTop30MVPEventsRating != null
-          ? chalk.white(
-              `${p.oneMonthTop30MVPEventsRating.toFixed(2)}×${p.oneMonthTop30MVPEventsRatingWeight.toFixed(2)}`,
-            )
-          : chalk.gray("N/A×—");
-      const ratingTerm = chalk.white(
-        `${p.combinedRatingContribution.toFixed(2)}(rating,n=${p.availableRatingCount})`,
-      );
-      const rankTerm = chalk.white(
-        `${p.topTeamRankBenefit.toFixed(3)}(rank)`,
-      );
-      const awpTerm = chalk.white(`${p.awperRoleBenefit.toFixed(3)}(awp)`);
-      const survivalTerm = chalk.white(
-        `${p.lowDeathRateBenefit.toFixed(3)}(survival)`,
-      );
-      const sideTerm = chalk.white(
-        `${p.ctVsTRatingImbalancePenalty.toFixed(3)}(side)`,
-      );
-
-      const eq = chalk.gray(
-        `= (${cardTerm}+${histTop10Term}+${histTop20Term}+${histTop30Term}+${histTop50Term}+${mvpEventsTerm})/${p.availableRatingCount}=${ratingTerm} + ${rankTerm} + ${awpTerm} + ${survivalTerm} - ${sideTerm}`,
-      );
+      const parts = p.components.map((c) => {
+        const valueText = Number.isNaN(c.value)
+          ? "N/A"
+          : c.value.toFixed(2);
+        const sign = c.contribution >= 0 ? "+" : "";
+        return `${c.label}:${valueText}×${c.weight.toFixed(2)}=${sign}${c.contribution.toFixed(3)}`;
+      });
+      const eq = chalk.gray(parts.join(" "));
 
       return `${line}\n   ${eq}`;
     })
@@ -329,7 +340,7 @@ export function printScoringDiagnostics(
       const shares = Object.entries(lineup.sharesPct)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 4)
-        .map(([name, pct]) => `${name}:${pct.toFixed(1)}%`)
+        .map(([name, pctShare]) => `${name}:${pctShare.toFixed(1)}%`)
         .join(" | ");
       return `${lineup.rank}. ${lineup.playerNames.join(" | ")}\n   score=${lineup.totalScore.toFixed(2)}  shares -> ${shares}`;
     })
@@ -340,6 +351,8 @@ export function printScoringDiagnostics(
     .map((player, idx) => {
       const parts = [
         `base:${player.baseSkillEV.toFixed(2)}`,
+        `σ:${player.sigma.toFixed(3)}`,
+        `conf:${(player.dataConfidence * 100).toFixed(0)}%`,
         `price:$${(player.price / 1000).toFixed(0)}k`,
       ].join(" ");
       return `${idx + 1}. ${player.name} [${player.team}] total:${player.total.toFixed(2)} ${parts}`;

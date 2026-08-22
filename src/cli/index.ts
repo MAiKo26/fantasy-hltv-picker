@@ -4,7 +4,8 @@ import {
   printSuccess,
   printError,
   printExtractionSummary,
-  printRandomLineupPick,
+  printRecommendedLineup,
+  printPortfolio,
   printGoodbye,
   printAllLineupsRanking,
   printTopRatedPlayers,
@@ -62,7 +63,8 @@ async function runOptimize(): Promise<void> {
     }
   }
 
-  const {lineupDisplayLimit, detailedOutput} = await promptForOptimizeOptions();
+  const {lineupDisplayLimit, detailedOutput, mode} =
+    await promptForOptimizeOptions();
 
   const spinner = createSpinner("Extracting player data from HTML...");
   const extractor = new HtmlExtractorService();
@@ -98,10 +100,12 @@ async function runOptimize(): Promise<void> {
     excludedTeams,
     lineupLimit: lineupDisplayLimit > 0 ? lineupDisplayLimit : undefined,
     fieldSplit,
+    mode,
   };
 
   console.log("\n📋 Configuration selected:");
   console.log(`   Strategy: ${config.strategy}`);
+  console.log(`   Mode: ${mode}`);
   console.log(`   Lineups shown: ${lineupDisplayLimit}`);
   console.log(`   Detailed output: ${detailedOutput ? "yes" : "no"}`);
   if (config.forcedTeam) {
@@ -136,7 +140,17 @@ async function runOptimize(): Promise<void> {
 
     const limitedLineups = analysisResult.allScoredLineups
       .slice(0, lineupDisplayLimit > 0 ? lineupDisplayLimit : undefined);
-    printRandomLineupPick(limitedLineups);
+
+    const portfolioEntry = analysisResult.portfolio[0] ??
+      analysisResult.allScoredLineups[0];
+    if (portfolioEntry) {
+      printRecommendedLineup(
+        portfolioEntry,
+        analysisResult.mode,
+        analysisResult.recommendation,
+      );
+    }
+    printPortfolio(analysisResult.portfolio);
     printAllLineupsRanking(limitedLineups);
   } catch (error) {
     printError(

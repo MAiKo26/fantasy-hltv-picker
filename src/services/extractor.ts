@@ -123,6 +123,8 @@ export async function extractFromHtml(sourceFile: string): Promise<ExtractionRes
             supportRoundsPct: stats.supportRoundsPct || 0,
             multiKillRoundsPct: stats.multiKillRoundsPct || 0,
             deathsPerRound: stats.deathsPerRound || 0,
+            histRatings: {},
+            histMaps: {},
           },
           statsUrl,
         });

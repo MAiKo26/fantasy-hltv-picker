@@ -1,4 +1,5 @@
 import {z} from "zod";
+import {HISTORICAL_SOURCES} from "./services/historicalSources.ts";
 
 const envSchema = z.object({
   BLACKLISTED_PLAYERS: z
@@ -15,11 +16,6 @@ const envSchema = z.object({
     .optional()
     .transform((val) => val === "true"),
   WEIGHT_CARD_RATING_BENEFIT: z.coerce.number().optional(),
-  WEIGHT_HISTORICAL_TOP10_RATING_BENEFIT: z.coerce.number().optional(),
-  WEIGHT_HISTORICAL_TOP20_RATING_BENEFIT: z.coerce.number().optional(),
-  WEIGHT_HISTORICAL_TOP30_RATING_BENEFIT: z.coerce.number().optional(),
-  WEIGHT_HISTORICAL_TOP50_RATING_BENEFIT: z.coerce.number().optional(),
-  WEIGHT_1MONTH_TOP30_MVP_EVENTS_RATING_BENEFIT: z.coerce.number().optional(),
   WEIGHT_TOP_TEAM_RANK_BENEFIT: z.coerce.number().optional(),
   WEIGHT_AWPER_ROLE_BENEFIT: z.coerce.number().optional(),
   WEIGHT_LOW_DEATH_RATE_BENEFIT: z.coerce.number().optional(),
@@ -36,41 +32,34 @@ const envSchema = z.object({
   THRESHOLD_LOW_DEATH_RATE_MAX_DEATHS_PER_ROUND: z.coerce.number().optional(),
 });
 
-export const env = envSchema.parse({
-  BLACKLISTED_PLAYERS: process.env.BLACKLISTED_PLAYERS,
-  SCORING_DIAGNOSTICS: process.env.SCORING_DIAGNOSTICS,
-  WEIGHT_CARD_RATING_BENEFIT: process.env.WEIGHT_CARD_RATING_BENEFIT,
-  WEIGHT_HISTORICAL_TOP10_RATING_BENEFIT:
-    process.env.WEIGHT_HISTORICAL_TOP10_RATING_BENEFIT,
-  WEIGHT_HISTORICAL_TOP20_RATING_BENEFIT:
-    process.env.WEIGHT_HISTORICAL_TOP20_RATING_BENEFIT,
-  WEIGHT_HISTORICAL_TOP30_RATING_BENEFIT:
-    process.env.WEIGHT_HISTORICAL_TOP30_RATING_BENEFIT,
-  WEIGHT_HISTORICAL_TOP50_RATING_BENEFIT:
-    process.env.WEIGHT_HISTORICAL_TOP50_RATING_BENEFIT,
-  WEIGHT_1MONTH_TOP30_MVP_EVENTS_RATING_BENEFIT:
-    process.env.WEIGHT_1MONTH_TOP30_MVP_EVENTS_RATING_BENEFIT,
-  WEIGHT_TOP_TEAM_RANK_BENEFIT: process.env.WEIGHT_TOP_TEAM_RANK_BENEFIT,
-  WEIGHT_AWPER_ROLE_BENEFIT: process.env.WEIGHT_AWPER_ROLE_BENEFIT,
-  WEIGHT_LOW_DEATH_RATE_BENEFIT: process.env.WEIGHT_LOW_DEATH_RATE_BENEFIT,
-  WEIGHT_CT_VS_T_RATING_IMBALANCE_PENALTY:
-    process.env.WEIGHT_CT_VS_T_RATING_IMBALANCE_PENALTY,
-  WEIGHT_STACK_CORRELATION_BENEFIT:
-    process.env.WEIGHT_STACK_CORRELATION_BENEFIT,
-  WEIGHT_TOP_RANKED_TEAM_STACK_BENEFIT:
-    process.env.WEIGHT_TOP_RANKED_TEAM_STACK_BENEFIT,
-  WEIGHT_AWP_PER_ROUND_WEIGHT: process.env.WEIGHT_AWP_PER_ROUND_WEIGHT,
-  WEIGHT_DEATH_PENALTY_WEIGHT: process.env.WEIGHT_DEATH_PENALTY_WEIGHT,
-  WEIGHT_PRICE_EFFICIENCY_BENEFIT:
-    process.env.WEIGHT_PRICE_EFFICIENCY_BENEFIT,
-  WEIGHT_FIELD_SIDE_3_PLAYER_PENALTY:
-    process.env.WEIGHT_FIELD_SIDE_3_PLAYER_PENALTY,
-  WEIGHT_FIELD_SIDE_4PLUS_PLAYER_PENALTY:
-    process.env.WEIGHT_FIELD_SIDE_4PLUS_PLAYER_PENALTY,
-  WEIGHT_FIELD_SIDE_CROSS_TEAM_PENALTY:
-    process.env.WEIGHT_FIELD_SIDE_CROSS_TEAM_PENALTY,
-  THRESHOLD_AWPER_ROLE_MIN_AWP_PER_ROUND:
-    process.env.THRESHOLD_AWPER_ROLE_MIN_AWP_PER_ROUND,
-  THRESHOLD_LOW_DEATH_RATE_MAX_DEATHS_PER_ROUND:
-    process.env.THRESHOLD_LOW_DEATH_RATE_MAX_DEATHS_PER_ROUND,
-});
+const parsed = envSchema.parse(process.env);
+
+/** Historical-source weights are resolved dynamically from the registry. */
+const histWeightOverrides = {} as Record<string, number | undefined>;
+for (const source of HISTORICAL_SOURCES) {
+  const raw = process.env[source.envVar];
+  if (raw != null && raw !== "") {
+    const value = Number(raw);
+    if (Number.isFinite(value)) {
+      histWeightOverrides[source.envVar] = value;
+    }
+  }
+}
+
+/** Shrinkage controls. */
+function parseShrinkage() {
+  const enabled = process.env.SHRINKAGE_ENABLED;
+  const prior = process.env.SHRINKAGE_LEAGUE_PRIOR;
+  const strength = process.env.SHRINKAGE_STRENGTH;
+  return {
+    enabled: enabled == null ? true : enabled === "true",
+    leaguePrior: prior != null && prior !== "" ? Number(prior) : undefined,
+    strength: strength != null && strength !== "" ? Number(strength) : undefined,
+  };
+}
+
+export const env = {
+  ...parsed,
+  HIST_WEIGHT_OVERRIDES: histWeightOverrides,
+  SHRINKAGE: parseShrinkage(),
+};

@@ -1,12 +1,63 @@
 [
   {
+    "key": "rating1mTop30MVPEvents",
+    "filename": "last_1_month_top_30_mvp_events.html",
+    "label": "Last 1 month · Top 30 (MVP events)",
+    "rankingFilter": "Top30",
+    "monthsBack": 1,
+    "matchType": "MvpEvents",
+    "minMapCount": 0,
+    "envVar": "WEIGHT_HIST_1M_TOP30_MVP",
+    "defaultWeight": 0.5,
+    "shrinkPriorMaps": 8
+  },
+  {
+    "key": "rating3mTop20MVPEvents",
+    "filename": "last_3_months_top_20_mvp_events.html",
+    "label": "Last 3 months · Top 20 (MVP events)",
+    "rankingFilter": "Top20",
+    "monthsBack": 3,
+    "matchType": "MvpEvents",
+    "minMapCount": 0,
+    "envVar": "WEIGHT_HIST_3M_TOP20_MVP",
+    "defaultWeight": 1.0,
+    "shrinkPriorMaps": 15
+  },
+  {
+    "key": "rating3mTop50Lan",
+    "filename": "last_3_months_top_50_lan.html",
+    "label": "Last 3 months · Top 50 (LAN)",
+    "rankingFilter": "Top50",
+    "monthsBack": 3,
+    "matchType": "Lan",
+    "minMapCount": 5,
+    "envVar": "WEIGHT_HIST_3M_TOP50_LAN",
+    "defaultWeight": 1.25,
+    "shrinkPriorMaps": 15
+  },
+  {
+    "key": "rating6mTop30Lan",
+    "filename": "last_6_months_top_30_lan.html",
+    "label": "Last 6 months · Top 30 (LAN)",
+    "rankingFilter": "Top30",
+    "monthsBack": 6,
+    "matchType": "Lan",
+    "minMapCount": 15,
+    "envVar": "WEIGHT_HIST_6M_TOP30_LAN",
+    "defaultWeight": 1.25,
+    "shrinkPriorMaps": 25
+  },
+  {
     "key": "rating12mTop10",
     "filename": "last_12_months_top_10.html",
     "label": "Last 12 months · Top 10 (LAN)",
     "rankingFilter": "Top10",
     "monthsBack": 12,
     "matchType": "Lan",
-    "minMapCount": 20
+    "minMapCount": 20,
+    "envVar": "WEIGHT_HIST_12M_TOP10_LAN",
+    "defaultWeight": 1.0,
+    "shrinkPriorMaps": 40
   },
   {
     "key": "rating12mTop20",
@@ -15,7 +66,10 @@
     "rankingFilter": "Top20",
     "monthsBack": 12,
     "matchType": "Lan",
-    "minMapCount": 30
+    "minMapCount": 30,
+    "envVar": "WEIGHT_HIST_12M_TOP20_LAN",
+    "defaultWeight": 1.25,
+    "shrinkPriorMaps": 40
   },
   {
     "key": "rating12mTop30",
@@ -24,7 +78,10 @@
     "rankingFilter": "Top30",
     "monthsBack": 12,
     "matchType": "Lan",
-    "minMapCount": 40
+    "minMapCount": 40,
+    "envVar": "WEIGHT_HIST_12M_TOP30_LAN",
+    "defaultWeight": 1.0,
+    "shrinkPriorMaps": 40
   },
   {
     "key": "rating12mTop50",
@@ -33,15 +90,9 @@
     "rankingFilter": "Top50",
     "monthsBack": 12,
     "matchType": "Lan",
-    "minMapCount": 50
-  },
-  {
-    "key": "rating1mTop30MVPEvents",
-    "filename": "last_1_month_top_30_mvp_events.html",
-    "label": "Last 1 month · Top 30 (MVP events)",
-    "rankingFilter": "Top30",
-    "monthsBack": 1,
-    "matchType": "MvpEvents",
-    "minMapCount": 0
+    "minMapCount": 50,
+    "envVar": "WEIGHT_HIST_12M_TOP50_LAN",
+    "defaultWeight": 0.75,
+    "shrinkPriorMaps": 40
   }
 ]

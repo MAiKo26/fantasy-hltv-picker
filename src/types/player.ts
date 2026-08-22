@@ -1,4 +1,5 @@
 import type {FieldSplitConfig} from "./fieldSplit.ts";
+import type {HistoricalSourceKey} from "../services/historicalSources.ts";
 
 export type CardLevel = "gold" | "silver" | "bronze";
 
@@ -13,11 +14,10 @@ export interface PlayerStats {
   supportRoundsPct: number;
   multiKillRoundsPct: number;
   deathsPerRound: number;
-  rating12mTop10?: number;
-  rating12mTop20?: number;
-  rating12mTop30?: number;
-  rating12mTop50?: number;
-  rating1mTop30MVPEvents?: number;
+  /** Raw historical ratings keyed by source. */
+  histRatings: Partial<Record<HistoricalSourceKey, number>>;
+  /** Maps played backing each historical rating (drives shrinkage/uncertainty). */
+  histMaps: Partial<Record<HistoricalSourceKey, number>>;
 }
 
 export interface FantasyPlayer {
@@ -50,24 +50,46 @@ export interface Player {
   rating: number;
 }
 
+export type OptimizationMode = "ev" | "consistency" | "ceiling";
+
+export interface ConsistencyMetrics {
+  /** P(lineup beats field median) */
+  pTop50: number;
+  /** P(lineup finishes in top 30% of field) */
+  pTop30: number;
+  /** P(lineup finishes in top 10% of field) */
+  pTop10: number;
+  /** Mean percentile vs field (0 = last, 1 = first). */
+  meanPercentile: number;
+  /** Median simulated rank among field lineups (lower is better). */
+  medianRank: number;
+}
+
+export interface PortfolioEntry {
+  players: Player[];
+  lineupIndex: number;
+  score: number;
+  totalPrice: number;
+  consistency?: ConsistencyMetrics;
+}
+
 export interface AnalysisResult {
   players: Player[];
   analyzedAt: Date;
   sourceUrl: string;
   reasoning: string;
+  mode: OptimizationMode;
+  recommendedLineupIndex: number;
+  recommendation: string;
   top3: Array<{
     players: Player[];
     lineupIndex: number;
     reasoning: string;
     score: number;
   }>;
-  allScoredLineups: Array<{
-    players: Player[];
-    lineupIndex: number;
-    reasoning: string;
-    score: number;
-    totalPrice: number;
-  }>;
+  /** Exposure-managed submission portfolio (diverse, overlap-capped). */
+  portfolio: PortfolioEntry[];
+  allScoredLineups: PortfolioEntry[];
   top20ByRating: Array<{
     id: string;
     name: string;
@@ -103,4 +125,5 @@ export interface FantasyConfig {
   excludedTeams?: string[];
   lineupLimit?: number;
   fieldSplit?: FieldSplitConfig | null;
+  mode?: OptimizationMode;
 }

@@ -8,187 +8,130 @@ import {env} from "../env.ts";
 import {normalizePlayerName, normalizeTeamName} from "../utils/normalize.ts";
 import {toFieldSplitRuntime} from "../types/fieldSplit.ts";
 import type {FieldSplitRuntime} from "../types/fieldSplit.ts";
+import {
+  HISTORICAL_SOURCES,
+  type HistoricalSourceKey,
+} from "./historicalSources.ts";
+import {
+  computeShrunkRatings,
+  computeDataConfidence,
+  computeFormVolatility,
+  DEFAULT_SHRINKAGE,
+  type ShrinkageOptions,
+} from "./shrinkage.ts";
 
-interface ScoreWeights {
-  cardRatingBenefit: number;
-  historicalTop10RatingBenefit: number;
-  historicalTop20RatingBenefit: number;
-  historicalTop30RatingBenefit: number;
-  historicalTop50RatingBenefit: number;
-  oneMonthTop30MVPEventsRatingBenefit: number;
-  topTeamRankBenefit: number;
-  awperRoleBenefit: number;
-  lowDeathRateBenefit: number;
-  ctVsTRatingImbalancePenalty: number;
-  stackCorrelationBenefit: number;
-  topRankedTeamStackBenefit: number;
-  awpPerRoundWeight: number;
-  deathPenaltyWeight: number;
-  priceEfficiencyBenefit: number;
-  fieldSide3PlayerPenalty: number;
-  fieldSide4PlusPlayerPenalty: number;
-  fieldSideCrossTeamPenalty: number;
-}
+export type HistWeightKey = `hist_${HistoricalSourceKey}`;
+
+export type PlayerWeightKey =
+  | "cardRatingBenefit"
+  | HistWeightKey
+  | "topTeamRankBenefit"
+  | "awperRoleBenefit"
+  | "lowDeathRateBenefit"
+  | "ctVsTRatingImbalancePenalty"
+  | "awpPerRoundWeight"
+  | "deathPenaltyWeight"
+  | "priceEfficiencyBenefit";
+
+export type LineupWeightKey =
+  | "stackCorrelationBenefit"
+  | "topRankedTeamStackBenefit"
+  | "fieldSide3PlayerPenalty"
+  | "fieldSide4PlusPlayerPenalty"
+  | "fieldSideCrossTeamPenalty";
+
+export type WeightKey = PlayerWeightKey | LineupWeightKey;
+
+export type ScoreWeights = Record<WeightKey, number>;
+
+export type OptimizerWeightOverrides = Partial<ScoreWeights>;
+export type OptimizerThresholdOverrides = Partial<ScoreThresholds>;
 
 const PRICE_EFFICIENCY_ANCHOR = 200000;
+
+/** Typical std-dev of a player's event rating around their projection. */
+const BASE_SIGMA = 0.1;
+/** Extra σ per unit of cross-window form volatility. */
+const VOLATILITY_SIGMA_SCALE = 0.9;
+/** Extra σ when historical data is thin (confidence ∈ [0,1]). */
+const THIN_DATA_SIGMA_SCALE = 0.08;
+/** Share of a teammate's team-level shock that bleeds into a player's score. */
+export const TEAM_CORRELATION = 0.3;
 
 interface ScoreThresholds {
   awperRoleMinAwpPerRound: number;
   lowDeathRateMaxDeathsPerRound: number;
 }
 
-export type OptimizerWeightOverrides = Partial<ScoreWeights>;
-export type OptimizerThresholdOverrides = Partial<ScoreThresholds>;
+function buildDefaultWeights(): ScoreWeights {
+  const weights = {
+    cardRatingBenefit: 0.25,
+    topTeamRankBenefit: 0.5,
+    awperRoleBenefit: 0,
+    lowDeathRateBenefit: 0,
+    ctVsTRatingImbalancePenalty: 0.5,
+    awpPerRoundWeight: 0,
+    deathPenaltyWeight: 0,
+    priceEfficiencyBenefit: 0,
 
-export interface MathLineup {
-  players: FantasyPlayer[];
-  totalPrice: number;
-  expectedBaseScore: number;
-  strategyUsed: Strategy;
-  scoringBreakdown?: {
-    baseSkillEV: number;
-    stackCorrelationEV: number;
-    stackRankBonus: number;
-    fieldSidePenaltyEV: number;
-  };
+    stackCorrelationBenefit: 0.5,
+    topRankedTeamStackBenefit: 0.75,
+
+    fieldSide3PlayerPenalty: 0.5,
+    fieldSide4PlusPlayerPenalty: 0.75,
+    fieldSideCrossTeamPenalty: 0.25,
+  } as ScoreWeights;
+  for (const source of HISTORICAL_SOURCES) {
+    weights[`hist_${source.key}`] = source.defaultWeight;
+  }
+  return weights;
 }
 
-interface PlayerProjection {
-  total: number;
-  baseSkillEV: number;
-}
-
-export interface PlayerScoreDiagnostics {
-  playerId: string;
-  name: string;
-  team: string;
-  price: number;
-  total: number;
-  baseSkillEV: number;
-  cardRating: number;
-  cardRatingWeight: number;
-  historicalTop10Rating: number | null;
-  historicalTop10RatingWeight: number;
-  historicalTop20Rating: number | null;
-  historicalTop20RatingWeight: number;
-  historicalTop30Rating: number | null;
-  historicalTop30RatingWeight: number;
-  historicalTop50Rating: number | null;
-  historicalTop50RatingWeight: number;
-  oneMonthTop30MVPEventsRating: number | null;
-  oneMonthTop30MVPEventsRatingWeight: number;
-  availableRatingCount: number;
-  combinedRatingContribution: number;
-  topTeamRankBenefit: number;
-  awperRoleBenefit: number;
-  lowDeathRateBenefit: number;
-  ctVsTRatingImbalancePenalty: number;
-  awpPerRoundWeight: number;
-  awpPerRoundContribution: number;
-  deathPenaltyWeight: number;
-  deathPenaltyContribution: number;
-  priceEfficiencyBenefit: number;
-  priceEfficiencyContribution: number;
-}
-
-export interface LineupScoreDiagnostics {
-  rank: number;
-  playerNames: string[];
-  totalScore: number;
-  breakdown: NonNullable<MathLineup["scoringBreakdown"]>;
-  sharesPct: Record<string, number>;
-}
-
-export interface OptimizationDiagnostics {
-  topPlayers: PlayerScoreDiagnostics[];
-  topLineups: LineupScoreDiagnostics[];
-}
-
-// 0.25 step
-const DEFAULT_WEIGHTS: ScoreWeights = {
-  historicalTop10RatingBenefit: 1.75,
-  historicalTop20RatingBenefit: 1.25,
-  historicalTop30RatingBenefit: 1,
-  historicalTop50RatingBenefit: 0.75,
-  cardRatingBenefit: 0.25,
-  oneMonthTop30MVPEventsRatingBenefit: 1,
-  topTeamRankBenefit: 0.5,
-  ctVsTRatingImbalancePenalty: 0.75,
-  awperRoleBenefit: 0,
-  lowDeathRateBenefit: 0,
-
-  // applies to assembling the team
-  stackCorrelationBenefit: 0.5,
-  topRankedTeamStackBenefit: 0.75,
-
-  // v5 additions: continuous signals (default 0 = backward-compatible)
-  awpPerRoundWeight: 0,
-  deathPenaltyWeight: 0,
-  priceEfficiencyBenefit: 0,
-
-  fieldSide3PlayerPenalty: 0.5,
-  fieldSide4PlusPlayerPenalty: 0.75,
-  fieldSideCrossTeamPenalty: 0.25,
-};
+const DEFAULT_WEIGHTS: ScoreWeights = buildDefaultWeights();
 
 const DEFAULT_THRESHOLDS: ScoreThresholds = {
   awperRoleMinAwpPerRound: 0.25,
   lowDeathRateMaxDeathsPerRound: 0.6,
 };
 
-function resolveWeights(overrides?: OptimizerWeightOverrides): ScoreWeights {
-  const envWeights: Partial<ScoreWeights> = {};
-  if (env.WEIGHT_CARD_RATING_BENEFIT != null)
-    envWeights.cardRatingBenefit = env.WEIGHT_CARD_RATING_BENEFIT;
-  if (env.WEIGHT_HISTORICAL_TOP10_RATING_BENEFIT != null)
-    envWeights.historicalTop10RatingBenefit =
-      env.WEIGHT_HISTORICAL_TOP10_RATING_BENEFIT;
-  if (env.WEIGHT_HISTORICAL_TOP20_RATING_BENEFIT != null)
-    envWeights.historicalTop20RatingBenefit =
-      env.WEIGHT_HISTORICAL_TOP20_RATING_BENEFIT;
-  if (env.WEIGHT_HISTORICAL_TOP30_RATING_BENEFIT != null)
-    envWeights.historicalTop30RatingBenefit =
-      env.WEIGHT_HISTORICAL_TOP30_RATING_BENEFIT;
-  if (env.WEIGHT_HISTORICAL_TOP50_RATING_BENEFIT != null)
-    envWeights.historicalTop50RatingBenefit =
-      env.WEIGHT_HISTORICAL_TOP50_RATING_BENEFIT;
-  if (env.WEIGHT_1MONTH_TOP30_MVP_EVENTS_RATING_BENEFIT != null)
-    envWeights.oneMonthTop30MVPEventsRatingBenefit =
-      env.WEIGHT_1MONTH_TOP30_MVP_EVENTS_RATING_BENEFIT;
-  if (env.WEIGHT_TOP_TEAM_RANK_BENEFIT != null)
-    envWeights.topTeamRankBenefit = env.WEIGHT_TOP_TEAM_RANK_BENEFIT;
-  if (env.WEIGHT_AWPER_ROLE_BENEFIT != null)
-    envWeights.awperRoleBenefit = env.WEIGHT_AWPER_ROLE_BENEFIT;
-  if (env.WEIGHT_LOW_DEATH_RATE_BENEFIT != null)
-    envWeights.lowDeathRateBenefit = env.WEIGHT_LOW_DEATH_RATE_BENEFIT;
-  if (env.WEIGHT_CT_VS_T_RATING_IMBALANCE_PENALTY != null)
-    envWeights.ctVsTRatingImbalancePenalty =
-      env.WEIGHT_CT_VS_T_RATING_IMBALANCE_PENALTY;
-  if (env.WEIGHT_STACK_CORRELATION_BENEFIT != null)
-    envWeights.stackCorrelationBenefit = env.WEIGHT_STACK_CORRELATION_BENEFIT;
-  if (env.WEIGHT_TOP_RANKED_TEAM_STACK_BENEFIT != null)
-    envWeights.topRankedTeamStackBenefit =
-      env.WEIGHT_TOP_RANKED_TEAM_STACK_BENEFIT;
-  if (env.WEIGHT_AWP_PER_ROUND_WEIGHT != null)
-    envWeights.awpPerRoundWeight = env.WEIGHT_AWP_PER_ROUND_WEIGHT;
-  if (env.WEIGHT_DEATH_PENALTY_WEIGHT != null)
-    envWeights.deathPenaltyWeight = env.WEIGHT_DEATH_PENALTY_WEIGHT;
-  if (env.WEIGHT_PRICE_EFFICIENCY_BENEFIT != null)
-    envWeights.priceEfficiencyBenefit = env.WEIGHT_PRICE_EFFICIENCY_BENEFIT;
-  if (env.WEIGHT_FIELD_SIDE_3_PLAYER_PENALTY != null)
-    envWeights.fieldSide3PlayerPenalty = env.WEIGHT_FIELD_SIDE_3_PLAYER_PENALTY;
-  if (env.WEIGHT_FIELD_SIDE_4PLUS_PLAYER_PENALTY != null)
-    envWeights.fieldSide4PlusPlayerPenalty =
-      env.WEIGHT_FIELD_SIDE_4PLUS_PLAYER_PENALTY;
-  if (env.WEIGHT_FIELD_SIDE_CROSS_TEAM_PENALTY != null)
-    envWeights.fieldSideCrossTeamPenalty =
-      env.WEIGHT_FIELD_SIDE_CROSS_TEAM_PENALTY;
+const STATIC_ENV_KEYS: Partial<Record<WeightKey, string>> = {
+  cardRatingBenefit: "WEIGHT_CARD_RATING_BENEFIT",
+  topTeamRankBenefit: "WEIGHT_TOP_TEAM_RANK_BENEFIT",
+  awperRoleBenefit: "WEIGHT_AWPER_ROLE_BENEFIT",
+  lowDeathRateBenefit: "WEIGHT_LOW_DEATH_RATE_BENEFIT",
+  ctVsTRatingImbalancePenalty: "WEIGHT_CT_VS_T_RATING_IMBALANCE_PENALTY",
+  stackCorrelationBenefit: "WEIGHT_STACK_CORRELATION_BENEFIT",
+  topRankedTeamStackBenefit: "WEIGHT_TOP_RANKED_TEAM_STACK_BENEFIT",
+  awpPerRoundWeight: "WEIGHT_AWP_PER_ROUND_WEIGHT",
+  deathPenaltyWeight: "WEIGHT_DEATH_PENALTY_WEIGHT",
+  priceEfficiencyBenefit: "WEIGHT_PRICE_EFFICIENCY_BENEFIT",
+  fieldSide3PlayerPenalty: "WEIGHT_FIELD_SIDE_3_PLAYER_PENALTY",
+  fieldSide4PlusPlayerPenalty: "WEIGHT_FIELD_SIDE_4PLUS_PLAYER_PENALTY",
+  fieldSideCrossTeamPenalty: "WEIGHT_FIELD_SIDE_CROSS_TEAM_PENALTY",
+};
 
-  return {
-    ...DEFAULT_WEIGHTS,
-    ...envWeights,
-    ...(overrides ?? {}),
-  };
+function envValueFor(key: WeightKey): number | undefined {
+  if (key.startsWith("hist_")) {
+    const sourceKey = key.slice("hist_".length) as HistoricalSourceKey;
+    const def = HISTORICAL_SOURCES.find((s) => s.key === sourceKey);
+    if (!def) return undefined;
+    return env.HIST_WEIGHT_OVERRIDES[def.envVar];
+  }
+  const envKey = STATIC_ENV_KEYS[key];
+  return envKey
+    ? ((env as unknown as Record<string, number | undefined>)[envKey])
+    : undefined;
+}
+
+export function resolveWeights(
+  overrides?: OptimizerWeightOverrides,
+): ScoreWeights {
+  const resolved = {...DEFAULT_WEIGHTS};
+  for (const key of Object.keys(resolved) as WeightKey[]) {
+    const envVal = envValueFor(key);
+    if (envVal != null) resolved[key] = envVal;
+  }
+  return {...resolved, ...(overrides ?? {})};
 }
 
 function resolveThresholds(
@@ -209,12 +152,67 @@ function resolveThresholds(
   };
 }
 
+export interface MathLineup {
+  players: FantasyPlayer[];
+  totalPrice: number;
+  expectedBaseScore: number;
+  strategyUsed: Strategy;
+  scoringBreakdown?: {
+    baseSkillEV: number;
+    stackCorrelationEV: number;
+    stackRankBonus: number;
+    fieldSidePenaltyEV: number;
+  };
+}
+
+interface PlayerProjection {
+  total: number;
+  baseSkillEV: number;
+  sigma: number;
+}
+
+export interface ScoreComponent {
+  key: string;
+  label: string;
+  value: number;
+  weight: number;
+  contribution: number;
+}
+
+export interface PlayerScoreDiagnostics {
+  playerId: string;
+  name: string;
+  team: string;
+  price: number;
+  total: number;
+  baseSkillEV: number;
+  sigma: number;
+  dataConfidence: number;
+  formVolatility: number;
+  components: ScoreComponent[];
+}
+
+export interface LineupScoreDiagnostics {
+  rank: number;
+  playerNames: string[];
+  totalScore: number;
+  breakdown: NonNullable<MathLineup["scoringBreakdown"]>;
+  sharesPct: Record<string, number>;
+}
+
+export interface OptimizationDiagnostics {
+  topPlayers: PlayerScoreDiagnostics[];
+  topLineups: LineupScoreDiagnostics[];
+}
+
 export class MathOptimizer {
   private readonly MAX_BUDGET = 1000000;
   private readonly MAX_PLAYER_PRICE = 251000;
   private readonly TARGET_RESULTS = 50;
-  private readonly CANDIDATE_POOL_LIMIT = 65;
+  private readonly CANDIDATE_POOL_LIMIT = 80;
   private readonly TEAM_CANDIDATES_LIMIT = 4;
+  private readonly VALUE_TIER_COUNT = 2;
+  private readonly PRICE_BUCKET_COUNT = 5;
   private readonly MAX_TRACKED_LINEUPS = 50;
 
   private teamRankings: Map<string, number> = new Map();
@@ -222,6 +220,7 @@ export class MathOptimizer {
   private teamRankMax = 0;
   private runtimeWeights: ScoreWeights = DEFAULT_WEIGHTS;
   private runtimeThresholds: ScoreThresholds = DEFAULT_THRESHOLDS;
+  private runtimeShrinkage: ShrinkageOptions = {...DEFAULT_SHRINKAGE};
   private fieldSplitRuntime: FieldSplitRuntime | null = null;
   private effectiveTargetResults = 50;
   private lastDiagnostics: OptimizationDiagnostics = {
@@ -245,6 +244,10 @@ export class MathOptimizer {
     this.teamRankMax = max === -Infinity ? 0 : max;
   }
 
+  setShrinkage(options: Partial<ShrinkageOptions>): void {
+    this.runtimeShrinkage = {...this.runtimeShrinkage, ...options};
+  }
+
   private getFieldRelativeRankBonus(teamRank: number): number {
     if (teamRank <= 0) return 0;
     const range = this.teamRankMax - this.teamRankMin;
@@ -253,77 +256,111 @@ export class MathOptimizer {
     return Math.log(1 + relative);
   }
 
-  private getAvailableRatingCount(player: FantasyPlayer): number {
-    let count = 0;
-    if (player.stats.rating > 0) count++;
-    if (player.stats.rating12mTop10 != null) count++;
-    if (player.stats.rating12mTop20 != null) count++;
-    if (player.stats.rating12mTop30 != null) count++;
-    if (player.stats.rating12mTop50 != null) count++;
-    if (player.stats.rating1mTop30MVPEvents != null) count++;
-    return count;
+  getShrunkRatings(
+    player: FantasyPlayer,
+  ): Partial<Record<HistoricalSourceKey, number>> {
+    const shrinkageFromEnv = env.SHRINKAGE;
+    const options: ShrinkageOptions = {
+      enabled:
+        this.runtimeShrinkage.enabled && shrinkageFromEnv.enabled !== false,
+      leaguePrior:
+        this.runtimeShrinkage.leaguePrior ?? shrinkageFromEnv.leaguePrior ?? 1.06,
+      strength:
+        this.runtimeShrinkage.strength ?? shrinkageFromEnv.strength ?? 1,
+    };
+    return computeShrunkRatings(player, options);
   }
 
-  private getCombinedRatingContribution(player: FantasyPlayer): number {
-    const stats = player.stats;
+  private getAvailableRatingCount(shrunk: Partial<Record<HistoricalSourceKey, number>>): number {
+    return Object.values(shrunk).filter((v) => v != null).length;
+  }
+
+  private getCombinedRatingContribution(
+    shrunk: Partial<Record<HistoricalSourceKey, number>>,
+  ): number {
     const weights = this.runtimeWeights;
-    const numerator =
-      stats.rating * weights.cardRatingBenefit +
-      (stats.rating12mTop10 ?? 0) * weights.historicalTop10RatingBenefit +
-      (stats.rating12mTop20 ?? 0) * weights.historicalTop20RatingBenefit +
-      (stats.rating12mTop30 ?? 0) * weights.historicalTop30RatingBenefit +
-      (stats.rating12mTop50 ?? 0) * weights.historicalTop50RatingBenefit +
-      (stats.rating1mTop30MVPEvents ?? 0) *
-        weights.oneMonthTop30MVPEventsRatingBenefit;
-    const count = this.getAvailableRatingCount(player);
+    let numerator = 0;
+    for (const source of HISTORICAL_SOURCES) {
+      const rating = shrunk[source.key];
+      if (rating == null) continue;
+      numerator += rating * weights[`hist_${source.key}`];
+    }
+    const count = this.getAvailableRatingCount(shrunk);
     return count > 0 ? numerator / count : 0;
   }
 
-  getExpectedBaseScore(player: FantasyPlayer): number {
+  /** Per-player σ used by the contest simulator. */
+  getPlayerSigma(player: FantasyPlayer): number {
+    const shrunk = this.getShrunkRatings(player);
+    const volatility = computeFormVolatility(shrunk);
+    const confidence = computeDataConfidence(player);
+    return (
+      BASE_SIGMA +
+      VOLATILITY_SIGMA_SCALE * Math.min(volatility, 0.12) +
+      THIN_DATA_SIGMA_SCALE * (1 - confidence)
+    );
+  }
+
+  getDataConfidence(player: FantasyPlayer): number {
+    return computeDataConfidence(player);
+  }
+
+  /**
+   * Trait vector: the per-player feature values multiplied by their weight keys.
+   * Used by backtest scripts to re-score players without re-running extraction.
+   */
+  getTraitVector(
+    player: FantasyPlayer,
+  ): {traits: Record<PlayerWeightKey, number>} {
     const teamRank = this.teamRankings.get(normalizeTeamName(player.team));
+    const shrunk = this.getShrunkRatings(player);
+    const sideVariance = Math.abs(player.stats.ctRating - player.stats.tRating);
+    const priceRatio =
+      player.price > 0 ? player.price / PRICE_EFFICIENCY_ANCHOR : 0;
+    const efficiencyTrait =
+      priceRatio > 0 ? player.stats.rating / priceRatio : 0;
 
-    let score = this.getCombinedRatingContribution(player);
-
-    if (teamRank) {
-      score +=
-        this.getFieldRelativeRankBonus(teamRank) *
-        this.runtimeWeights.topTeamRankBenefit;
+    const traits = {} as Record<PlayerWeightKey, number>;
+    traits.cardRatingBenefit = player.stats.rating;
+    for (const source of HISTORICAL_SOURCES) {
+      traits[`hist_${source.key}`] = shrunk[source.key] ?? 0;
     }
-
-    if (
-      player.stats.awpPerRound >= this.runtimeThresholds.awperRoleMinAwpPerRound
-    ) {
-      score += this.runtimeWeights.awperRoleBenefit;
-    }
-
-    if (
+    traits.topTeamRankBenefit = teamRank
+      ? this.getFieldRelativeRankBonus(teamRank)
+      : 0;
+    traits.awperRoleBenefit =
+      player.stats.awpPerRound >=
+      this.runtimeThresholds.awperRoleMinAwpPerRound
+        ? 1
+        : 0;
+    traits.lowDeathRateBenefit =
       player.stats.deathsPerRound <=
       this.runtimeThresholds.lowDeathRateMaxDeathsPerRound
-    ) {
-      score += this.runtimeWeights.lowDeathRateBenefit;
+        ? 1
+        : 0;
+    traits.ctVsTRatingImbalancePenalty = -sideVariance;
+    traits.awpPerRoundWeight = player.stats.awpPerRound;
+    traits.deathPenaltyWeight = -player.stats.deathsPerRound;
+    traits.priceEfficiencyBenefit = efficiencyTrait;
+    return {traits};
+  }
+
+  getExpectedBaseScore(player: FantasyPlayer): number {
+    const traits = this.getTraitVector(player).traits;
+    const weights = this.runtimeWeights;
+    let score = 0;
+    for (const key of Object.keys(traits) as PlayerWeightKey[]) {
+      score += traits[key] * weights[key];
     }
-
-    const sideVariance = Math.abs(player.stats.ctRating - player.stats.tRating);
-    score -= sideVariance * this.runtimeWeights.ctVsTRatingImbalancePenalty;
-
-    score += player.stats.awpPerRound * this.runtimeWeights.awpPerRoundWeight;
-    score -=
-      player.stats.deathsPerRound * this.runtimeWeights.deathPenaltyWeight;
-    if (player.price > 0) {
-      const priceRatio = player.price / PRICE_EFFICIENCY_ANCHOR;
-      const efficiency = player.stats.rating / priceRatio;
-      score += efficiency * this.runtimeWeights.priceEfficiencyBenefit;
-    }
-
     return score;
   }
 
   private getPlayerProjection(player: FantasyPlayer): PlayerProjection {
     const baseSkillEV = this.getExpectedBaseScore(player);
-
     return {
       total: baseSkillEV,
       baseSkillEV,
+      sigma: this.getPlayerSigma(player),
     };
   }
 
@@ -408,6 +445,10 @@ export class MathOptimizer {
     return totalPenalty;
   }
 
+  /**
+   * Candidate pool: top scorers + per-team depth + best value (points per $)
+   * in each price bucket so budget-constrained lineups keep access to enablers.
+   */
   private buildCandidatePool(
     players: FantasyPlayer[],
     projectionById: Map<string, PlayerProjection>,
@@ -434,6 +475,29 @@ export class MathOptimizer {
     }
     for (const list of byTeam.values()) {
       for (const player of list) merged.set(player.id, player);
+    }
+
+    // Value tiers: best score-per-dollar within each price bucket.
+    const prices = sorted.map((p) => p.price).filter((v) => v > 0);
+    if (prices.length >= this.PRICE_BUCKET_COUNT * 4) {
+      const min = Math.min(...prices);
+      const max = Math.max(...prices);
+      const span = (max - min) / this.PRICE_BUCKET_COUNT;
+      for (let b = 0; b < this.PRICE_BUCKET_COUNT; b++) {
+        const lo = min + b * span;
+        const hi = lo + span;
+        const bucket = sorted.filter(
+          (p) => p.price >= lo && (b === this.PRICE_BUCKET_COUNT - 1 ? p.price <= hi : p.price < hi),
+        );
+        bucket.sort((x, y) => {
+          const vx = (projectionById.get(x.id)?.baseSkillEV ?? 0) / x.price;
+          const vy = (projectionById.get(y.id)?.baseSkillEV ?? 0) / y.price;
+          return vy - vx;
+        });
+        for (const p of bucket.slice(0, this.VALUE_TIER_COUNT)) {
+          merged.set(p.id, p);
+        }
+      }
     }
 
     return [...merged.values()].sort((a, b) => {
@@ -738,6 +802,103 @@ export class MathOptimizer {
     return selected.slice(0, this.effectiveTargetResults);
   }
 
+  private buildComponentList(
+    player: FantasyPlayer,
+    shrunk: Partial<Record<HistoricalSourceKey, number>>,
+  ): ScoreComponent[] {
+    const weights = this.runtimeWeights;
+    const thresholds = this.runtimeThresholds;
+    const components: ScoreComponent[] = [
+      {
+        key: "cardRating",
+        label: "card",
+        value: player.stats.rating,
+        weight: weights.cardRatingBenefit,
+        contribution: player.stats.rating * weights.cardRatingBenefit,
+      },
+    ];
+
+    for (const source of HISTORICAL_SOURCES) {
+      const rating = shrunk[source.key];
+      const weight = weights[`hist_${source.key}`];
+      components.push({
+        key: `hist_${source.key}`,
+        label: source.label,
+        value: rating ?? Number.NaN,
+        weight,
+        contribution: rating != null ? rating * weight : 0,
+      });
+    }
+
+    const teamRank = this.teamRankings.get(normalizeTeamName(player.team));
+    components.push({
+      key: "teamRank",
+      label: "team rank",
+      value: teamRank ? this.getFieldRelativeRankBonus(teamRank) : 0,
+      weight: weights.topTeamRankBenefit,
+      contribution: teamRank
+        ? this.getFieldRelativeRankBonus(teamRank) * weights.topTeamRankBenefit
+        : 0,
+    });
+    components.push({
+      key: "awperRole",
+      label: "awp gate",
+      value: player.stats.awpPerRound >= thresholds.awperRoleMinAwpPerRound ? 1 : 0,
+      weight: weights.awperRoleBenefit,
+      contribution:
+        player.stats.awpPerRound >= thresholds.awperRoleMinAwpPerRound
+          ? weights.awperRoleBenefit
+          : 0,
+    });
+    components.push({
+      key: "lowDeathRate",
+      label: "survival gate",
+      value:
+        player.stats.deathsPerRound <= thresholds.lowDeathRateMaxDeathsPerRound
+          ? 1
+          : 0,
+      weight: weights.lowDeathRateBenefit,
+      contribution:
+        player.stats.deathsPerRound <= thresholds.lowDeathRateMaxDeathsPerRound
+          ? weights.lowDeathRateBenefit
+          : 0,
+    });
+    const sideVariance = Math.abs(player.stats.ctRating - player.stats.tRating);
+    components.push({
+      key: "ctVsT",
+      label: "CT/T imbalance",
+      value: -sideVariance,
+      weight: weights.ctVsTRatingImbalancePenalty,
+      contribution: -sideVariance * weights.ctVsTRatingImbalancePenalty,
+    });
+    components.push({
+      key: "awpPerRound",
+      label: "awp/round",
+      value: player.stats.awpPerRound,
+      weight: weights.awpPerRoundWeight,
+      contribution: player.stats.awpPerRound * weights.awpPerRoundWeight,
+    });
+    components.push({
+      key: "deaths",
+      label: "deaths/round",
+      value: -player.stats.deathsPerRound,
+      weight: weights.deathPenaltyWeight,
+      contribution: -player.stats.deathsPerRound * weights.deathPenaltyWeight,
+    });
+    const priceRatio =
+      player.price > 0 ? player.price / PRICE_EFFICIENCY_ANCHOR : 0;
+    const efficiency = priceRatio > 0 ? player.stats.rating / priceRatio : 0;
+    components.push({
+      key: "priceEfficiency",
+      label: "$ efficiency",
+      value: efficiency,
+      weight: weights.priceEfficiencyBenefit,
+      contribution: efficiency * weights.priceEfficiencyBenefit,
+    });
+
+    return components;
+  }
+
   private buildDiagnostics(
     lineups: MathLineup[],
     projectionById: Map<string, PlayerProjection>,
@@ -746,80 +907,33 @@ export class MathOptimizer {
     const topPlayers = [...projectionById.entries()]
       .map(([playerId, projection]) => {
         const player = playerById.get(playerId);
-        const teamRank = player
-          ? this.teamRankings.get(normalizeTeamName(player.team))
-          : undefined;
-        const sideVariance = player
-          ? Math.abs(player.stats.ctRating - player.stats.tRating)
-          : 0;
-        const awpPerRound = player?.stats.awpPerRound ?? 0;
-        const deathsPerRound = player?.stats.deathsPerRound ?? 0;
-        const priceRatio =
-          player && player.price > 0
-            ? player.price / PRICE_EFFICIENCY_ANCHOR
-            : 0;
-        const efficiencyTrait =
-          player && priceRatio > 0
-            ? (player.stats.rating ?? 0) / priceRatio
-            : 0;
+        if (!player) {
+          return {
+            playerId,
+            name: playerId,
+            team: "",
+            price: 0,
+            total: projection.total,
+            baseSkillEV: projection.baseSkillEV,
+            sigma: projection.sigma,
+            dataConfidence: 0,
+            formVolatility: 0,
+            components: [] as ScoreComponent[],
+          };
+        }
+        const shrunk = this.getShrunkRatings(player);
+        const components = this.buildComponentList(player, shrunk);
         return {
           playerId,
-          name: player?.name ?? playerId,
-          team: player?.team ?? "",
-          price: player?.price ?? 0,
+          name: player.name,
+          team: player.team,
+          price: player.price,
           total: projection.total,
           baseSkillEV: projection.baseSkillEV,
-          cardRating: player?.stats.rating ?? 0,
-          cardRatingWeight: this.runtimeWeights.cardRatingBenefit,
-          historicalTop10Rating: player?.stats.rating12mTop10 ?? null,
-          historicalTop10RatingWeight:
-            this.runtimeWeights.historicalTop10RatingBenefit,
-          historicalTop20Rating: player?.stats.rating12mTop20 ?? null,
-          historicalTop20RatingWeight:
-            this.runtimeWeights.historicalTop20RatingBenefit,
-          historicalTop30Rating: player?.stats.rating12mTop30 ?? null,
-          historicalTop30RatingWeight:
-            this.runtimeWeights.historicalTop30RatingBenefit,
-          historicalTop50Rating: player?.stats.rating12mTop50 ?? null,
-          historicalTop50RatingWeight:
-            this.runtimeWeights.historicalTop50RatingBenefit,
-          oneMonthTop30MVPEventsRating:
-            player?.stats.rating1mTop30MVPEvents ?? null,
-          oneMonthTop30MVPEventsRatingWeight:
-            this.runtimeWeights.oneMonthTop30MVPEventsRatingBenefit,
-          availableRatingCount: player
-            ? this.getAvailableRatingCount(player)
-            : 0,
-          combinedRatingContribution: player
-            ? this.getCombinedRatingContribution(player)
-            : 0,
-          topTeamRankBenefit: teamRank
-            ? this.getFieldRelativeRankBonus(teamRank) *
-              this.runtimeWeights.topTeamRankBenefit
-            : 0,
-          awperRoleBenefit:
-            player &&
-            player.stats.awpPerRound >=
-              this.runtimeThresholds.awperRoleMinAwpPerRound
-              ? this.runtimeWeights.awperRoleBenefit
-              : 0,
-          lowDeathRateBenefit:
-            player &&
-            player.stats.deathsPerRound <=
-              this.runtimeThresholds.lowDeathRateMaxDeathsPerRound
-              ? this.runtimeWeights.lowDeathRateBenefit
-              : 0,
-          ctVsTRatingImbalancePenalty:
-            sideVariance * this.runtimeWeights.ctVsTRatingImbalancePenalty,
-          awpPerRoundWeight: this.runtimeWeights.awpPerRoundWeight,
-          awpPerRoundContribution:
-            awpPerRound * this.runtimeWeights.awpPerRoundWeight,
-          deathPenaltyWeight: this.runtimeWeights.deathPenaltyWeight,
-          deathPenaltyContribution:
-            deathsPerRound * this.runtimeWeights.deathPenaltyWeight,
-          priceEfficiencyBenefit: this.runtimeWeights.priceEfficiencyBenefit,
-          priceEfficiencyContribution:
-            efficiencyTrait * this.runtimeWeights.priceEfficiencyBenefit,
+          sigma: projection.sigma,
+          dataConfidence: computeDataConfidence(player),
+          formVolatility: computeFormVolatility(shrunk),
+          components,
         };
       })
       .sort((a, b) => b.total - a.total)
@@ -871,49 +985,23 @@ export class MathOptimizer {
     return this.lastDiagnostics;
   }
 
-  getPlayerTraitVector(player: FantasyPlayer): {
-    traits: Record<keyof ScoreWeights, number>;
-  } {
-    const teamRank = this.teamRankings.get(normalizeTeamName(player.team));
-    const sideVariance = Math.abs(player.stats.ctRating - player.stats.tRating);
-    const priceRatio =
-      player.price > 0 ? player.price / PRICE_EFFICIENCY_ANCHOR : 0;
-    const efficiencyTrait =
-      priceRatio > 0 ? player.stats.rating / priceRatio : 0;
+  getCurrentWeights(): ScoreWeights {
+    return this.runtimeWeights;
+  }
 
-    return {
-      traits: {
-        cardRatingBenefit: player.stats.rating,
-        historicalTop10RatingBenefit: player.stats.rating12mTop10 ?? 0,
-        historicalTop20RatingBenefit: player.stats.rating12mTop20 ?? 0,
-        historicalTop30RatingBenefit: player.stats.rating12mTop30 ?? 0,
-        historicalTop50RatingBenefit: player.stats.rating12mTop50 ?? 0,
-        oneMonthTop30MVPEventsRatingBenefit:
-          player.stats.rating1mTop30MVPEvents ?? 0,
-        topTeamRankBenefit: teamRank
-          ? this.getFieldRelativeRankBonus(teamRank)
-          : 0,
-        awperRoleBenefit:
-          player.stats.awpPerRound >=
-          this.runtimeThresholds.awperRoleMinAwpPerRound
-            ? 1
-            : 0,
-        lowDeathRateBenefit:
-          player.stats.deathsPerRound <=
-          this.runtimeThresholds.lowDeathRateMaxDeathsPerRound
-            ? 1
-            : 0,
-        ctVsTRatingImbalancePenalty: -sideVariance,
-        stackCorrelationBenefit: 0,
-        topRankedTeamStackBenefit: 0,
-        awpPerRoundWeight: player.stats.awpPerRound,
-        deathPenaltyWeight: -player.stats.deathsPerRound,
-        priceEfficiencyBenefit: efficiencyTrait,
-        fieldSide3PlayerPenalty: 0,
-        fieldSide4PlusPlayerPenalty: 0,
-        fieldSideCrossTeamPenalty: 0,
-      },
-    };
+  /** Restores runtime scoring state after override-based optimize() calls. */
+  applyWeights(weights?: ScoreWeights): void {
+    this.runtimeWeights = weights ?? resolveWeights();
+  }
+
+  /** One-off optimize with explicit overrides that never leak into runtime state. */
+  optimizeIsolated(
+    players: FantasyPlayer[],
+    teams: FantasyTeam[],
+    config: FantasyConfig,
+    weightOverrides: OptimizerWeightOverrides,
+  ): MathLineup[] {
+    return this.optimize(players, teams, config, weightOverrides);
   }
 }
 
