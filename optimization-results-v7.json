@@ -1,0 +1,98 @@
+{
+  "generatedAt": "2026-08-22T19:35:35.305Z",
+  "eventCount": 14,
+  "method": "walk-forward coordinate descent (player-level) + full-eval coordinate descent (lineup-level)",
+  "meanHeldOutSpearman": 0.5699385629315759,
+  "meanBaselineSpearman": 0.5170029278744862,
+  "finalWeights": {
+    "cardRatingBenefit": 0,
+    "topTeamRankBenefit": 0.25,
+    "ctVsTRatingImbalancePenalty": 0.65,
+    "awpPerRoundWeight": 0,
+    "deathPenaltyWeight": 0.1,
+    "priceEfficiencyBenefit": 0,
+    "stackCorrelationBenefit": 0.35,
+    "fieldSide3PlayerPenalty": 0.25,
+    "fieldSide4PlusPlayerPenalty": 1.1,
+    "fieldSideCrossTeamPenalty": 0.2,
+    "hist_rating12mTop50": 2.95,
+    "hist_rating12mTop20": 0.625,
+    "hist_rating6mTop50MVPEvents": 3.175,
+    "hist_rating6mTop20MVPEvents": 2.75,
+    "hist_rating3mTop50Lan": 0.0234,
+    "hist_rating3mTop20MVPEvents": 0
+  },
+  "defaultWeights": {
+    "cardRatingBenefit": 0.25,
+    "topTeamRankBenefit": 0.5,
+    "ctVsTRatingImbalancePenalty": 0.2,
+    "awpPerRoundWeight": 0,
+    "deathPenaltyWeight": 0,
+    "priceEfficiencyBenefit": 0,
+    "stackCorrelationBenefit": 0.35,
+    "fieldSide3PlayerPenalty": 0.25,
+    "fieldSide4PlusPlayerPenalty": 1.1,
+    "fieldSideCrossTeamPenalty": 0.2,
+    "hist_rating12mTop50": 0.75,
+    "hist_rating12mTop20": 1,
+    "hist_rating6mTop50MVPEvents": 1.25,
+    "hist_rating6mTop20MVPEvents": 1.4,
+    "hist_rating3mTop50Lan": 1.5,
+    "hist_rating3mTop20MVPEvents": 1.75
+  },
+  "heldOutFolds": [
+    {
+      "slug": "blast-rivals-2026-season-1",
+      "loss": 0,
+      "spearman": 0
+    },
+    {
+      "slug": "epl-stage-1-2026",
+      "loss": -0.5596406207961288,
+      "spearman": 0.5596406207961288
+    },
+    {
+      "slug": "epl-stage-2-2026",
+      "loss": -0.5598615476702071,
+      "spearman": 0.5598615476702071
+    },
+    {
+      "slug": "epl-stage-3-2026",
+      "loss": -0.7108958028692967,
+      "spearman": 0.7108958028692967
+    },
+    {
+      "slug": "group-stage-BLAST-Open-Rotterdam-2026",
+      "loss": -0.6840049800169334,
+      "spearman": 0.6840049800169334
+    },
+    {
+      "slug": "group-stage-pgl-astana-2026",
+      "loss": -0.7140234599318057,
+      "spearman": 0.7140234599318057
+    },
+    {
+      "slug": "playoffs-pgl-astana-2026",
+      "loss": -0.7343918888272315,
+      "spearman": 0.7343918888272315
+    },
+    {
+      "slug": "stage-1-cologne-major-2026",
+      "loss": -0.5966902033410034,
+      "spearman": 0.5966902033410034
+    }
+  ],
+  "fullEvalV7": {
+    "spearmanLoss": -0.5668584743871431,
+    "topRatedCoverage": 0.8541496598639456,
+    "bestValueCoverage": 0.9342948717948718,
+    "total": 0.047075329903804086
+  },
+  "fullEvalDefaults": {
+    "spearmanLoss": -0.5314969505323798,
+    "topRatedCoverage": 0.8598752834467122,
+    "bestValueCoverage": 0.9400641025641027,
+    "total": 0.08645351170379684
+  },
+  "envSnippet": "WEIGHT_HIST_12M_TOP50_LAN=2.95\nWEIGHT_HIST_12M_TOP20_LAN=0.625\nWEIGHT_HIST_6M_TOP50_MVP=3.175\nWEIGHT_HIST_6M_TOP20_MVP=2.75\nWEIGHT_HIST_3M_TOP50_LAN=0.0234\nWEIGHT_HIST_3M_TOP20_MVP=0\nWEIGHT_CARD_RATING_BENEFIT=0\nWEIGHT_TOP_TEAM_RANK_BENEFIT=0.25\nWEIGHT_CT_VS_T_RATING_IMBALANCE_PENALTY=0.65\nWEIGHT_DEATH_PENALTY_WEIGHT=0.1"
+}
