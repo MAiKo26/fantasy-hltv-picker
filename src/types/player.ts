@@ -16,7 +16,7 @@ export interface PlayerStats {
   deathsPerRound: number;
   /** Raw historical ratings keyed by source. */
   histRatings: Partial<Record<HistoricalSourceKey, number>>;
-  /** Maps played backing each historical rating (drives shrinkage/uncertainty). */
+  /** Maps played backing each historical rating (drives uncertainty). */
   histMaps: Partial<Record<HistoricalSourceKey, number>>;
 }
 
