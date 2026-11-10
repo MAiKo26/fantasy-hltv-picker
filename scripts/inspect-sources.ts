@@ -11,13 +11,11 @@ interface Row {
 
 const FILES: [string, string][] = [
   ["12m Top50 LAN", "last_12_months_top_50.html"],
-  ["12m Top30 LAN", "last_12_months_top_30.html"],
   ["12m Top20 LAN", "last_12_months_top_20.html"],
-  ["12m Top10 LAN", "last_12_months_top_10.html"],
-  ["6m Top30 LAN", "last_6_months_top_30_lan.html"],
+  ["6m Top50 MVP", "last_6_months_top_50_mvp_events.html"],
+  ["6m Top20 MVP", "last_6_months_top_20_mvp_events.html"],
   ["3m Top50 LAN", "last_3_months_top_50_lan.html"],
   ["3m Top20 MVP", "last_3_months_top_20_mvp_events.html"],
-  ["1m Top30 MVP", "last_1_month_top_30_mvp_events.html"],
 ];
 
 function parse(file: string): Row[] {
